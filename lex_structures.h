@@ -1,0 +1,24 @@
+#ifndef __LEX_STRUCTURES_H_
+#define __LEX_STRUCTURES_H_
+
+// Rule of finite automata in the format 'pa -> q'
+// p = from state
+// q = to state
+// a = set of acceptable symbols to make a transition to 'q'
+typedef struct {
+    int from_state;
+    char transition_symbols[50];
+    int to_state;
+} ruleT;
+
+// M = (Q, Sigma, R, s, F)
+typedef struct {
+    int states[50];
+    char alphabet[50];
+    ruleT rules[50];
+    int start_state;
+    int final_states[50];
+    char name[10];
+} finite_automataT;
+
+#endif
