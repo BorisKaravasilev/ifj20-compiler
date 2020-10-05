@@ -1,4 +1,5 @@
 #IFJ 2020 Compiler
+
 From a UNIX like terminal run these commands:
 
 ```bash
