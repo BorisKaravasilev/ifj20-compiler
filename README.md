@@ -9,7 +9,7 @@ make
 
 Lexical analyzer for any finite automata.
 
-Sample FA definition in [a relative link](finite_automata_definition.c) sample FA graph drawing in [a relative link](finite_automata_graph.jpg).
+Sample FA definition in [finite_automata_definition.c](finite_automata_definition.c) sample FA graph drawing in [finite_automata_graph.jpg](finite_automata_graph.jpg).
 
 ### TODO
 
