@@ -21,4 +21,12 @@ typedef struct {
     char name[10];
 } finite_automataT;
 
+// Represents a range of characters or a single character (from, to = -1)
+// - Not used variables are set to -1 (either from & to, or single_char)
+typedef struct {
+    char from;
+    char to;
+    char single_char;
+} range_or_charT;
+
 #endif
