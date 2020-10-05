@@ -18,7 +18,6 @@ typedef struct {
     ruleT rules[50];
     int start_state;
     int final_states[50];
-    char name[10];
 } finite_automataT;
 
 // Represents a range of characters or a single character (from, to = -1)

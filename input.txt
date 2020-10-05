@@ -1,1 +1,1 @@
-aab bbbba 100 0 1 w
+aab bbbba 100 0 1 w 10
