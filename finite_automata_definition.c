@@ -1,6 +1,24 @@
 #include "lex_structures.h"
 
-void init_finite_automata(finite_automataT *fa) {
+void init_int_array(int array[], int len, int init_value);
+void init_char_array(char array[], int len, char init_value);
+void init_rules_array(ruleT array[], int len, ruleT init_value);
+
+void init_finite_automata(finite_automataT* fa) {
+    // TODO: Change 50 to "STATES_LENGTH" constant
+    // Init array with predefined values that cant occur in the array
+    // normally
+    init_int_array(fa->final_states, 50, 0);
+    init_int_array(fa->states, 50, 0);
+    init_char_array(fa->alphabet, 50, '~');
+
+    ruleT r_init;
+    r_init.from_state = 0;
+    r_init.to_state = 0;
+    init_char_array(r_init.transition_symbols, 50, '~');
+    init_rules_array(fa->rules, 50, r_init);
+    // end of initializing arrays
+
     // --- Rule #1
     ruleT r1;
 
@@ -44,7 +62,7 @@ void init_finite_automata(finite_automataT *fa) {
     // Finite automata definition
     fa->states[0] = 1;  // start
     fa->states[1] = 2;  // 'a' or 'b' symbols string
-    fa->states[2] = 3;  // 1 or 0 digits number
+    fa->states[2] = 3;  // '1' or '0' digits number
 
     fa->alphabet[0] = 'a';
     fa->alphabet[1] = 'b';
@@ -59,4 +77,22 @@ void init_finite_automata(finite_automataT *fa) {
     fa->rules[2] = r3;
     fa->rules[3] = r4;
     fa->rules[4] = r5;
+}
+
+void init_int_array(int array[], int len, int init_value) {
+    for (int i = 0; i < len; i++) {
+        array[i] = init_value;
+    }
+}
+
+void init_char_array(char array[], int len, char init_value) {
+    for (int i = 0; i < len; i++) {
+        array[i] = init_value;
+    }
+}
+
+void init_rules_array(ruleT array[], int len, ruleT init_value) {
+    for (int i = 0; i < len; i++) {
+        array[i] = init_value;
+    }
 }

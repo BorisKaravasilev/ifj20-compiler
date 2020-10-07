@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#define ERROR_NO_NEXT_STATE -1
+#define ERROR_NO_NEXT_STATE -2
 
 // Global variables
 
@@ -55,17 +55,30 @@ void generate_token() {}
 
 // TODO: Replace magical number return codes with defined constants
 int get_next_token(finite_automataT *fa) {
-    int curr_state = 1;
+    int curr_state = 1;  // 1 is start state in graph
     int next_state;
     static char curr_sym = 0;
 
+    // Ensures reading of last character that belongs to next token
+    static bool read_last_sym_from_previous_word = false;
+
     while (curr_sym != EOF) {
-        curr_sym = getchar();
+        if (!read_last_sym_from_previous_word) {
+            curr_sym = getchar();
+            printf("Reading char...\n");
+        }
+
+        read_last_sym_from_previous_word = false;
+
+        printf("curr_sym: '%c' \n", curr_sym);
         next_state = get_next_state(curr_sym, curr_state, fa);
 
         if (next_state != ERROR_NO_NEXT_STATE) {
             curr_state = next_state;
         } else {
+            read_last_sym_from_previous_word = true;
+
+            // No rule was matched
             if (is_final_state(curr_state, fa)) {
                 generate_token();
                 // returns final state number (represents lexical unit)

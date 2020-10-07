@@ -1,6 +1,8 @@
 #ifndef __LEX_STRUCTURES_H_
 #define __LEX_STRUCTURES_H_
 
+// TODO: Rewrite to dynamic size arrays
+
 // Rule of finite automata in the format 'pa -> q'
 // p = from state
 // q = to state
