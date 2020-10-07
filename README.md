@@ -13,5 +13,7 @@ Sample FA definition in [finite_automata_definition.c](finite_automata_definitio
 
 ### TODO
 
-Proper token generation and symbol table implementation.
-Needs testing.
+* Refactor magic numbers to constants
+* Support symbol ranges for transitions in rules
+* Proper token generation
+* Symbol table
