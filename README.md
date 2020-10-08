@@ -13,14 +13,16 @@ Sample FA definition in [finite_automata_definition.c](finite_automata_definitio
 
 ### TODO
 
-* Refactor magic numbers to constants
-* Support symbol ranges for transitions in rules
-* Proper token generation
-* Symbol table
-* Keyword check
-* EOL flag
-* Finite automata graph
-* Hex numbers
-* Change arrays to dynamically alocated
+- Refactor magic numbers to constants
+- Support symbol ranges for transitions in rules
+- Proper token generation
+- Symbol table
+- Keyword check
+- EOL flag
+- Finite automata graph
+- Hex numbers
+- Change arrays to dynamically alocated
 
 Check also TODO's in code.
+
+Ahoj, good luck!
