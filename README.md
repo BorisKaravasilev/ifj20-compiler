@@ -17,5 +17,9 @@ Sample FA definition in [finite_automata_definition.c](finite_automata_definitio
 * Support symbol ranges for transitions in rules
 * Proper token generation
 * Symbol table
+* Keyword check
+* EOL flag
+* Finite automata graph
+* Hex numbers
 
 Check also TODO's in code.
