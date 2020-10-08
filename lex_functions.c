@@ -26,6 +26,7 @@ int get_next_state(char curr_sym, int curr_state, finite_automataT *fa) {
                 // Go through all transition symbols in rule
                 // (symbols that bring you to next state)
                 for (int j = 0; j < trans_sym_len; j++) {
+                    // TODO: Change to is_in_range()
                     if (fa->rules[i].transition_symbols[j] == curr_sym) {
                         int next_state = fa->rules[i].to_state;
                         curr_state = next_state;
@@ -39,6 +40,14 @@ int get_next_state(char curr_sym, int curr_state, finite_automataT *fa) {
     // Can't transition to any state with curr_sym
     return ERROR_NO_NEXT_STATE;
 }
+
+//bool is_in_range() {
+    // is 'ragne_or_char.from == -1'
+    // -> then compare singe_char to current char
+    // else
+    // if (from <= curr && curr <= to)
+    // -> return true
+//}
 
 bool is_final_state(int state, finite_automataT *fa) {
     for (int i = 0; i < final_states_len; i++) {
