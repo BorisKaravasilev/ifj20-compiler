@@ -1,7 +1,12 @@
 #ifndef __LEX_STRUCTURES_H_
 #define __LEX_STRUCTURES_H_
 
-// TODO: Rewrite to dynamic size arrays
+#define STATES_LEN 50
+#define ALPHABET_LEN 50
+#define RULES_LEN 50
+#define TRANS_SYM_LEN 50
+#define FINAL_STATES_LEN 50
+#define START_STATE 1
 
 // Rule of finite automata in the format 'pa -> q'
 // p = from state
@@ -9,17 +14,17 @@
 // a = set of acceptable symbols to make a transition to 'q'
 typedef struct {
     int from_state;
-    char transition_symbols[50];
+    char transition_symbols[TRANS_SYM_LEN]; // TODO: Change to 'range_or_charT'
     int to_state;
 } ruleT;
 
 // M = (Q, Sigma, R, s, F)
 typedef struct {
-    int states[50];
-    char alphabet[50];
-    ruleT rules[50];
+    int states[STATES_LEN];
+    char alphabet[ALPHABET_LEN];
+    ruleT rules[RULES_LEN];
     int start_state;
-    int final_states[50];
+    int final_states[FINAL_STATES_LEN];
 } finite_automataT;
 
 // Represents a range of characters or a single character (from, to = -1)

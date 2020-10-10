@@ -1,31 +1,28 @@
-#include "lex_functions.h"
-
 #include <stdbool.h>
 #include <stdio.h>
+
+#include "lex_functions.h"
+#include "token_types.h"
 
 #define ERROR_NO_NEXT_STATE -2
 
 // Global variables
 
+// TODO: Move skip symbols in different file
 // Symbols that should be ignored (eg., blank spaces, line endings ...)
 char skip_symbols[] = {' ', '\n'};
 int skip_symbols_len = sizeof(skip_symbols) / sizeof(char);
 
-// TODO: Replace magical numbers with constants shared with 'lex_structures.h'
-int rules_len = 50;
-int trans_sym_len = 50;
-int final_states_len = 50;
-
 int get_next_state(char curr_sym, int curr_state, finite_automataT *fa) {
     // Go through all rules in FA
-    for (int i = 0; i < rules_len; i++) {
+    for (int i = 0; i < RULES_LEN; i++) {
         // Is rule initialized or empty? (unused array cell check)
-        if (fa->rules[i].from_state >= 1) {
+        if (fa->rules[i].from_state >= START_STATE) {
             // Rule for current state?
             if (fa->rules[i].from_state == curr_state) {
                 // Go through all transition symbols in rule
                 // (symbols that bring you to next state)
-                for (int j = 0; j < trans_sym_len; j++) {
+                for (int j = 0; j < TRANS_SYM_LEN; j++) {
                     // TODO: Change to is_in_range()
                     if (fa->rules[i].transition_symbols[j] == curr_sym) {
                         int next_state = fa->rules[i].to_state;
@@ -50,7 +47,7 @@ int get_next_state(char curr_sym, int curr_state, finite_automataT *fa) {
 //}
 
 bool is_final_state(int state, finite_automataT *fa) {
-    for (int i = 0; i < final_states_len; i++) {
+    for (int i = 0; i < FINAL_STATES_LEN; i++) {
         if (fa->final_states[i] == state) {
             return true;
         }
@@ -63,8 +60,8 @@ bool is_final_state(int state, finite_automataT *fa) {
 void generate_token() {}
 
 // TODO: Replace magical number return codes with defined constants
-int get_next_token(finite_automataT *fa) {
-    int curr_state = 1;  // 1 is start state in graph
+int get_next_token(finite_automataT *fa, FILE *input_file) {
+    int curr_state = START_STATE;
     int next_state;
     static char curr_sym = 0;
 
@@ -73,7 +70,7 @@ int get_next_token(finite_automataT *fa) {
 
     while (curr_sym != EOF) {
         if (!read_last_sym_from_previous_word) {
-            curr_sym = getchar();
+            curr_sym = fgetc(input_file);
             printf("Reading char...\n");
         }
 
@@ -96,15 +93,13 @@ int get_next_token(finite_automataT *fa) {
                 if (curr_sym != EOF) {
                     // TODO: Guess closest lexical units for correction
                     // suggestion (continue until you reach some final states)
-                    printf(
-                        "\nLexical error detected! Finished at symbol: '%c' \n",
-                        curr_sym);
-                    return -1;  // Lexical error
+                    fprintf(stderr, "\nLexical error detected! Finished at symbol: '%c' \n", curr_sym);
+                    return TOKEN_ERR;  // Lexical error
                 }
             }
         }
     }
 
     // End Of File -> finished successfully
-    return -2;
+    return TOKEN_EOF;
 }
