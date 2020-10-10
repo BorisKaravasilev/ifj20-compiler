@@ -4,7 +4,7 @@ From a UNIX like terminal run these commands:
 
 ```bash
 make
-./lex < input.txt
+./ifj20-compiler < input.txt
 ```
 
 Lexical analyzer for any finite automata.
