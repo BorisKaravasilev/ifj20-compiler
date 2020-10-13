@@ -28,9 +28,12 @@ Check also TODO's in code and create issues on Github from them.
 
 #### CLion Setup
 
-I had to install *Makefile* plugin from settings.
-Then go to "Settings" -> "Build, Execution, Development" -> "Build Tools" -> "Make" and set the path to "C:\cygwin64\bin\make.exe" or where your *make* is located. I checked the option "Use Cygwin".
-Then just using Cmd+f5 shortcut build and run the code.
+- Install *Makefile* plugin from settings.
+- Install [cygwin](https://www.cygwin.com/) C compiler.
+- Go to "Settings" -> "Build, Execution, Development" -> "Build Tools" -> "Make" and set the path to "C:\cygwin64\bin\make.exe" or where your *make* is located. I checked the option "Use Cygwin".
+- Add path to your "make.exe" to system variable PATH in Windows (For me it is "C:\cygwin64\bin\make.exe").
+- In CLion in the upper right corner next to the green triangle, open the dropdown menu and go into "Edit configurations..." and type "run" in "Targets" field -> "Apply" -> "Ok".
+- Then just using Cmd+f5 shortcut build and run the code.
 
 ##### Input file
 
