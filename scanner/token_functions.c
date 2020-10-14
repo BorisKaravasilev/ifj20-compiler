@@ -10,14 +10,14 @@
 void token_init (tokenT *ptr_token) {
     ptr_token->token_type = TOKEN_EMPTY;
     ptr_token->attribute.symtable_item = NULL;
-    string_init(&ptr_token->attribute.string_val);
+    string_init(&ptr_token->attribute.string_val); // TODO: Check if memory allocation failed (returned 1)
 }
 
 void token_val_add_char(tokenT *ptr_token, char ch) {
     string_add_character(&ptr_token->attribute.string_val, ch);
 }
 
-void token_clear(tokenT *ptr_token) { // TODO: Remove
+void token_clear(tokenT *ptr_token) {
     if (ptr_token == NULL) {
         return;
     }

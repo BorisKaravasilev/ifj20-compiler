@@ -50,12 +50,25 @@ bool is_final_state(int state, finite_automataT *ptr_fa) {
 }
 
 // TODO: Actual token generation and symbol tabel to be done
-void generate_token(tokenT *ptr_token, int type) {
-    // TODO: check if identifier else return original type function attr
-    ptr_token->token_type = keyword_check(ptr_token, type);
+void generate_token(tokenT *ptr_token, symtableT *ptr_symtable, int type) {
+    ptr_token->token_type = type;
+
+    if (type == TOKEN_IDENTIFIER) {
+        // Set token type to keyword or identifier
+        ptr_token->token_type = keyword_check(ptr_token, type);
+    }
+
+    //if (ptr_token->token_type == TOKEN_IDENTIFIER) {
+    if (true) {  // Just for testing (adds all token types to symbol table)
+        symtable_add_item(ptr_symtable, ptr_token->attribute.string_val.string);
+
+        int symtable_len = ptr_symtable->length;
+        printf("SYMTABLE len: %d   last_item_str: \"%s\"\n", symtable_len, ptr_symtable->ptr_item[symtable_len - 1].ptr_string);
+        return;
+    }
 }
 
-void get_next_token(finite_automataT *ptr_fa, FILE *input_file, tokenT *ptr_token) {
+void get_next_token(finite_automataT *ptr_fa, FILE *input_file, symtableT *ptr_symtable, tokenT *ptr_token) {
     int curr_state = START_STATE;
     int next_state;
     static char curr_sym = 0;
@@ -90,12 +103,12 @@ void get_next_token(finite_automataT *ptr_fa, FILE *input_file, tokenT *ptr_toke
             // No rule was matched
             if (is_final_state(curr_state, ptr_fa)) {
                 // returns token struct (represents lexical unit)
-                generate_token(ptr_token, curr_state);
+                generate_token(ptr_token, ptr_symtable, curr_state);
                 return;
             } else {
                 if (curr_sym != EOF) {
                     fprintf(stderr, "\nLexical error detected! Finished at symbol: '%c' \n", curr_sym);
-                    generate_token(ptr_token, TOKEN_ERR);  // Lexical error
+                    generate_token(ptr_token, ptr_symtable, TOKEN_ERR);  // Lexical error
                     return;
                 }
             }
@@ -103,6 +116,6 @@ void get_next_token(finite_automataT *ptr_fa, FILE *input_file, tokenT *ptr_toke
     }
 
     // End Of File -> finished successfully
-    generate_token(ptr_token, TOKEN_EOF);
+    generate_token(ptr_token, ptr_symtable, TOKEN_EOF);
     return;
 }
