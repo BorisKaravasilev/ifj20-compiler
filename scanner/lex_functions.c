@@ -3,6 +3,7 @@
 
 #include "lex_functions.h"
 #include "token_types.h"
+#include "token_functions.h"
 
 #define ERROR_NO_NEXT_STATE -2
 
@@ -57,10 +58,14 @@ bool is_final_state(int state, finite_automataT *fa) {
 }
 
 // TODO: Actual token generation and symbol tabel to be done
-void generate_token() {}
+token_struct generate_token(token_struct *token, int type) {
+    // TODO: check if identifier else return original type function attr
+    token->token_type = keyword_check(token, type);
+    return *token;
+}
 
 // TODO: Replace magical number return codes with defined constants
-int get_next_token(finite_automataT *fa, FILE *input_file) {
+token_struct get_next_token(finite_automataT *fa, FILE *input_file, token_struct *token) {
     int curr_state = START_STATE;
     int next_state;
     static char curr_sym = 0;
@@ -68,9 +73,13 @@ int get_next_token(finite_automataT *fa, FILE *input_file) {
     // Ensures reading of last character that belongs to next token
     static bool read_last_sym_from_previous_word = false;
 
+    // Cleans the content of token_val string
+    token_clear(token);
+
     while (curr_sym != EOF) {
         if (!read_last_sym_from_previous_word) {
             curr_sym = fgetc(input_file);
+
             printf("Reading char...\n");
         }
 
@@ -81,25 +90,28 @@ int get_next_token(finite_automataT *fa, FILE *input_file) {
 
         if (next_state != ERROR_NO_NEXT_STATE) {
             curr_state = next_state;
+
+            if (curr_sym != EOF && curr_sym != ' ') {
+                token_val_add_char(token, curr_sym);
+            }
         } else {
             read_last_sym_from_previous_word = true;
 
             // No rule was matched
             if (is_final_state(curr_state, fa)) {
-                generate_token();
-                // returns final state number (represents lexical unit)
-                return curr_state;
+                // returns token struct (represents lexical unit)
+                return generate_token(token, curr_state);
             } else {
                 if (curr_sym != EOF) {
                     // TODO: Guess closest lexical units for correction
                     // suggestion (continue until you reach some final states)
                     fprintf(stderr, "\nLexical error detected! Finished at symbol: '%c' \n", curr_sym);
-                    return TOKEN_ERR;  // Lexical error
+                    return generate_token(token, TOKEN_ERR);  // Lexical error
                 }
             }
         }
     }
 
     // End Of File -> finished successfully
-    return TOKEN_EOF;
+    return generate_token(token, TOKEN_EOF);
 }

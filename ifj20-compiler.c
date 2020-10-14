@@ -12,6 +12,8 @@
 #define IS_INPUT_FROM_FILE true // Input from file or stdin
 #define INPUT_FILE_NAME "input_files/input_1.txt"
 
+// TODO: EOL Flag
+
 int main() {
     // For debugging purposes in CLion (input file or stdin)
     FILE *input_fp = get_input_file(IS_INPUT_FROM_FILE, INPUT_FILE_NAME);
@@ -20,23 +22,33 @@ int main() {
     finite_automataT fa;
     init_finite_automata(&fa);
 
-    int token = 0;
+    //int token = 0;
+    token_struct token;
+    token_init(&token);
+
     int counter = 0;
 
     do {
         counter++;
-        token = get_next_token(&fa, input_fp);
+        // TODO: pass EOL flag to get_next_token()
+        token = get_next_token(&fa, input_fp, &token);
+        printf("[--> Received token type: '%i', attribute: '%s']\n", token.token_type, token.token_val.string);
 
         // Deciding which final state the processing ended at
-        if (token == TOKEN_AB) {
+        if (token.token_type == TOKEN_AB) {
             printf("TOKEN #%d | type %d | 'a' or 'b' letters\n", counter,
-                   token);
-        } else if (token == TOKEN_10) {
-            printf("TOKEN #%d | type %d | '0' or '1' digits\n", counter, token);
+                   token.token_type);
+        } else if (token.token_type == TOKEN_10) {
+            printf("TOKEN #%d | type %d | '0' or '1' digits\n", counter, token.token_type);
         }
-    } while (!(token == TOKEN_ERR || token == TOKEN_EOF));
+        // TODO: Keywords implementation inside syntactic analyzer
+        //else if (token.token_type == TOKEN_KEYWORD_STRING) {
+        //    printf("TOKEN #%d | type %d | keyword string\n", counter, token.token_type);
+        //}
+    } while (!(token.token_type == TOKEN_ERR || token.token_type == TOKEN_EOF));
 
-    if (token == TOKEN_ERR) {
+    // TODO: Error fix -> place it inside token_generation
+    if (token.token_type == TOKEN_ERR) {
         return RC_LEX_ERR;
     }
 
