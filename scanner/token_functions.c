@@ -7,37 +7,37 @@
 #include "token_functions.h"
 #include "token_types.h"
 
-void token_init (tokenT *token) {
-    token->token_type = TOKEN_EMPTY;
-    token->attribute.symtable_item = NULL;
-    string_init(&token->attribute.string_val);
+void token_init (tokenT *ptr_token) {
+    ptr_token->token_type = TOKEN_EMPTY;
+    ptr_token->attribute.symtable_item = NULL;
+    string_init(&ptr_token->attribute.string_val);
 }
 
-void token_val_add_char(tokenT *token, char ch) {
-    string_add_character(&token->attribute.string_val, ch);
+void token_val_add_char(tokenT *ptr_token, char ch) {
+    string_add_character(&ptr_token->attribute.string_val, ch);
 }
 
-void token_clear(tokenT *token) { // TODO: Remove
-    if (token == NULL) {
+void token_clear(tokenT *ptr_token) { // TODO: Remove
+    if (ptr_token == NULL) {
         return;
     }
 
-    token->token_type = TOKEN_EMPTY;
+    ptr_token->token_type = TOKEN_EMPTY;
 
-    if (token->attribute.symtable_item != NULL) {
-        free(token->attribute.symtable_item);
+    if (ptr_token->attribute.symtable_item != NULL) {
+        free(ptr_token->attribute.symtable_item);
     }
 
-    token->attribute.symtable_item = NULL;
-    string_clear(&token->attribute.string_val);
+    ptr_token->attribute.symtable_item = NULL;
+    string_clear(&ptr_token->attribute.string_val);
 }
 
-void token_free(tokenT *token) {
-    if (token == NULL)
+void token_free(tokenT *ptr_token) {
+    if (ptr_token == NULL)
         return;
 
-    clear_str(&token->attribute.string_val);
-    free(token);
+    clear_str(&ptr_token->attribute.string_val);
+    free(ptr_token);
 }
 
 int keyword_check(tokenT *ptr_token, int original_type) {

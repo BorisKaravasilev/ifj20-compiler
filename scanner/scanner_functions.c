@@ -6,19 +6,19 @@
 
 #define ERROR_NO_NEXT_STATE -2
 
-int get_next_state(char curr_sym, int curr_state, finite_automataT *fa) {
+int get_next_state(char curr_sym, int curr_state, finite_automataT *ptr_fa) {
     // Go through all rules in FA
     for (int i = 0; i < RULES_LEN; i++) {
         // Is rule initialized or empty? (unused array cell check)
-        if (fa->rules[i].from_state >= START_STATE) {
+        if (ptr_fa->rules[i].from_state >= START_STATE) {
             // Rule for current state?
-            if (fa->rules[i].from_state == curr_state) {
+            if (ptr_fa->rules[i].from_state == curr_state) {
                 // Go through all transition symbols in rule
                 // (symbols that bring you to next state)
                 for (int j = 0; j < TRANS_SYM_LEN; j++) {
                     // TODO: Change to is_in_range()
-                    if (fa->rules[i].transition_symbols[j] == curr_sym) {
-                        int next_state = fa->rules[i].to_state;
+                    if (ptr_fa->rules[i].transition_symbols[j] == curr_sym) {
+                        int next_state = ptr_fa->rules[i].to_state;
                         curr_state = next_state;
                         return next_state;
                     }
@@ -39,9 +39,9 @@ int get_next_state(char curr_sym, int curr_state, finite_automataT *fa) {
     // -> return true
 //}
 
-bool is_final_state(int state, finite_automataT *fa) {
+bool is_final_state(int state, finite_automataT *ptr_fa) {
     for (int i = 0; i < FINAL_STATES_LEN; i++) {
-        if (fa->final_states[i] == state) {
+        if (ptr_fa->final_states[i] == state) {
             return true;
         }
     }
@@ -55,7 +55,7 @@ void generate_token(tokenT *ptr_token, int type) {
     ptr_token->token_type = keyword_check(ptr_token, type);
 }
 
-void get_next_token(finite_automataT *fa, FILE *input_file, tokenT *ptr_token) {
+void get_next_token(finite_automataT *ptr_fa, FILE *input_file, tokenT *ptr_token) {
     int curr_state = START_STATE;
     int next_state;
     static char curr_sym = 0;
@@ -76,7 +76,7 @@ void get_next_token(finite_automataT *fa, FILE *input_file, tokenT *ptr_token) {
         read_last_sym_from_previous_word = false;
 
         printf("curr_sym: '%c' \n", curr_sym); // TODO: Make conditional debug prints with global macro
-        next_state = get_next_state(curr_sym, curr_state, fa);
+        next_state = get_next_state(curr_sym, curr_state, ptr_fa);
 
         if (next_state != ERROR_NO_NEXT_STATE) {
             curr_state = next_state;
@@ -88,7 +88,7 @@ void get_next_token(finite_automataT *fa, FILE *input_file, tokenT *ptr_token) {
             read_last_sym_from_previous_word = true;
 
             // No rule was matched
-            if (is_final_state(curr_state, fa)) {
+            if (is_final_state(curr_state, ptr_fa)) {
                 // returns token struct (represents lexical unit)
                 generate_token(ptr_token, curr_state);
                 return;

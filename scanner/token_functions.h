@@ -18,11 +18,11 @@ typedef struct {
     attributeT attribute;
 } tokenT;
 
-void token_init (tokenT *token);
-void token_val_add_char(tokenT *token, char ch);
-void token_clear (tokenT *token);
-void token_free (tokenT *token);
+void token_init (tokenT *ptr_token);
+void token_val_add_char(tokenT *ptr_token, char ch);
+void token_clear (tokenT *ptr_token);
+void token_free (tokenT *ptr_token);
 
-int keyword_check (tokenT *token, int original_type);
+int keyword_check (tokenT *ptr_token, int original_type);
 
 #endif //IFJ20_COMPILER_TOKEN_FUNCTIONS_H
