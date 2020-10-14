@@ -5,6 +5,6 @@
 #include "finite_automata.h"
 #include "token_functions.h"
 
-tokenT get_next_token(finite_automataT *fa, FILE *input_file, tokenT *token);
+void get_next_token(finite_automataT *fa, FILE *input_file, tokenT *token);
 
 #endif

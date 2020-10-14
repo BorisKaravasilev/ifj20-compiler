@@ -6,18 +6,16 @@
 #define LEX_TOKEN_FUNCTIONS_H
 
 #include "../general/string_functions.h"
-
-// TODO: Create token attribute structure
+#include "symtable.h"
 
 typedef struct {
-    // symtable_item
-    char *string_val;
+    symtable_itemT *symtable_item;
+    string string_val;
 } attributeT;
 
 typedef struct {
     int token_type;
     attributeT attribute;
-    string token_val;
 } tokenT;
 
 void token_init (tokenT *token);

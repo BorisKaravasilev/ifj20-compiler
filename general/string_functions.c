@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include "string_functions.h"
 
-///Function for the initialization (creation) of the new string
+/// Initialization (creation) of a new string
 int string_init(string *str)
 {
     ///If the memory allocation fail

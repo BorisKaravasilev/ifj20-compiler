@@ -29,8 +29,8 @@ int main() {
     do {
         counter++;
         // TODO: pass EOL flag to get_next_token()
-        token = get_next_token(&fa, input_fp, &token);
-        printf("[--> Received token type: '%i', attribute: '%s']\n", token.token_type, token.token_val.string);
+        get_next_token(&fa, input_fp, &token);
+        printf("[--> Received token type: '%i', attribute: '%s']\n", token.token_type, token.attribute.string_val.string);
 
         // Deciding which final state the processing ended at
         if (token.token_type == TOKEN_AB) {
