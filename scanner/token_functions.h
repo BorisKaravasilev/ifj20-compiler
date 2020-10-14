@@ -2,23 +2,29 @@
 // Created by Petr Vrtal on 13.10.2020.
 //
 
-#ifndef IFJ20_COMPILER_TOKEN_FUNCTIONS_H
-#define IFJ20_COMPILER_TOKEN_FUNCTIONS_H
+#ifndef LEX_TOKEN_FUNCTIONS_H
+#define LEX_TOKEN_FUNCTIONS_H
 
 #include "../general/string_functions.h"
 
 // TODO: Create token attribute structure
 
-typedef struct tokenT {
+typedef struct {
+    // symtable_item
+    char *string_val;
+} attributeT;
+
+typedef struct {
     int token_type;
+    attributeT attribute;
     string token_val;
-} token_struct;
+} tokenT;
 
-void token_init (token_struct *token);
-void token_val_add_char(token_struct *token, char ch);
-void token_clear (token_struct *token);
-void token_free (token_struct *token);
+void token_init (tokenT *token);
+void token_val_add_char(tokenT *token, char ch);
+void token_clear (tokenT *token);
+void token_free (tokenT *token);
 
-int keyword_check (token_struct *token, int original_type);
+int keyword_check (tokenT *token, int original_type);
 
 #endif //IFJ20_COMPILER_TOKEN_FUNCTIONS_H

@@ -3,16 +3,14 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#include "scanner/finite_automata_definition.h"
-#include "scanner/lex_functions.h"
+#include "scanner/finite_automata.h"
+#include "scanner/scanner_functions.h"
 #include "general/utility_functions.h"
 #include "scanner/token_types.h"
 #include "general/return_codes.h"
 
 #define IS_INPUT_FROM_FILE true // Input from file or stdin
 #define INPUT_FILE_NAME "input_files/input_1.txt"
-
-// TODO: EOL Flag
 
 int main() {
     // For debugging purposes in CLion (input file or stdin)
@@ -23,7 +21,7 @@ int main() {
     init_finite_automata(&fa);
 
     //int token = 0;
-    token_struct token;
+    tokenT token;
     token_init(&token);
 
     int counter = 0;

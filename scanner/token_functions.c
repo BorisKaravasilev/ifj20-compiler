@@ -7,15 +7,15 @@
 #include "token_functions.h"
 #include "token_types.h"
 
-void token_init (token_struct *token) {
+void token_init (tokenT *token) {
     string_init(&token->token_val);
 }
 
-void token_val_add_char(token_struct *token, char ch) {
+void token_val_add_char(tokenT *token, char ch) {
     string_add_character(&token->token_val, ch);
 }
 
-void token_clear(token_struct *token) {
+void token_clear(tokenT *token) {
     if (token == NULL) {
         return;
     }
@@ -24,7 +24,7 @@ void token_clear(token_struct *token) {
     token->token_type = TOKEN_EMPTY;
 }
 
-void token_free(token_struct *token) {
+void token_free(tokenT *token) {
     if (token == NULL)
         return;
 
@@ -32,7 +32,7 @@ void token_free(token_struct *token) {
     free(token);
 }
 
-int keyword_check(token_struct *token, int original_type) {
+int keyword_check(tokenT *token, int original_type) {
     if (string_compare_constant(&token->token_val, "else") == 0) {
         return TOKEN_KEYWORD_ELSE;
     }

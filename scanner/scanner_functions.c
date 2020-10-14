@@ -1,18 +1,10 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include "lex_functions.h"
+#include "scanner_functions.h"
 #include "token_types.h"
-#include "token_functions.h"
 
 #define ERROR_NO_NEXT_STATE -2
-
-// Global variables
-
-// TODO: Move skip symbols in different file
-// Symbols that should be ignored (eg., blank spaces, line endings ...)
-char skip_symbols[] = {' ', '\n'};
-int skip_symbols_len = sizeof(skip_symbols) / sizeof(char);
 
 int get_next_state(char curr_sym, int curr_state, finite_automataT *fa) {
     // Go through all rules in FA
@@ -58,14 +50,13 @@ bool is_final_state(int state, finite_automataT *fa) {
 }
 
 // TODO: Actual token generation and symbol tabel to be done
-token_struct generate_token(token_struct *token, int type) {
+tokenT generate_token(tokenT *token, int type) {
     // TODO: check if identifier else return original type function attr
     token->token_type = keyword_check(token, type);
     return *token;
 }
 
-// TODO: Replace magical number return codes with defined constants
-token_struct get_next_token(finite_automataT *fa, FILE *input_file, token_struct *token) {
+tokenT get_next_token(finite_automataT *fa, FILE *input_file, tokenT *token) {
     int curr_state = START_STATE;
     int next_state;
     static char curr_sym = 0;
@@ -103,8 +94,6 @@ token_struct get_next_token(finite_automataT *fa, FILE *input_file, token_struct
                 return generate_token(token, curr_state);
             } else {
                 if (curr_sym != EOF) {
-                    // TODO: Guess closest lexical units for correction
-                    // suggestion (continue until you reach some final states)
                     fprintf(stderr, "\nLexical error detected! Finished at symbol: '%c' \n", curr_sym);
                     return generate_token(token, TOKEN_ERR);  // Lexical error
                 }
