@@ -12,6 +12,8 @@
 #define IS_INPUT_FROM_FILE true // Input from file or stdin
 #define INPUT_FILE_NAME "input_files/input_1.txt"
 
+// TODO: EOL Flag
+
 int main() {
     // For debugging purposes in CLion (input file or stdin)
     FILE *input_fp = get_input_file(IS_INPUT_FROM_FILE, INPUT_FILE_NAME);
@@ -28,6 +30,7 @@ int main() {
 
     do {
         counter++;
+        // TODO: pass EOL flag to get_next_token()
         token = get_next_token(&fa, input_fp, &token);
         printf("[--> Received token type: '%i', attribute: '%s']\n", token.token_type, token.token_val.string);
 
@@ -39,9 +42,9 @@ int main() {
             printf("TOKEN #%d | type %d | '0' or '1' digits\n", counter, token.token_type);
         }
         // TODO: Keywords implementation inside syntactic analyzer
-        /*else if (token.token_type == TOKEN_KEYWORD_STRING) {
-            printf("TOKEN #%d | type %d | keyword string\n", counter, token.token_type);
-        }*/
+        //else if (token.token_type == TOKEN_KEYWORD_STRING) {
+        //    printf("TOKEN #%d | type %d | keyword string\n", counter, token.token_type);
+        //}
     } while (!(token.token_type == TOKEN_ERR || token.token_type == TOKEN_EOF));
 
     // TODO: Error fix -> place it inside token_generation

@@ -21,7 +21,7 @@ void token_clear(token_struct *token) {
     }
 
     string_clear(&token->token_val);
-    token->token_type = TOKEN_NONE;
+    token->token_type = TOKEN_EMPTY;
 }
 
 void token_free(token_struct *token) {

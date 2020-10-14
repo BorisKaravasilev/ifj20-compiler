@@ -59,6 +59,7 @@ bool is_final_state(int state, finite_automataT *fa) {
 
 // TODO: Actual token generation and symbol tabel to be done
 token_struct generate_token(token_struct *token, int type) {
+    // TODO: check if identifier else return original type function attr
     token->token_type = keyword_check(token, type);
     return *token;
 }
@@ -79,10 +80,6 @@ token_struct get_next_token(finite_automataT *fa, FILE *input_file, token_struct
         if (!read_last_sym_from_previous_word) {
             curr_sym = fgetc(input_file);
 
-            if (curr_sym != EOF && curr_sym != ' ') {
-                token_val_add_char(token, curr_sym);
-            }
-
             printf("Reading char...\n");
         }
 
@@ -93,6 +90,10 @@ token_struct get_next_token(finite_automataT *fa, FILE *input_file, token_struct
 
         if (next_state != ERROR_NO_NEXT_STATE) {
             curr_state = next_state;
+
+            if (curr_sym != EOF && curr_sym != ' ') {
+                token_val_add_char(token, curr_sym);
+            }
         } else {
             read_last_sym_from_previous_word = true;
 

@@ -7,6 +7,8 @@
 
 #include "../general/string_functions.h"
 
+// TODO: Create token attribute structure
+
 typedef struct tokenT {
     int token_type;
     string token_val;
