@@ -37,7 +37,6 @@ void token_free(tokenT *ptr_token) {
         return;
 
     clear_str(&ptr_token->attribute.string_val);
-    free(ptr_token);
 }
 
 int keyword_check(tokenT *ptr_token, int original_type) {

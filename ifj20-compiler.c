@@ -16,11 +16,10 @@ int main() {
     // For debugging purposes in CLion (input file or stdin)
     FILE *input_fp = get_input_file(IS_INPUT_FROM_FILE, INPUT_FILE_NAME);
 
-    // Modify 'finite_automata_definition.c' to change FA graph
+    // Modify 'finite_automata.c' to change FA graph
     finite_automataT fa;
     init_finite_automata(&fa);
 
-    //int token = 0;
     tokenT token;
     token_init(&token);
 
@@ -49,6 +48,9 @@ int main() {
     if (token.token_type == TOKEN_ERR) {
         return RC_LEX_ERR;
     }
+
+    // FREE THE INTERNALS OF TOKEN !!!
+    token_free(&token);
 
     return 0;
 }
