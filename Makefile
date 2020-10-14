@@ -2,13 +2,18 @@ CC=gcc
 CFLAGS=-std=gnu99 -Wall -Wextra -pedantic
 LFLAGS=-lpthread
 BIN=ifj20-compiler
-SOURCE=ifj20-compiler.c scanner/scanner_functions.c scanner/finite_automata.c general/utility_functions.c general/string_functions.c scanner/token_functions.c
+SOURCE_FOLDERS = $(wildcard general/*.c) \
+                 $(wildcard parser/*.c) \
+                 $(wildcard scanner/*.c) \
+                 $(wildcard *.c)
+obj = $(SOURCE_FOLDERS:.c=.o)
 
-all:
-	$(CC) $(CFLAGS) $(SOURCE) -o $(BIN) $(LFLAGS)
+all: $(obj)
+	$(CC) $(CFLAGS) -o $(BIN) $^ $(LFLAGS)
 
-run: all
+run: all clean
 	./$(BIN)
 
+.PHONY: clean
 clean:
-	rm $(BIN)
+	rm -f $(obj) myprog
