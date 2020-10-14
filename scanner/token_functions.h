@@ -10,7 +10,7 @@
 
 typedef struct {
     symtable_itemT *symtable_item;
-    string string_val;
+    stringT string_val;
 } attributeT;
 
 typedef struct {

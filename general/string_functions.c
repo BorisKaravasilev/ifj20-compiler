@@ -7,7 +7,7 @@
 #include "string_functions.h"
 
 /// Initialization (creation) of a new string
-int string_init(string *str)
+int string_init(stringT *str)
 {
     ///If the memory allocation fail
     if ((str->string = (char*) malloc(STRING_LENGTH)) == NULL)
@@ -23,13 +23,13 @@ int string_init(string *str)
 }
 
 ///Function for deleting of the string
-void string_free(string *str)
+void string_free(stringT *str)
 {
     free(str->string);
 }
 
 ///Function for deleting the content of the string
-void string_clear(string *str)
+void string_clear(stringT *str)
 {
     for (int i = 0; i <= str->length; i++) {
         str->string[i] = '\0';
@@ -37,13 +37,13 @@ void string_clear(string *str)
     str->length = 0;
 }
 ///Function for clearing the string
-void clear_str(string *str){
+void clear_str(stringT *str){
     string_clear(str);
     string_free(str);
 }
 
 ///Function can add the character to the end of the string
-int string_add_character(string *str, char character)
+int string_add_character(stringT *str, char character)
 {
     if (str->length + 1 >= str->alloc_size)
     {
@@ -63,7 +63,7 @@ int string_add_character(string *str, char character)
     return 0;
 }
 //Function can add whole word to character
-int string_add_string(string *str, char* word) {
+int string_add_string(stringT *str, char* word) {
     int length = strlen(word);
     int req_length = str->length + length + 1;
     if (req_length >= str->alloc_size) {
@@ -78,7 +78,7 @@ int string_add_string(string *str, char* word) {
 }
 
 ///Function for copying the string
-int string_copy(string *first, string *second)
+int string_copy(stringT *first, stringT *second)
 {
     int new_length = second->length;
     if (new_length >= first->alloc_size)
@@ -98,32 +98,32 @@ int string_copy(string *first, string *second)
 }
 
 ///Function for comparing two strings
-int string_compare(string *first, string *second)
+int string_compare(stringT *first, stringT *second)
 {
     return strcmp(first->string, second->string);
 }
 
 ///Function for comparing the string and the constant string
-int string_compare_constant(string *first, char *second)
+int string_compare_constant(stringT *first, char *second)
 {
     return strcmp(first->string, second);
 }
 
 ///Function returns what the string contains
-char *string_get(string *str)
+char *string_get(stringT *str)
 {
     return str->string;
 }
 
 ///Function returns the length of the string
-int string_length(string *str)
+int string_length(stringT *str)
 {
     return str->length;
 }
 
 ///Function returns first character of the string
 ///String can not be empty!!!
-char string_first_character(string *str)
+char string_first_character(stringT *str)
 {
     return str->string[0];
 }
