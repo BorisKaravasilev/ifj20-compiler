@@ -11,11 +11,13 @@
 #include "../general/string_functions.h"
 
 // Holds data about identifiers
-typedef struct {
-    char *ptr_string;
+typedef struct symtable_item {
+    char *ptr_string; // TODO: Change to string
     int len;
     int type;
     bool used;
+    struct symtable_item *next; // For collisions (malloc)
+    // Next data in sym table
 } symtable_itemT;
 
 // Symbol table (Table of identifiers)
@@ -28,5 +30,6 @@ typedef struct {
 int symtable_init(symtableT *ptr_symtable);
 int symtable_add_item(symtableT *ptr_symtable, char *ptr_string);
 void symtable_free(symtableT *ptr_symtable);
+void debug_whole_symtable(symtableT *ptr_symtable);
 
 #endif //IFJ20_COMPILER_SYMTABLE_H

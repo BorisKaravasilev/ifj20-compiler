@@ -1,8 +1,11 @@
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "scanner_functions.h"
 #include "token_types.h"
+#include "../general/return_codes.h"
+#include "../general/debugging.h"
 
 #define ERROR_NO_NEXT_STATE -2
 
@@ -63,11 +66,12 @@ void generate_token(tokenT *ptr_token, symtableT *ptr_symtable, int type) {
         symtable_add_item(ptr_symtable, ptr_token->attribute.string_val.string);
 
         int symtable_len = ptr_symtable->length;
-        printf("SYMTABLE len: %d   last_item_str: \"%s\"\n", symtable_len, ptr_symtable->ptr_item[symtable_len - 1].ptr_string);
+        debug_scanner("SYMTABLE len: %d   last_item_str: \"%s\"\n", symtable_len, ptr_symtable->ptr_item[symtable_len - 1].ptr_string);
         return;
     }
 }
 
+// TODO: pass EOL flag to get_next_token()
 void get_next_token(finite_automataT *ptr_fa, FILE *input_file, symtableT *ptr_symtable, tokenT *ptr_token) {
     int curr_state = START_STATE;
     int next_state;
@@ -83,12 +87,12 @@ void get_next_token(finite_automataT *ptr_fa, FILE *input_file, symtableT *ptr_s
         if (!read_last_sym_from_previous_word) {
             curr_sym = fgetc(input_file);
 
-            printf("Reading char...\n");
+            debug_scanner("Reading char...\n%s", "");
         }
 
         read_last_sym_from_previous_word = false;
 
-        printf("curr_sym: '%c' \n", curr_sym); // TODO: Make conditional debug prints with global macro
+        debug_scanner("curr_sym: '%c' \n", curr_sym); // TODO: Make conditional debug prints with global macro
         next_state = get_next_state(curr_sym, curr_state, ptr_fa);
 
         if (next_state != ERROR_NO_NEXT_STATE) {
@@ -108,8 +112,7 @@ void get_next_token(finite_automataT *ptr_fa, FILE *input_file, symtableT *ptr_s
             } else {
                 if (curr_sym != EOF) {
                     fprintf(stderr, "\nLexical error detected! Finished at symbol: '%c' \n", curr_sym);
-                    generate_token(ptr_token, ptr_symtable, TOKEN_ERR);  // Lexical error
-                    return;
+                    exit(RC_LEX_ERR); // End program with lexical error
                 }
             }
         }

@@ -4,6 +4,7 @@
 
 #include <stdlib.h>
 #include "symtable.h"
+#include "../general/debugging.h"
 
 int symtable_init(symtableT *ptr_symtable) {
     size_t init_alloc_size = SYMTABLE_INIT_LEN * sizeof(symtable_itemT);
@@ -44,5 +45,13 @@ void symtable_free(symtableT *ptr_symtable) {
         free(ptr_symtable);
         ptr_symtable->length = 0;
         ptr_symtable->alloc_size = 0;
+    }
+}
+
+void debug_whole_symtable(symtableT *ptr_symtable) {
+    debug_scanner("\n\nSymtable content\n====================\n%s", ""); // Cant put zero param because of macro in c99
+    // Display whole symbol table
+    for (int i = 0; i < ptr_symtable->length; ++i) {
+        debug_scanner("SYMTABLE item[%d]: \"%s\"\n", i, ptr_symtable->ptr_item[i].ptr_string);
     }
 }

@@ -6,5 +6,6 @@
 #include "token_functions.h"
 
 void get_next_token(finite_automataT *ptr_fa, FILE *input_file, symtableT *ptr_symtable, tokenT *ptr_token);
+void token_array_free(tokenT *ptr_token_array, int array_length);
 
 #endif

@@ -1,4 +1,5 @@
 // Boris Karavasilev <xkarav01@stud.fit.vutbr.cz>
+// TODO: Standardize file header
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -9,11 +10,11 @@
 #include "scanner/token_types.h"
 #include "general/return_codes.h"
 #include "scanner/symtable.h"
+#include "scanner/token_functions.h"
 
 #define IS_INPUT_FROM_FILE true // Input from file or stdin
 #define INPUT_FILE_NAME "input_files/input_1.txt"
 
-// TODO: Clean and refactor
 int main() {
     // For debugging purposes in CLion (input file or stdin)
     FILE *input_fp = get_input_file(IS_INPUT_FROM_FILE, INPUT_FILE_NAME);
@@ -24,54 +25,25 @@ int main() {
 
     // TODO: Change single token that is being cleaned and overwritten
     // to dynamically allocated array of tokens that grows over time
-    tokenT token[50];
+    tokenT token[TOKEN_ARRAY_LEN];
+    token_array_init(token, TOKEN_ARRAY_LEN);
 
-    // Init all tokens
-    for (int i = 0; i < 50; i++) {
-        token_init(&token[i]);
-    }
-
-    symtableT symtable;
+    symtableT symtable; // TODO: Make array, add hash function, add stack
     symtable_init(&symtable);
 
-    int counter = 0;
+    int token_index = 0;
 
     do {
-        counter++;
-        // TODO: pass EOL flag to get_next_token()
-        get_next_token(&fa, input_fp, &symtable, &token[counter - 1]);
-        printf("[--> Received token type: '%i', attribute: '%s']\n", token[counter - 1].token_type, token[counter - 1].attribute.string_val.string);
+        get_next_token(&fa, input_fp, &symtable, &token[token_index]);
+        debug_token(&token[token_index], token_index);
+        token_index++;
+    } while (!token[token_index].token_type == TOKEN_EOF);
 
-        // Deciding which final state the processing ended at
-        if (token[counter - 1].token_type == TOKEN_AB) {
-            printf("TOKEN #%d | type %d | 'a' or 'b' letters\n", counter,
-                   token[counter - 1].token_type);
-        } else if (token[counter - 1].token_type == TOKEN_10) {
-            printf("TOKEN #%d | type %d | '0' or '1' digits\n", counter, token[counter - 1].token_type);
-        }
-        // TODO: Keywords implementation inside syntactic analyzer
-        //else if (token.token_type == TOKEN_KEYWORD_STRING) {
-        //    printf("TOKEN #%d | type %d | keyword string\n", counter, token.token_type);
-        //}
-    } while (!(token[counter - 1].token_type == TOKEN_ERR || token[counter - 1].token_type == TOKEN_EOF));
+    debug_whole_symtable(&symtable);
 
-    // Display whole symbol table
-    for (int i = 0; i < symtable.length; ++i) {
-        printf("FINAL SYMTABLE item[%d]: \"%s\"\n", i, symtable.ptr_item[i].ptr_string);
-    }
-
-    // FREE ALL TOKEN INTERNALS
-    // Init all tokens
-    for (int i = 0; i < 50; i++) {
-        token_free(&token[i]);
-    }
-    // FREE SYMBOLTABLE
+    // FREE ALL ALLOCATED MEMORY
+    token_array_free(token, TOKEN_ARRAY_LEN);
     symtable_free(&symtable);
-
-    // TODO: Error fix -> place it inside token_generation
-    if (token[counter - 1].token_type == TOKEN_ERR) {
-        return RC_LEX_ERR;
-    }
 
     return 0;
 }
