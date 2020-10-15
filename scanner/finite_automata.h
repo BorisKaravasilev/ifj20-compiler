@@ -1,5 +1,5 @@
-#ifndef __LEX_STRUCTURES_H_
-#define __LEX_STRUCTURES_H_
+#ifndef __LEX_FINITE_AUTOMATA_H_
+#define __LEX_FINITE_AUTOMATA_H_
 
 #define STATES_LEN 50
 #define ALPHABET_LEN 50
@@ -34,5 +34,7 @@ typedef struct {
     char to;
     char single_char;
 } range_or_charT;
+
+void init_finite_automata(finite_automataT *fa);
 
 #endif

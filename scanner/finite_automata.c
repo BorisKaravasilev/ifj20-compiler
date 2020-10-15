@@ -1,4 +1,4 @@
-#include "lex_structures.h"
+#include "finite_automata.h"
 
 void init_int_array(int array[], int len, int init_value);
 void init_char_array(char array[], int len, char init_value);
@@ -20,6 +20,9 @@ void init_finite_automata(finite_automataT* fa) {
     // ---------------------------------------------------------------------
     // .-= FINITE AUTOMATA DEFINITION =-.
     //
+    // Representation of 'finite_automata_graph.jpg'
+    //
+
     // --- Rule #1
     ruleT r1;
 
