@@ -31,13 +31,13 @@ int main() {
     symtableT symtable; // TODO: Make array, add hash function, add stack
     symtable_init(&symtable);
 
-    int token_index = 0;
 
-    do {
-        get_next_token(&fa, input_fp, &symtable, &token[token_index]);
-        debug_token(&token[token_index], token_index);
-        token_index++;
-    } while (!token[token_index].token_type == TOKEN_EOF);
+    for (int i = 0; i < TOKEN_ARRAY_LEN; i++) {
+        get_next_token(&fa, input_fp, &symtable, &token[i]);
+        debug_token(&token[i], i);
+
+        if (token[i].token_type == TOKEN_EOF) break;
+    }
 
     debug_whole_symtable(&symtable);
 

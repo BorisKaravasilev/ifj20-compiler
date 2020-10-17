@@ -42,7 +42,7 @@ int symtable_add_item(symtableT *ptr_symtable, char *ptr_string) {
 
 void symtable_free(symtableT *ptr_symtable) {
     if (ptr_symtable != NULL) {
-        free(ptr_symtable);
+        free(ptr_symtable->ptr_item);
         ptr_symtable->length = 0;
         ptr_symtable->alloc_size = 0;
     }
