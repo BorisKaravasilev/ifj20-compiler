@@ -29,10 +29,8 @@ typedef struct {
     int to_state;
 } ruleT;
 
-// M = (Q, Sigma, R, s, F)
 typedef struct {
     int states[STATES_LEN];
-    char alphabet[ALPHABET_LEN];
     ruleT rules[RULES_LEN];
     int start_state;
     int final_states[FINAL_STATES_LEN];
@@ -40,7 +38,6 @@ typedef struct {
 
 void init_finite_automata(finite_automataT *fa);
 void init_int_array(int array[], int len, int init_value);
-void init_char_array(char array[], int len, char init_value);
 void init_rules_array(ruleT array[], int len, ruleT init_value);
 void init_rule(ruleT *rule);
 

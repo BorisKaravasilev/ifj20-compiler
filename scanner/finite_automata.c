@@ -5,7 +5,6 @@ void init_finite_automata(finite_automataT* fa) {
     // Init array with predefined values that cant occur in the array
     init_int_array(fa->final_states, FINAL_STATES_LEN, 0);
     init_int_array(fa->states, STATES_LEN, 0);
-    init_char_array(fa->alphabet, ALPHABET_LEN, '~');
 
     ruleT r_init;
     r_init.from_state = 0;
@@ -80,11 +79,6 @@ void init_finite_automata(finite_automataT* fa) {
     fa->states[1] = 2;  // 'a' or 'b' symbols string
     fa->states[2] = 3;  // '1' or '0' digits number
 
-    fa->alphabet[0] = 'a';
-    fa->alphabet[1] = 'b';
-    fa->alphabet[2] = '0';
-    fa->alphabet[3] = '1';
-
     fa->start_state = 1;
     fa->final_states[0] = 2;
     fa->final_states[1] = 3;
@@ -96,12 +90,6 @@ void init_finite_automata(finite_automataT* fa) {
 }
 
 void init_int_array(int array[], int len, int init_value) {
-    for (int i = 0; i < len; i++) {
-        array[i] = init_value;
-    }
-}
-
-void init_char_array(char array[], int len, char init_value) {
     for (int i = 0; i < len; i++) {
         array[i] = init_value;
     }
