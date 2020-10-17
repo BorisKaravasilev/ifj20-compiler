@@ -13,18 +13,7 @@ Sample FA definition in [finite_automata.c](scanner/finite_automata.c) sample FA
 
 ### TODO
 
-- ~~Setup project structure~~
-- ~~Refactor magic numbers to constants~~
-- ~~Support symbol ranges for transitions in rules~~
-- Proper token generation
-- Symbol table
-- Keyword check
-- EOL flag
-- Finite automata graph
-- Hex numbers
-- Change arrays to dynamically alocated
-
-Check also TODO's in code and create issues on Github from them.
+Check TODO's in code and create issues on Github from them.
 
 #### CLion Setup
 
@@ -32,7 +21,7 @@ Check also TODO's in code and create issues on Github from them.
 - Install [cygwin](https://www.cygwin.com/) C compiler.
 - Go to "Settings" -> "Build, Execution, Development" -> "Build Tools" -> "Make" and set the path to "C:\cygwin64\bin\make.exe" or where your *make* is located. I checked the option "Use Cygwin".
 - Add path to your "make.exe" to system variable PATH in Windows (For me it is "C:\cygwin64\bin\make.exe").
-- In CLion in the upper right corner next to the green triangle, open the dropdown menu and go into "Edit configurations..." and type "run" in "Targets" field -> "Apply" -> "Ok".
+- In CLion in the upper right corner next to the green triangle, open the dropdown menu and go into "Edit configurations...", add a new configuration of type "Makefile" and type "run" in "Targets" field, select path to "Makefile" -> "Apply" -> "Ok".
 - Then just using Cmd+f5 shortcut build and run the code.
 
 ##### Input file
@@ -42,6 +31,6 @@ Then the input will come from file and not *stdin*.
 Edit or add input file in folder *input_files*.
 Keep it clean, cheers!
 
-##### Adding files
+##### Adding folders
 
-When you add new ".c" files add them to the end of "SOURCE" variable.
+When you add new folder with ".c" files, add the new folder to Makefile.
