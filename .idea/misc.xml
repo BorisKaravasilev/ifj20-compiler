@@ -11,7 +11,7 @@
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="modules">
           <set>
-            <option value="C:\Users\Dominik\CLionProjects\ifj20-compiler" />
+            <option value="D:\Projekty\C\ifj20-compiler" />
           </set>
         </option>
         <option name="switches" value="--just-print --print-directory --keep-going" />
