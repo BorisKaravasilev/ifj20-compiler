@@ -27,6 +27,8 @@ bool is_accepted(char sym, range_or_charT *transition_symbols) {
 }
 
 int get_next_state(char curr_sym, int curr_state, finite_automataT *ptr_fa) {
+    if (curr_sym == EOF) return ERROR_NO_NEXT_STATE;
+
     // Go through all rules in FA
     for (int i = 0; i < RULES_LEN; i++) {
         // Is rule initialized or empty? (unused array cell check)
@@ -66,7 +68,7 @@ void generate_token(tokenT *ptr_token, symtableT *ptr_symtable, int type) {
         ptr_token->token_type = keyword_check(ptr_token, type);
     }
 
-    //if (ptr_token->token_type == TOKEN_IDENTIFIER) {
+    // if (ptr_token->token_type == TOKEN_IDENTIFIER) {
     if (true) {  // Just for testing (adds all token types to symbol table)
         symtable_add_item(ptr_symtable, ptr_token->attribute.string_val.string);
 
@@ -91,10 +93,6 @@ void get_next_token(finite_automataT *ptr_fa, FILE *input_file, symtableT *ptr_s
     while (curr_sym != EOF) {
         if (!read_last_sym_from_previous_word) {
             curr_sym = fgetc(input_file);
-
-            if (curr_sym == EOF)
-                break;
-
             debug_scanner("Reading char...\n%s", "");
         }
 
@@ -127,5 +125,6 @@ void get_next_token(finite_automataT *ptr_fa, FILE *input_file, symtableT *ptr_s
     }
 
     // End Of File -> finished successfully
+    printf("End of file\n");
     generate_token(ptr_token, ptr_symtable, TOKEN_EOF);
 }
