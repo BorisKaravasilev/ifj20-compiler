@@ -15,7 +15,7 @@ Sample FA definition in [finite_automata.c](scanner/finite_automata.c) sample FA
 
 - ~~Setup project structure~~
 - ~~Refactor magic numbers to constants~~
-- Support symbol ranges for transitions in rules
+- ~~Support symbol ranges for transitions in rules~~
 - Proper token generation
 - Symbol table
 - Keyword check
