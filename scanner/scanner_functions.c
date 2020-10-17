@@ -9,6 +9,29 @@
 
 #define ERROR_NO_NEXT_STATE -2
 
+bool is_accepted(char sym, range_or_charT rule_symbols) {
+    if (rule_symbols.single_char != -1){ // rule accepts a single character
+        if (rule_symbols.single_char == sym) // is the current symbol same as the accepted character?
+            return true;
+        else
+            return false;
+    }
+    else { // rule accepts one or multiple ranges or multiple individual characters
+        for (int i = 0; i < RANGES_IN_RULE; i++) { // go through all available range slots
+            if (rule_symbols.range[i].to == -1) { // individual character
+                if (rule_symbols.range[i].from == sym)
+                    return true;
+            }
+            else { // range
+                if (rule_symbols.range[i].from <= sym && sym <= rule_symbols.range[i].to)
+                    return true;
+            }
+        }
+
+        return false;
+    }
+}
+
 int get_next_state(char curr_sym, int curr_state, finite_automataT *ptr_fa) {
     // Go through all rules in FA
     for (int i = 0; i < RULES_LEN; i++) {
@@ -19,8 +42,7 @@ int get_next_state(char curr_sym, int curr_state, finite_automataT *ptr_fa) {
                 // Go through all transition symbols in rule
                 // (symbols that bring you to next state)
                 for (int j = 0; j < TRANS_SYM_LEN; j++) {
-                    // TODO: Change to is_in_range()
-                    if (ptr_fa->rules[i].transition_symbols[j] == curr_sym) {
+                    if (is_accepted(curr_sym, ptr_fa->rules[i].transition_symbols)) {
                         int next_state = ptr_fa->rules[i].to_state;
                         curr_state = next_state;
                         return next_state;
@@ -33,14 +55,6 @@ int get_next_state(char curr_sym, int curr_state, finite_automataT *ptr_fa) {
     // Can't transition to any state with curr_sym
     return ERROR_NO_NEXT_STATE;
 }
-
-//bool is_in_range() {
-    // is 'ragne_or_char.from == -1'
-    // -> then compare singe_char to current char
-    // else
-    // if (from <= curr && curr <= to)
-    // -> return true
-//}
 
 bool is_final_state(int state, finite_automataT *ptr_fa) {
     for (int i = 0; i < FINAL_STATES_LEN; i++) {

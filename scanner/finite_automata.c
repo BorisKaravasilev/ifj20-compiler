@@ -13,7 +13,13 @@ void init_finite_automata(finite_automataT* fa) {
     ruleT r_init;
     r_init.from_state = 0;
     r_init.to_state = 0;
-    init_char_array(r_init.transition_symbols, TRANS_SYM_LEN, '~');
+    r_init.transition_symbols.single_char = -1;
+
+    for (int i = 0; i < RANGES_IN_RULE; i++){
+        r_init.transition_symbols.range[i].from = -1;
+        r_init.transition_symbols.range[i].to = -1;
+    }
+
     init_rules_array(fa->rules, RULES_LEN, r_init);
     // end of initializing arrays
 
@@ -28,40 +34,42 @@ void init_finite_automata(finite_automataT* fa) {
 
     r1.from_state = 1;
     r1.to_state = 1;
-    r1.transition_symbols[0] = ' ';
-    r1.transition_symbols[1] = '\n';
+    r1.transition_symbols.range[0].from = ' ';
+    r1.transition_symbols.range[0].to = -1;
+    r1.transition_symbols.range[1].from = '\n';
+    r1.transition_symbols.range[1].to = -1;
 
     // --- Rule #2
     ruleT r2;
 
     r2.from_state = 1;
     r2.to_state = 2;
-    r2.transition_symbols[0] = 'a';
-    r2.transition_symbols[1] = 'b';
+    r2.transition_symbols.range[0].from = 'a';
+    r2.transition_symbols.range[0].to = 'b';
 
     // --- Rule #3
     ruleT r3;
 
     r3.from_state = 2;
     r3.to_state = 2;
-    r3.transition_symbols[0] = 'a';
-    r3.transition_symbols[1] = 'b';
+    r3.transition_symbols.range[0].from = 'a';
+    r3.transition_symbols.range[0].to = 'b';
 
     // --- Rule #4
     ruleT r4;
 
     r4.from_state = 1;
     r4.to_state = 3;
-    r4.transition_symbols[0] = '0';
-    r4.transition_symbols[1] = '1';
+    r4.transition_symbols.range[0].from = '0';
+    r4.transition_symbols.range[0].to = '1';
 
     // --- Rule #5
     ruleT r5;
 
     r5.from_state = 3;
     r5.to_state = 3;
-    r5.transition_symbols[0] = '0';
-    r5.transition_symbols[1] = '1';
+    r5.transition_symbols.range[0].from = '0';
+    r5.transition_symbols.range[0].to = '1';
 
     // Finite automata definition
     fa->states[0] = 1;  // start
