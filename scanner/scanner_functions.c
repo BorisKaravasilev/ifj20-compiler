@@ -9,15 +9,17 @@
 
 #define ERROR_NO_NEXT_STATE -2
 
-bool is_accepted(char sym, range_or_charT transition_symbols[]) {
+bool is_accepted(char sym, range_or_charT *transition_symbols) {
     for (int i = 0; i < TRANS_SYM_LEN; i++) { // go through all available slots
         if (transition_symbols[i].single_char != -1) { // single character
-            if (transition_symbols[i].single_char == sym) // compare character
+            if (transition_symbols[i].single_char == sym) { // compare character
                 return true;
+            }
         }
         else { // range
-            if (transition_symbols[i].from <= sym && sym <= transition_symbols[i].to)
+            if (transition_symbols[i].from <= sym && sym <= transition_symbols[i].to) {
                 return true; // check if character is in accepted range
+            }
         }
     }
 
@@ -35,7 +37,6 @@ int get_next_state(char curr_sym, int curr_state, finite_automataT *ptr_fa) {
                 // (symbols that bring you to next state)
                 if (is_accepted(curr_sym, ptr_fa->rules[i].transition_symbols)) {
                     int next_state = ptr_fa->rules[i].to_state;
-                    curr_state = next_state;
                     return next_state;
                 }
             }
@@ -90,6 +91,9 @@ void get_next_token(finite_automataT *ptr_fa, FILE *input_file, symtableT *ptr_s
     while (curr_sym != EOF) {
         if (!read_last_sym_from_previous_word) {
             curr_sym = fgetc(input_file);
+
+            if (curr_sym == EOF)
+                break;
 
             debug_scanner("Reading char...\n%s", "");
         }

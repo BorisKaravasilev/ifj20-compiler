@@ -11,10 +11,13 @@ void init_finite_automata(finite_automataT* fa) {
     r_init.from_state = 0;
     r_init.to_state = 0;
 
+    range_or_charT rc;
+    rc.from = -1;
+    rc.to = -1;
+    rc.single_char = -1;
+
     for (int i = 0; i < TRANS_SYM_LEN; i++){
-        r_init.transition_symbols[i].from = -1;
-        r_init.transition_symbols[i].to = -1;
-        r_init.transition_symbols[i].single_char = -1;
+        r_init.transition_symbols[i] = rc;
     }
 
     init_rules_array(fa->rules, RULES_LEN, r_init);
@@ -25,9 +28,11 @@ void init_finite_automata(finite_automataT* fa) {
     //
     // Representation of 'finite_automata_graph.jpg'
     //
+    // TODO: Set rules through FA indexes and initialize at once
 
     // --- Rule #1
     ruleT r1;
+    init_rule(&r1);
 
     r1.from_state = 1;
     r1.to_state = 1;
@@ -36,6 +41,7 @@ void init_finite_automata(finite_automataT* fa) {
 
     // --- Rule #2
     ruleT r2;
+    init_rule(&r2);
 
     r2.from_state = 1;
     r2.to_state = 2;
@@ -44,6 +50,7 @@ void init_finite_automata(finite_automataT* fa) {
 
     // --- Rule #3
     ruleT r3;
+    init_rule(&r3);
 
     r3.from_state = 2;
     r3.to_state = 2;
@@ -52,6 +59,7 @@ void init_finite_automata(finite_automataT* fa) {
 
     // --- Rule #4
     ruleT r4;
+    init_rule(&r4);
 
     r4.from_state = 1;
     r4.to_state = 3;
@@ -60,6 +68,7 @@ void init_finite_automata(finite_automataT* fa) {
 
     // --- Rule #5
     ruleT r5;
+    init_rule(&r5);
 
     r5.from_state = 3;
     r5.to_state = 3;
@@ -101,5 +110,16 @@ void init_char_array(char array[], int len, char init_value) {
 void init_rules_array(ruleT array[], int len, ruleT init_value) {
     for (int i = 0; i < len; i++) {
         array[i] = init_value;
+    }
+}
+
+void init_rule(ruleT *rule) {
+    rule->to_state = 0;
+    rule->from_state = 0;
+
+    for (int i = 0; i < TRANS_SYM_LEN; i++) {
+        rule->transition_symbols[i].from = -1;
+        rule->transition_symbols[i].to = -1;
+        rule->transition_symbols[i].single_char = -1;
     }
 }
