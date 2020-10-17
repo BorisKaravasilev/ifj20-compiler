@@ -2,9 +2,8 @@
 #define __LEX_FINITE_AUTOMATA_H_
 
 #define STATES_LEN 50
-#define ALPHABET_LEN 50
 #define RULES_LEN 50
-#define TRANS_SYM_LEN 50
+#define TRANS_RANGES_LEN 50
 #define FINAL_STATES_LEN 50
 #define START_STATE 1
 
@@ -25,7 +24,7 @@ typedef struct {
 // a = set of acceptable symbols or symbol ranges to make a transition to 'q'
 typedef struct {
     int from_state;
-    range_or_charT transition_ranges[TRANS_SYM_LEN];
+    range_or_charT transition_ranges[TRANS_RANGES_LEN];
     int to_state;
 } ruleT;
 
@@ -38,7 +37,7 @@ typedef struct {
 
 void init_finite_automata(finite_automataT *fa);
 void init_int_array(int array[], int len, int init_value);
-void init_rules_array(ruleT array[], int len, ruleT init_value);
+void init_rules_array(ruleT array[], int len);
 void init_rule(ruleT *rule);
 
 #endif

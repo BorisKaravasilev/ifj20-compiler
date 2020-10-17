@@ -10,7 +10,7 @@
 #define ERROR_NO_NEXT_STATE -2
 
 bool is_accepted(char sym, range_or_charT *transition_ranges) {
-    for (int i = 0; i < TRANS_SYM_LEN; i++) { // go through all available slots
+    for (int i = 0; i < TRANS_RANGES_LEN; i++) { // go through all available slots
         if (transition_ranges[i].single_char != -1) { // single character
             if (transition_ranges[i].single_char == sym) { // compare character
                 return true;
