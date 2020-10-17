@@ -16,7 +16,7 @@ void init_finite_automata(finite_automataT* fa) {
     rc.single_char = -1;
 
     for (int i = 0; i < TRANS_SYM_LEN; i++){
-        r_init.transition_symbols[i] = rc;
+        r_init.transition_ranges[i] = rc;
     }
 
     init_rules_array(fa->rules, RULES_LEN, r_init);
@@ -35,8 +35,8 @@ void init_finite_automata(finite_automataT* fa) {
 
     r1.from_state = 1;
     r1.to_state = 1;
-    r1.transition_symbols[0].single_char = ' ';
-    r1.transition_symbols[1].single_char = '\n';
+    r1.transition_ranges[0].single_char = ' ';
+    r1.transition_ranges[1].single_char = '\n';
 
     // --- Rule #2
     ruleT r2;
@@ -44,8 +44,8 @@ void init_finite_automata(finite_automataT* fa) {
 
     r2.from_state = 1;
     r2.to_state = 2;
-    r2.transition_symbols[0].from = 'a';
-    r2.transition_symbols[0].to = 'b';
+    r2.transition_ranges[0].from = 'a';
+    r2.transition_ranges[0].to = 'b';
 
     // --- Rule #3
     ruleT r3;
@@ -53,8 +53,8 @@ void init_finite_automata(finite_automataT* fa) {
 
     r3.from_state = 2;
     r3.to_state = 2;
-    r3.transition_symbols[0].from = 'a';
-    r3.transition_symbols[0].to = 'b';
+    r3.transition_ranges[0].from = 'a';
+    r3.transition_ranges[0].to = 'b';
 
     // --- Rule #4
     ruleT r4;
@@ -62,8 +62,8 @@ void init_finite_automata(finite_automataT* fa) {
 
     r4.from_state = 1;
     r4.to_state = 3;
-    r4.transition_symbols[0].from = '0';
-    r4.transition_symbols[0].to = '1';
+    r4.transition_ranges[0].from = '0';
+    r4.transition_ranges[0].to = '1';
 
     // --- Rule #5
     ruleT r5;
@@ -71,8 +71,8 @@ void init_finite_automata(finite_automataT* fa) {
 
     r5.from_state = 3;
     r5.to_state = 3;
-    r5.transition_symbols[0].from = '0';
-    r5.transition_symbols[0].to = '1';
+    r5.transition_ranges[0].from = '0';
+    r5.transition_ranges[0].to = '1';
 
     // Finite automata definition
     fa->states[0] = 1;  // start
@@ -106,8 +106,8 @@ void init_rule(ruleT *rule) {
     rule->from_state = 0;
 
     for (int i = 0; i < TRANS_SYM_LEN; i++) {
-        rule->transition_symbols[i].from = -1;
-        rule->transition_symbols[i].to = -1;
-        rule->transition_symbols[i].single_char = -1;
+        rule->transition_ranges[i].from = -1;
+        rule->transition_ranges[i].to = -1;
+        rule->transition_ranges[i].single_char = -1;
     }
 }

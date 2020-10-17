@@ -9,15 +9,15 @@
 
 #define ERROR_NO_NEXT_STATE -2
 
-bool is_accepted(char sym, range_or_charT *transition_symbols) {
+bool is_accepted(char sym, range_or_charT *transition_ranges) {
     for (int i = 0; i < TRANS_SYM_LEN; i++) { // go through all available slots
-        if (transition_symbols[i].single_char != -1) { // single character
-            if (transition_symbols[i].single_char == sym) { // compare character
+        if (transition_ranges[i].single_char != -1) { // single character
+            if (transition_ranges[i].single_char == sym) { // compare character
                 return true;
             }
         }
         else { // range
-            if (transition_symbols[i].from <= sym && sym <= transition_symbols[i].to) {
+            if (transition_ranges[i].from <= sym && sym <= transition_ranges[i].to) {
                 return true; // check if character is in accepted range
             }
         }
@@ -37,7 +37,7 @@ int get_next_state(char curr_sym, int curr_state, finite_automataT *ptr_fa) {
             if (ptr_fa->rules[i].from_state == curr_state) {
                 // Go through all transition symbols in rule
                 // (symbols that bring you to next state)
-                if (is_accepted(curr_sym, ptr_fa->rules[i].transition_symbols)) {
+                if (is_accepted(curr_sym, ptr_fa->rules[i].transition_ranges)) {
                     int next_state = ptr_fa->rules[i].to_state;
                     return next_state;
                 }

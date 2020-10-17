@@ -25,7 +25,7 @@ typedef struct {
 // a = set of acceptable symbols or symbol ranges to make a transition to 'q'
 typedef struct {
     int from_state;
-    range_or_charT transition_symbols[TRANS_SYM_LEN];
+    range_or_charT transition_ranges[TRANS_SYM_LEN];
     int to_state;
 } ruleT;
 
