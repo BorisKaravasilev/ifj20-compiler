@@ -134,5 +134,4 @@ void get_next_token(finite_automataT *ptr_fa, FILE *input_file, symtableT *ptr_s
 
     // End Of File -> finished successfully
     generate_token(ptr_token, ptr_symtable, TOKEN_EOF);
-    return;
 }
