@@ -9,27 +9,19 @@
 
 #define ERROR_NO_NEXT_STATE -2
 
-bool is_accepted(char sym, range_or_charT rule_symbols) {
-    if (rule_symbols.single_char != -1){ // rule accepts a single character
-        if (rule_symbols.single_char == sym) // is the current symbol same as the accepted character?
-            return true;
-        else
-            return false;
-    }
-    else { // rule accepts one or multiple ranges or multiple individual characters
-        for (int i = 0; i < RANGES_IN_RULE; i++) { // go through all available range slots
-            if (rule_symbols.range[i].to == -1) { // individual character
-                if (rule_symbols.range[i].from == sym)
-                    return true;
-            }
-            else { // range
-                if (rule_symbols.range[i].from <= sym && sym <= rule_symbols.range[i].to)
-                    return true;
-            }
+bool is_accepted(char sym, range_or_charT transition_symbols[]) {
+    for (int i = 0; i < TRANS_SYM_LEN; i++) { // go through all available slots
+        if (transition_symbols[i].single_char != -1) { // single character
+            if (transition_symbols[i].single_char == sym) // compare character
+                return true;
         }
-
-        return false;
+        else { // range
+            if (transition_symbols[i].from <= sym && sym <= transition_symbols[i].to)
+                return true; // check if character is in accepted range
+        }
     }
+
+    return false;
 }
 
 int get_next_state(char curr_sym, int curr_state, finite_automataT *ptr_fa) {
@@ -41,12 +33,10 @@ int get_next_state(char curr_sym, int curr_state, finite_automataT *ptr_fa) {
             if (ptr_fa->rules[i].from_state == curr_state) {
                 // Go through all transition symbols in rule
                 // (symbols that bring you to next state)
-                for (int j = 0; j < TRANS_SYM_LEN; j++) {
-                    if (is_accepted(curr_sym, ptr_fa->rules[i].transition_symbols)) {
-                        int next_state = ptr_fa->rules[i].to_state;
-                        curr_state = next_state;
-                        return next_state;
-                    }
+                if (is_accepted(curr_sym, ptr_fa->rules[i].transition_symbols)) {
+                    int next_state = ptr_fa->rules[i].to_state;
+                    curr_state = next_state;
+                    return next_state;
                 }
             }
         }

@@ -7,32 +7,25 @@
 #define TRANS_SYM_LEN 50
 #define FINAL_STATES_LEN 50
 #define START_STATE 1
-#define RANGES_IN_RULE 10
 
-// Range of characters that the automaton accepts
+
+// Represents:
+// - a range of characters (from, to), single_char == -1
+// - a single character (single_char), from, to == -1
+// Not used variables are set to -1 (either from & to, or single_char)
 typedef struct {
     char from;
     char to;
-} rangeT;
-
-// Represents:
-// - one or multiple ranges of characters or multiple individual characters
-// - a single character (from, to = -1)
-// Not used variables are set to -1 (either from & to, or single_char)
-// For multiple individual characters, their value is stored in 'from'
-// and the value in 'to' is -1.
-typedef struct {
-    rangeT range[RANGES_IN_RULE];
     char single_char;
 } range_or_charT;
 
 // Rule of finite automata in the format 'pa -> q'
 // p = from state
 // q = to state
-// a = set of acceptable symbols to make a transition to 'q'
+// a = set of acceptable symbols or symbol ranges to make a transition to 'q'
 typedef struct {
     int from_state;
-    range_or_charT transition_symbols;
+    range_or_charT transition_symbols[TRANS_SYM_LEN];
     int to_state;
 } ruleT;
 
