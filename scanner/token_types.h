@@ -10,6 +10,9 @@
  * Definition of constants
  */
 
+#ifndef IFJ20_COMPILER_TOKEN_TYPES_H
+#define IFJ20_COMPILER_TOKEN_TYPES_H
+
 #define SCANNER_ERROR               1
 
 #define TOKEN_EOF                   100
@@ -55,3 +58,5 @@
 #define TOKEN_FUNCTION_LEN          140
 #define TOKEN_FUNCTION_INT2FLOAT    141
 #define TOKEN_FUNCTION_FLOAT2INT    142
+
+#endif //IFJ20_COMPILER_TOKEN_TYPES_H
