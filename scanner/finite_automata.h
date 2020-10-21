@@ -1,10 +1,20 @@
+/**
+ * Project: Implementation of a compiler of the IFJ20 language.
+ * @file    finite_automata.h
+ * @brief   This is the header file for finite_automata.c with definitions of constants and functions.
+ * @author  Boris Karavasilev <xkarav01@stud.fit.vutbr.cz>
+ * @author  Domink Vecera <xvecer23@stud.fit.vutbr.cz>
+ * @author  Robin Stancl <xstanc09@stud.fit.vutbr.cz>
+ * @date    4. 10. 2020
+ */
+
 #ifndef __LEX_FINITE_AUTOMATA_H_
 #define __LEX_FINITE_AUTOMATA_H_
 
 #define STATES_LEN 50
-#define RULES_LEN 50
-#define TRANS_RANGES_LEN 50
-#define FINAL_STATES_LEN 50
+#define RULES_LEN 65
+#define TRANS_RANGES_LEN 10
+#define FINAL_STATES_LEN 35
 #define START_STATE 1
 
 
