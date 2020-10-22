@@ -52,25 +52,23 @@ void init_finite_automata(finite_automataT* fa) {
     fa->states[20] = TOKEN_EQUAL;
     fa->states[21] = TOKEN_DOUBLE_EQUAL;
     fa->states[22] = STATE_LINE_COMMENT_BODY;
-    fa->states[23] = TOKEN_LINE_COMMENT;
-    fa->states[24] = STATE_BLOCK_COMMENT_BODY;
-    fa->states[25] = STATE_BLOCK_COMMENT_END;
-    fa->states[26] = TOKEN_BLOCK_COMMENT;
-    fa->states[27] = STATE_STRING;
-    fa->states[28] = STATE_BACKSLASH;
-    fa->states[29] = STATE_HEX_NUMBER;
-    fa->states[30] = STATE_F;
-    fa->states[31] = STATE_FF;
-    fa->states[32] = TOKEN_STRING_LITERAL;
-    fa->states[33] = TOKEN_UNDERSCORE;
-    fa->states[34] = TOKEN_IDENTIFIER;
-    fa->states[35] = TOKEN_INTEGER_LITERAL;
-    fa->states[36] = STATE_EXPONENT;
-    fa->states[37] = STATE_PLUS_MINUS;
-    fa->states[38] = STATE_DECIMAL_NUMBER_NOT_END;
-    fa->states[39] = TOKEN_DECIMAL_LITERAL;
-    fa->states[40] = TOKEN_EXPONENT_LITERAL;
-    fa->states[41] = TOKEN_SLASH;
+    fa->states[23] = STATE_BLOCK_COMMENT_BODY;
+    fa->states[24] = STATE_BLOCK_COMMENT_END;
+    fa->states[25] = STATE_STRING;
+    fa->states[26] = STATE_BACKSLASH;
+    fa->states[27] = STATE_HEX_NUMBER;
+    fa->states[28] = STATE_F;
+    fa->states[29] = STATE_FF;
+    fa->states[30] = TOKEN_STRING_LITERAL;
+    fa->states[31] = TOKEN_UNDERSCORE;
+    fa->states[32] = TOKEN_IDENTIFIER;
+    fa->states[33] = TOKEN_INTEGER_LITERAL;
+    fa->states[34] = STATE_EXPONENT;
+    fa->states[35] = STATE_PLUS_MINUS;
+    fa->states[36] = STATE_DECIMAL_NUMBER_NOT_END;
+    fa->states[37] = TOKEN_DECIMAL_LITERAL;
+    fa->states[38] = TOKEN_EXPONENT_LITERAL;
+    fa->states[39] = TOKEN_SLASH;
 
     // Start state
     fa->start_state = STATE_START;
@@ -95,15 +93,13 @@ void init_finite_automata(finite_automataT* fa) {
     fa->final_states[16] = TOKEN_SEMICOLON;
     fa->final_states[17] = TOKEN_EQUAL;
     fa->final_states[18] = TOKEN_DOUBLE_EQUAL;
-    fa->final_states[19] = TOKEN_LINE_COMMENT;
-    fa->final_states[20] = TOKEN_BLOCK_COMMENT;
-    fa->final_states[21] = TOKEN_STRING_LITERAL;
-    fa->final_states[22] = TOKEN_UNDERSCORE;
-    fa->final_states[23] = TOKEN_IDENTIFIER;
-    fa->final_states[24] = TOKEN_INTEGER_LITERAL;
-    fa->final_states[25] = TOKEN_DECIMAL_LITERAL;
-    fa->final_states[26] = TOKEN_EXPONENT_LITERAL;
-    fa->final_states[27] = TOKEN_SLASH;
+    fa->final_states[19] = TOKEN_STRING_LITERAL;
+    fa->final_states[20] = TOKEN_UNDERSCORE;
+    fa->final_states[21] = TOKEN_IDENTIFIER;
+    fa->final_states[22] = TOKEN_INTEGER_LITERAL;
+    fa->final_states[23] = TOKEN_DECIMAL_LITERAL;
+    fa->final_states[24] = TOKEN_EXPONENT_LITERAL;
+    fa->final_states[25] = TOKEN_SLASH;
 
     // --- Rule #0
     fa->rules[0].from_state = STATE_START;
@@ -226,7 +222,7 @@ void init_finite_automata(finite_automataT* fa) {
 
     // --- Rule #23
     fa->rules[23].from_state = STATE_LINE_COMMENT_BODY;
-    fa->rules[23].to_state = TOKEN_LINE_COMMENT;
+    fa->rules[23].to_state = STATE_START; //It is a line comment, but we ignore all comments
     fa->rules[23].transition_ranges[0].single_char = '\n';
     fa->rules[23].transition_ranges[1].single_char = EOF;
 
@@ -260,7 +256,7 @@ void init_finite_automata(finite_automataT* fa) {
 
     // --- Rule #28
     fa->rules[28].from_state = STATE_BLOCK_COMMENT_END;
-    fa->rules[28].to_state = TOKEN_BLOCK_COMMENT;
+    fa->rules[28].to_state = STATE_START; //It is a block comment, but we ignore all comments
     fa->rules[28].transition_ranges[0].single_char = '/';
 
     // --- Rule #29

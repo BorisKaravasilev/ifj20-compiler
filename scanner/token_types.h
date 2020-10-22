@@ -60,7 +60,5 @@
 #define TOKEN_FUNCTION_INT2FLOAT    142
 #define TOKEN_FUNCTION_FLOAT2INT    143
 #define TOKEN_SLASH                 144
-#define TOKEN_LINE_COMMENT          145
-#define TOKEN_BLOCK_COMMENT         146
 
 #endif //IFJ20_COMPILER_TOKEN_TYPES_H
