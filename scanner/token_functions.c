@@ -1,6 +1,11 @@
-//
-// Created by Petr Vrtal on 13.10.2020.
-//
+/**
+ * Project: Implementation of a compiler of the IFJ20 language.
+ * @file    token_functions.c
+ * @brief   This file contains the implementation of the token functions.
+ * @author  Petr Vrtal <xvrtal01@stud.fit.vutbr.cz>
+ * @author  Robin Stancl <xstanc09@stud.fit.vutbr.cz>
+ * @date    13. 10. 2020
+ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -82,6 +87,40 @@ int keyword_check(tokenT *ptr_token, int original_type) {
         return TOKEN_KEYWORD_STRING;
     }
 
+    return original_type;
+}
+
+int function_word_check(tokenT *ptr_token, int original_type) {
+    if (string_compare_constant(&ptr_token->attribute.string_val, "inputs") == 0) {
+        return TOKEN_FUNCTION_INPUTS;
+    }
+    else if (string_compare_constant(&ptr_token->attribute.string_val, "inputi") == 0) {
+        return TOKEN_FUNCTION_INPUTI;
+    }
+    else if (string_compare_constant(&ptr_token->attribute.string_val, "inputf") == 0) {
+        return TOKEN_FUNCTION_INPUTF;
+    }
+    else if (string_compare_constant(&ptr_token->attribute.string_val, "print") == 0) {
+        return TOKEN_FUNCTION_PRINT;
+    }
+    else if (string_compare_constant(&ptr_token->attribute.string_val, "len") == 0) {
+        return TOKEN_FUNCTION_LEN;
+    }
+    else if (string_compare_constant(&ptr_token->attribute.string_val, "substr") == 0) {
+        return TOKEN_FUNCTION_SUBSTR;
+    }
+    else if (string_compare_constant(&ptr_token->attribute.string_val, "ord") == 0) {
+        return TOKEN_FUNCTION_ORD;
+    }
+    else if (string_compare_constant(&ptr_token->attribute.string_val, "chr") == 0) {
+        return TOKEN_FUNCTION_CHR;
+    }
+    else if (string_compare_constant(&ptr_token->attribute.string_val, "int2float") == 0) {
+        return TOKEN_FUNCTION_INT2FLOAT;
+    }
+    else if (string_compare_constant(&ptr_token->attribute.string_val, "float2int") == 0) {
+        return TOKEN_FUNCTION_FLOAT2INT;
+    }
     return original_type;
 }
 

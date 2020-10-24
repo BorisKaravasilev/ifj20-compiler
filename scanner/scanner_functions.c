@@ -59,13 +59,14 @@ bool is_final_state(int state, finite_automataT *ptr_fa) {
     return false;
 }
 
-// TODO: Actual token generation and symbol tabel to be done
+// TODO: Actual token generation and symbol label to be done
 void generate_token(tokenT *ptr_token, symtableT *ptr_symtable, int type) {
     ptr_token->token_type = type;
 
     if (type == TOKEN_IDENTIFIER) {
-        // Set token type to keyword or identifier
+        // Set token type to keyword, build-in function or identifier
         ptr_token->token_type = keyword_check(ptr_token, type);
+        ptr_token->token_type = function_word_check(ptr_token, type);
     }
 
     // if (ptr_token->token_type == TOKEN_IDENTIFIER) {
