@@ -62,30 +62,33 @@ bool is_final_state(int state, finite_automataT *ptr_fa) {
 }
 
 // TODO: Actual token generation and symbol label to be done
-void generate_token(tokenT *ptr_token, symtableT *ptr_symtable, int type) {
+void generate_token(tokenT *ptr_token, Stack *ptr_stack, int type) {
     ptr_token->token_type = type;
 
     if (type == TOKEN_IDENTIFIER) {
         // Set token type to keyword, build-in function or identifier
-        ptr_token->token_type = keyword_check(ptr_token, type);
-        ptr_token->token_type = function_word_check(ptr_token, type);
+        ptr_token->token_type = keyword_check(ptr_token);
+        ptr_token->token_type = function_word_check(ptr_token);
     }
 
-    /*
-    // if (ptr_token->token_type == TOKEN_IDENTIFIER) {
-    if (true) {  // Just for testing (adds all token types to symbol table)
-        symtable_add_item(ptr_symtable, ptr_token->attribute.string_val.string);
-
-        int symtable_len = ptr_symtable->length;
-        debug_scanner("SYMTABLE len: %d   last_item_str: \"%s\"\n", symtable_len, ptr_symtable->ptr_item[symtable_len - 1].ptr_string);
-        return;
+    if (ptr_token->token_type == TOKEN_IDENTIFIER) {
+        stringT *key = &ptr_token->attribute.string_val;
+        Symtable *ptr_curr_scope_sym_table = stack_top(ptr_stack).symtable;
+        st_insert_symbol(ptr_curr_scope_sym_table, key, 0);
+        debug_scanner("\n | SYMTABLE | [INSERTED KEY: '%s' TO SYMTABLE]\n\n\n", key->string);
+    } else if (ptr_token->token_type == TOKEN_LEFT_CURLY_BRACE) {
+        // Push new symtable block
+        debug_scanner("\n | SYMTABLE | [PUSH NEW SYMTABLE BLOCK]\n\n\n%s", "");
+        stack_push(ptr_stack, st_init());
+    } else if (ptr_token->token_type == TOKEN_RIGHT_CURLY_BRACE) {
+        // Pop symtable block
+        debug_scanner("\n | SYMTABLE | [POP SYMTABLE BLOCK]\n\n\n%s", "");
+        stack_pop(ptr_stack);
     }
-     */
-    (void)ptr_symtable;
 }
 
 // TODO: pass EOL flag to get_next_token()
-void get_next_token(finite_automataT *ptr_fa, FILE *input_file, symtableT *ptr_symtable, tokenT *ptr_token) {
+void get_next_token(finite_automataT *ptr_fa, FILE *input_file, Stack *ptr_stack, tokenT *ptr_token) {
     int curr_state = STATE_START;
     int next_state;
     static char curr_sym = 0;
@@ -125,7 +128,7 @@ void get_next_token(finite_automataT *ptr_fa, FILE *input_file, symtableT *ptr_s
             // No rule was matched
             if (is_final_state(curr_state, ptr_fa)) {
                 // returns token struct (represents lexical unit)
-                generate_token(ptr_token, ptr_symtable, curr_state);
+                generate_token(ptr_token, ptr_stack, curr_state);
                 return;
             } else {
                 if (curr_sym != EOF) {
@@ -137,8 +140,8 @@ void get_next_token(finite_automataT *ptr_fa, FILE *input_file, symtableT *ptr_s
     }
 
     // End Of File -> finished successfully
-    printf("End of file\n");
-    generate_token(ptr_token, ptr_symtable, TOKEN_EOF);
+    debug_scanner("End of file\n%s", "");
+    generate_token(ptr_token, ptr_stack, TOKEN_EOF);
 }
 
 void update_file_position(file_positionT *file_pos, char curr_sym) {

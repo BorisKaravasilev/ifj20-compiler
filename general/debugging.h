@@ -6,6 +6,7 @@
 #define IFJ20_COMPILER_DEBUGGING_H
 
 #include <stdio.h>
+#include <stdbool.h>
 
 // ATTENTION
 // __VA_ARGS__ can't be empty so you always have to provide some argument

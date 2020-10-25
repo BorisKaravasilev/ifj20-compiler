@@ -4,13 +4,15 @@
 #include <stdio.h>
 #include "finite_automata.h"
 #include "token_functions.h"
+#include "stack.h"
+#include "symtable.h"
 
 typedef struct {
     int line_number;
     int line_char_position;
 } file_positionT;
 
-void get_next_token(finite_automataT *ptr_fa, FILE *input_file, symtableT *ptr_symtable, tokenT *ptr_token);
+void get_next_token(finite_automataT *ptr_fa, FILE *input_file, Stack *ptr_stack, tokenT *ptr_token);
 void token_array_free(tokenT *ptr_token_array, int array_length);
 bool is_accepted(char sym, range_or_charT transition_ranges[]);
 void update_file_position(file_positionT *file_pos, char curr_sym);

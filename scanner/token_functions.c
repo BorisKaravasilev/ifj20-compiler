@@ -58,7 +58,9 @@ void token_array_free(tokenT *ptr_token_array, int array_length) {
 }
 
 
-int keyword_check(tokenT *ptr_token, int original_type) {
+int keyword_check(tokenT *ptr_token) {
+    int original_type = ptr_token->token_type;
+
     if (string_compare_constant(&ptr_token->attribute.string_val, "else") == 0) {
         return TOKEN_KEYWORD_ELSE;
     }
@@ -90,7 +92,9 @@ int keyword_check(tokenT *ptr_token, int original_type) {
     return original_type;
 }
 
-int function_word_check(tokenT *ptr_token, int original_type) {
+int function_word_check(tokenT *ptr_token) {
+    int original_type = ptr_token->token_type;
+
     if (string_compare_constant(&ptr_token->attribute.string_val, "inputs") == 0) {
         return TOKEN_FUNCTION_INPUTS;
     }

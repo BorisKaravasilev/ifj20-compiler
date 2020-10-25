@@ -9,3 +9,11 @@
 int num1 = 19
 77E+2
 53.68
+
+int test {
+    num2
+
+    if () {
+        num3
+    }
+}
