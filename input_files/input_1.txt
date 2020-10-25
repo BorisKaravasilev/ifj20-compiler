@@ -1,1 +1,11 @@
-10 a 1w0 b
+-+ (*) ,:=!= >< >= <= = == / // comment
+-
++
+
+/*
+    block
+*/
+"string \ntest 0xF0"
+int num1 = 19
+77E+2
+53.68

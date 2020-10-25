@@ -106,6 +106,7 @@ void init_finite_automata(finite_automataT* fa) {
     fa->rules[0].to_state = TOKEN_EOF;
     fa->rules[0].transition_ranges[0].single_char = EOF;
 
+
     // --- Rule #1
     fa->rules[1].from_state = STATE_START;
     fa->rules[1].to_state = TOKEN_MINUS;
@@ -268,7 +269,9 @@ void init_finite_automata(finite_automataT* fa) {
     fa->rules[30].from_state = STATE_STRING;
     fa->rules[30].to_state = STATE_STRING;
     fa->rules[30].transition_ranges[0].from = 32;
-    fa->rules[30].transition_ranges[0].to = 127;
+    fa->rules[30].transition_ranges[0].to = 33; // excluding ASCII 34 => '"'
+    fa->rules[30].transition_ranges[1].from = 35;
+    fa->rules[30].transition_ranges[1].to = 127;
     //TODO ASCII > 31
 
     // --- Rule #31
@@ -432,6 +435,7 @@ void init_finite_automata(finite_automataT* fa) {
     fa->rules[54].transition_ranges[0].single_char = ' ';
     fa->rules[54].transition_ranges[1].single_char = '\n';
     //TODO Maybe other white space characters?
+
 }
 
 void init_int_array(int int_array[], int len, int init_value) {
