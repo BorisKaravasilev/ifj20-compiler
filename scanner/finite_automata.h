@@ -15,7 +15,6 @@
 #define RULES_LEN 65
 #define TRANS_RANGES_LEN 10
 #define FINAL_STATES_LEN 35
-#define START_STATE 1
 
 
 // Represents:

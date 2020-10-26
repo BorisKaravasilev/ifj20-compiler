@@ -17,7 +17,7 @@
 
 // TODO: Consider union
 typedef struct {
-    symtable_itemT *symtable_item;
+    ST_Item *symtable_item;
     stringT string_val;
 } attributeT;
 
@@ -33,7 +33,7 @@ void token_clear (tokenT *ptr_token);
 void token_free (tokenT *ptr_token);
 void debug_token(tokenT *ptr_token, int token_index);
 
-int keyword_check (tokenT *ptr_token, int original_type);
-int function_word_check (tokenT *ptr_token, int original_type);
+int keyword_check(tokenT *ptr_token);
+int function_word_check (tokenT *ptr_token);
 
 #endif //IFJ20_COMPILER_TOKEN_FUNCTIONS_H

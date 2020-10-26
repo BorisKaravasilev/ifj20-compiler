@@ -1,35 +1,135 @@
-//
-// Created by Boris on 14-Oct-20.
-//
+/**
+ * Project: Implementation of a compiler of the IFJ20 language.
+ * @file    symtable.c
+ * @brief   Implementation of Symbol table.
+ * @author  Petr Vrtal <xvrtal01@stud.fit.vutbr.cz>
+ * @date    25.10.2020
+ */
 
-#ifndef IFJ20_COMPILER_SYMTABLE_H
-#define IFJ20_COMPILER_SYMTABLE_H
+#ifndef IFJ_PROJEKT_SYMTABLE_H
+#define IFJ_PROJEKT_SYMTABLE_H
 
-#define SYMTABLE_INIT_LEN 5
+#define MAX_SYMTABLE_SIZE 256
 
-#include <stdbool.h>
+#define SYMTABLE_MALLOC_ERROR 99
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "../general/string_functions.h"
 
-// Holds data about identifiers
-typedef struct symtable_item {
-    char *ptr_string; // TODO: Change to string
-    int len;
-    int type;
-    bool used;
-    struct symtable_item *next; // For collisions (malloc)
-    // Next data in sym table
-} symtable_itemT;
+/**
+ * @brief Enum of all possible Symbol data types
+ */
+typedef enum {
+    TYPE_ERROR,
+    TYPE_INT,
+    TYPE_DECIMAL,
+    TYPE_STRING,
+    TYPE_NIL
+} Data_type;
 
-// Symbol table (Table of identifiers)
-typedef struct {
-    symtable_itemT *ptr_item; // Pointer to first item
-    int length;
-    int alloc_size;
-} symtableT;
+/**
+ * @brief Symbol table item structure
+ */
+typedef struct tST_Item {
+    stringT* key;
+    Data_type type;
+    stringT* content;
+    int function;
+    int defined;
+    stringT* params;
+    struct tST_Item* next;
+} ST_Item;
 
-int symtable_init(symtableT *ptr_symtable);
-int symtable_add_item(symtableT *ptr_symtable, char *ptr_string);
-void symtable_free(symtableT *ptr_symtable);
-void debug_whole_symtable(symtableT *ptr_symtable);
+/**
+ * @brief Symbol table structure
+ */
+typedef struct symTable {
+    int size;
+    ST_Item *items[MAX_SYMTABLE_SIZE];
+} Symtable;
 
-#endif //IFJ20_COMPILER_SYMTABLE_H
+/**
+ * Elf Hash hashing function used as hashing algorithm
+ * @param symbol key
+ * @link https://en.wikipedia.org/wiki/PJW_hash_function
+ * @return returns unsigned long hash
+ */
+unsigned long st_hash (stringT* key);
+
+/**
+ * Initialize Symbol table.
+ * @param returns symtable
+ */
+Symtable* st_init ();
+
+/**
+ * Creates symtable item.
+ * @return returns symtable item
+ */
+ST_Item* st_create_item ();
+
+ST_Item* st_search (Symtable* ptr_symtable, stringT* key);
+
+/**
+ * Inserts new symbol to symbol table.
+ * @param pointer to symbol table
+ * @param new symbol key
+ * @param pointer to new symbol data
+ */
+ST_Item* st_insert_symbol (Symtable* ptr_symtable, stringT* key, int function);
+
+/**
+ * Changes defined parameter in the symbol.
+ * @param pointer to symbol table
+ * @param new symbol key
+ * @param defined state integer
+ * @return true if adding was successful, otherwise false
+ */
+ST_Item* st_item_change_defined(Symtable* ptr_symtable, stringT* key, int defined);
+
+/**
+ * Adds new parameter to the function symbol.
+ * @param pointer tosymbol data
+ * @param symbol data type
+ * @return true if adding was successful, otherwise false
+ */
+int st_add_param (ST_Item* symbol, Data_type type);
+
+/**
+ * Function that returns Symbol table item content.
+ * @param pointer to symbol table
+ * @param searched item key
+ * @return Returns table item content
+ */
+char* st_get_content (Symtable* ptr_symtable, stringT* key);
+
+/**
+ * Function that returns Symbol table item params.
+ * @param pointer to symbol table
+ * @param searched item key
+ * @return Returns table item params
+ */
+char* st_get_params (Symtable* ptr_symtable, stringT* key);
+
+/**
+ * Delete Symbol table item.
+ * @param pointer to symbol table
+ * @param searched table item key
+ */
+/*void st_delete_symbol (Symtable* ptr_symtable, stringT *key);*/
+
+/**
+ * Clears entire item list in symbol.
+ * @param pointer to symbol table
+ */
+void st_clear_items_list (ST_Item* item);
+
+/**
+ * Clears entire Symbol table.
+ * @param pointer to symbol table
+ */
+void st_clear_all (Symtable* ptr_symtable);
+
+#endif //IFJ_PROJEKT_SYMTABLE_H
