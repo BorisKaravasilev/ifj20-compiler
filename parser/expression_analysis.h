@@ -22,11 +22,13 @@
 /// (or second one if the expression starts with the identifier token)
 ///In the parameter *ptr_last_token, this function returns the first token after an expression (The expr_check function
 /// must read one token after an expression ends to recognize if the whole expression has been read)
-///In the parameter *ptr_expr_data_type, the expr_check function also returns a type of the whole expression.
+///In the parameter *ptr_expr_data_and_type, the expr_check function also returns a data type of the whole expression.
 /// To do so it uses definitions of constants below (EXPRESSION_INT, EXPRESSION_FLOAT64, EXPRESSION_STRING)
+/// tokenT.token_type = data type of the expression
+/// The result of the expression is saved in tokenT.attribute
 ///The function returns 0 if everything is fine, or RC_SYN_ERR constant defined in "../general/return_codes.h"
 /// if an error occurred
-int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *ptr_last_token, int *ptr_expr_data_type);
+int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *ptr_last_token, tokenT *ptr_expr_data_and_type);
 
 /**
  * Definitions of constants
