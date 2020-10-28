@@ -17,6 +17,7 @@
 #include "scanner/symtable.h"
 #include "scanner/token_functions.h"
 #include "scanner/stack.h"
+#include "parser/semantic_late_check.h"
 
 #define IS_INPUT_FROM_FILE true // Input from file or stdin
 #define INPUT_FILE_NAME "input_files/input_1.txt"
@@ -39,6 +40,21 @@ int main() {
     stack_init(&stack);
     stack_push(&stack, symtable);
 
+    stringT testString;
+    string_init(&testString);
+    string_add_string(&testString, "testMethod");
+
+    late_check_stack late_check;
+    late_check_stack_init(&late_check);
+
+    late_check_stack_push_method(&late_check, &testString);
+    late_check_stack_item_add_parameter(late_check_stack_search(&late_check, &testString), &testString, TYPE_DECIMAL);
+
+    printf("late_check_method_found_name: %s, params: [id: %s]\n", late_check_stack_search(&late_check, &testString)->method_name.string, late_check_stack_search(&late_check, &testString)->parameters_list_first->name.string);
+
+    late_check_stack_free(&late_check);
+    clear_str(&testString);
+
     for (int i = 0; i < TOKEN_ARRAY_LEN; i++) {
         get_next_token(&fa, input_fp, &stack, &token[i]);
         debug_token(&token[i], i);
@@ -54,7 +70,7 @@ int main() {
     ST_Item *found_item = stack_search(&stack, &test_string);
 
     if (found_item != NULL) {
-        printf("\nFound symtable result with key '%s'\n", found_item->key->string);
+        printf("\nFound symtable result with key '%s'\n", found_item->key.string);
     } else {
         printf("\nNot found in symtable\n");
     } // end of stack symtable testing code

@@ -55,11 +55,8 @@ ST_Item* st_create_item () {
         exit(SYMTABLE_MALLOC_ERROR);
     }
 
-    temp->key = NULL;
-    temp->content = NULL;
     temp->function = 0;
     temp->defined = 0;
-    temp->params = NULL;
     temp->next = NULL;
 
     return temp;
@@ -75,7 +72,7 @@ ST_Item* st_search (Symtable* ptr_symtable, stringT* key) {
 
         if (temp != NULL) {
             /*We move through chained symbols until we get NULL*/
-            while (string_compare(temp->key, key) != 0) {
+            while (string_compare(&temp->key, key) != 0) {
                 if (temp->next == NULL) {
                     return NULL;
                 } else {
@@ -109,25 +106,12 @@ ST_Item* st_insert_symbol (Symtable* ptr_symtable, stringT* key, int function) {
             return NULL;
         }
 
-        /*We allocate memory for new symbol's key*/
-        if ((new_item->key = malloc(key->alloc_size)) == NULL) {
-            exit(SYMTABLE_MALLOC_ERROR);
-        }
-
-        /*We allocate memory for new symbol's content*/
-        if ((new_item->content = (stringT *) malloc (key->alloc_size)) == NULL)
-            exit(SYMTABLE_MALLOC_ERROR);
-
-        /*We allocate memory for new symbol's params*/
-        if ((new_item->params = (stringT *) malloc (key->alloc_size)) == NULL)
-            exit(SYMTABLE_MALLOC_ERROR);
-
-        string_init(new_item->key);
-        string_init(new_item->content);
-        string_init(new_item->params);
+        string_init(&new_item->key);
+        string_init(&new_item->content);
+        string_init(&new_item->params);
 
         temp = ptr_symtable->items[st_hash(key)];
-        string_copy(new_item->key, key);
+        string_copy(&new_item->key, key);
 
         new_item->type = TYPE_NIL;
         new_item->function = function;
@@ -174,17 +158,17 @@ int st_add_param (ST_Item* symbol, Data_type type) {
 
     switch (type) {
         case TYPE_INT:
-            if ((string_add_character(symbol->params, 'i')) == 1)
+            if ((string_add_character(&symbol->params, 'i')) == 1)
                 return 1;
             break;
 
         case TYPE_DECIMAL:
-            if ((string_add_character(symbol->params, 'd')) == 1)
+            if ((string_add_character(&symbol->params, 'd')) == 1)
                 return 1;
             break;
 
         case TYPE_STRING:
-            if ((string_add_character(symbol->params, 's')) == 1)
+            if ((string_add_character(&symbol->params, 's')) == 1)
                 return 1;
             break;
 
@@ -204,7 +188,7 @@ char* st_get_content (Symtable* ptr_symtable, stringT* key) {
         ST_Item *searched = st_search(ptr_symtable, key);
 
         if (searched != NULL) { /*If element was found we return it's data*/
-            return string_get(searched->content);
+            return string_get(&searched->content);
         } else { /*If element is not present in the table we return NULL*/
             return NULL;
         }
@@ -222,7 +206,7 @@ char* st_get_params (Symtable* ptr_symtable, stringT* key) {
         ST_Item *searched = st_search(ptr_symtable, key);
 
         if (searched != NULL) { /*If element was found we return it's data*/
-            return string_get(searched->params);
+            return string_get(&searched->params);
         } else { /*If element is not present in the table we return NULL*/
             return NULL;
         }
@@ -236,14 +220,9 @@ void st_clear_items_list (ST_Item* item) {
     if (item != NULL) {
         ST_Item* next = item->next;
 
-        if (item->content != NULL){
-            string_free(item->content);
-        }
-
-        if (item->params != NULL){
-            string_free(item->params);
-        }
-        string_free(item->key);
+        string_free(&item->content);
+        string_free(&item->params);
+        string_free(&item->key);
         free(item);
 
         ST_Item* tmp;
@@ -252,14 +231,9 @@ void st_clear_items_list (ST_Item* item) {
             tmp = next;
             next = next->next;
 
-            if (tmp->content != NULL){
-                string_free(tmp->content);
-            }
-
-            if (tmp->params != NULL){
-                string_free(tmp->params);
-            }
-            string_free(tmp->key);
+            string_free(&tmp->content);
+            string_free(&tmp->params);
+            string_free(&tmp->key);
             free(tmp);
         }
     }

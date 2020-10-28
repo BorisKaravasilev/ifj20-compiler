@@ -74,7 +74,7 @@ ST_Item* stack_search(Stack* stack, stringT* key) {
 
         if (search_item != NULL) {
             /*We move through chained symbols until we get NULL*/
-            while (string_compare(search_item->key, key) != 0) {
+            while (string_compare(&search_item->key, key) != 0) {
                 if (search_item->next == NULL) {
                     return NULL;
                 } else {

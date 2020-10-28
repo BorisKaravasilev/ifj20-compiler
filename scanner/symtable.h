@@ -33,12 +33,12 @@ typedef enum {
  * @brief Symbol table item structure
  */
 typedef struct tST_Item {
-    stringT* key;
+    stringT key;
     Data_type type;
-    stringT* content;
+    stringT content;
     int function;
     int defined;
-    stringT* params;
+    stringT params;
     struct tST_Item* next;
 } ST_Item;
 
