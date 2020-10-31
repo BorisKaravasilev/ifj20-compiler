@@ -23,7 +23,7 @@ Configuration should look like this:
 - Executable: <ins>ifj20_compiler</ins> (should be set automatically or should exist in dropdown menu)
 - Program aguments: <ins>input_files/input_1.txt</ins> or any other file in that folder
 - Working directory: <ins>*C:\full path to your project directory*\ifj20-compiler</ins> or any other file in that folder
-- Else remains blank or default
+- Else remains blank / default
 
 ### OLD CLion Setup - obsolete
 
