@@ -15,7 +15,17 @@ Sample FA definition in [finite_automata.c](scanner/finite_automata.c) sample FA
 
 Check TODO's in code and create issues on Github from them.
 
-### CLion Setup
+### CLion Setup - current cmake project
+
+Run / Debug configuration should be set to - "CMake Application":
+Configuration should look like this:
+- Target: <ins>ifj20_compiler</ins> (should be set automatically or should exist in dropdown menu)
+- Executable: <ins>ifj20_compiler</ins> (should be set automatically or should exist in dropdown menu)
+- Program aguments: <ins>input_files/input_1.txt</ins> or any other file in that folder
+- Working directory: <ins>*C:\full path to your project directory*\ifj20-compiler</ins> or any other file in that folder
+- Else remains blank or default
+
+### OLD CLion Setup - obsolete
 
 - Install *Makefile* plugin from settings.
 - Install [cygwin](https://www.cygwin.com/) C compiler.
