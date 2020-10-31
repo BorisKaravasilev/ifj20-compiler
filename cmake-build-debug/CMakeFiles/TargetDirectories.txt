@@ -1,3 +1,0 @@
-/mnt/c/Projects/FIT/ifj20-compiler/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/mnt/c/Projects/FIT/ifj20-compiler/cmake-build-debug/CMakeFiles/ifj20_compiler.dir
-/mnt/c/Projects/FIT/ifj20-compiler/cmake-build-debug/CMakeFiles/edit_cache.dir
