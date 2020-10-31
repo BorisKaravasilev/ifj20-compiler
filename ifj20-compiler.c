@@ -19,11 +19,10 @@
 #include "scanner/stack.h"
 
 #define IS_INPUT_FROM_FILE true // Input from file or stdin
-#define INPUT_FILE_NAME "input_files/input_1.txt"
 
-int main() {
+int main(int argc, char** argv) {
     // For debugging purposes in CLion (input file or stdin)
-    FILE *input_fp = get_input_file(IS_INPUT_FROM_FILE, INPUT_FILE_NAME);
+    FILE *input_fp = get_input_file(IS_INPUT_FROM_FILE, argv[1]);
 
     // Modify 'finite_automata.c' to change FA graph
     finite_automataT fa;
