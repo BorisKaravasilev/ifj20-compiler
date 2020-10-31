@@ -24,6 +24,7 @@ Configuration should look like this:
 - Program arguments: <ins>input_files/input_1.txt</ins> or any other file in that folder
 - Working directory: <ins>*C:\full path to your project directory*\ifj20-compiler</ins> or any other file in that folder
 - Else remains blank / default
+- File -> "Reload CMake Project"
 
 #### Input file
 
