@@ -26,7 +26,8 @@
 /// To do so it uses definitions of constants below (EXPRESSION_INT, EXPRESSION_FLOAT64, EXPRESSION_STRING)
 /// tokenT.token_type = data type of the expression
 /// The result of the expression is saved in tokenT.attribute
-///The function returns 0 if everything is fine, or RC_SYN_ERR constant defined in "../general/return_codes.h"
+///The function returns 0 if everything is fine, or RC_SYN_ERR, RC_SEMANTIC_IDENTIFIER_ERR, RC_ZERO_DIVISION_ERR
+/// or RC_RUN_ERR constant defined in "../general/return_codes.h"
 /// if an error occurred
 int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *ptr_last_token, tokenT *ptr_expr_data_and_type);
 
