@@ -10,6 +10,7 @@
 
 #define ERROR_NO_NEXT_STATE -2
 
+// Does a given symbol allow a transition in finite automaton?
 bool is_accepted(char sym, range_or_charT *transition_ranges) {
     for (int i = 0; i < TRANS_RANGES_LEN; i++) { // go through all available slots
         if (transition_ranges[i].single_char != -1) { // single character
@@ -27,6 +28,7 @@ bool is_accepted(char sym, range_or_charT *transition_ranges) {
     return false;
 }
 
+// Finds the next state of finite automaton
 int get_next_state(char curr_sym, int curr_state, finite_automataT *ptr_fa) {
     if (curr_sym == EOF) return ERROR_NO_NEXT_STATE;
 
@@ -144,6 +146,7 @@ void get_next_token(finite_automataT *ptr_fa, FILE *input_file, Stack *ptr_stack
     generate_token(ptr_token, ptr_stack, TOKEN_EOF);
 }
 
+// Update the tracked position of current character in input file
 void update_file_position(file_positionT *file_pos, char curr_sym) {
     if (curr_sym == '\n') {
         file_pos->line_number++;
@@ -153,6 +156,7 @@ void update_file_position(file_positionT *file_pos, char curr_sym) {
     }
 }
 
+// Prints lexical error message and current position in input file
 void print_lex_error(file_positionT *file_pos, char curr_sym) {
     fprintf(stderr, "\nFinished at symbol: '%c' \n", curr_sym);
     fprintf(stderr, "Lexical error detected [line: %d char: %d]\n", file_pos->line_number, file_pos->line_char_position);
