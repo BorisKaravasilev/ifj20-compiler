@@ -107,8 +107,29 @@ void update_symtable(tokenT *ptr_token, Stack *ptr_stack) {
     }
 }
 
-// TODO: pass EOL flag to get_next_token()
-void get_next_token(finite_automataT *ptr_fa, FILE *input_file, Stack *ptr_stack, tokenT *ptr_token) {
+// Assigns correct token type and attribute to token at 'ptr_token'
+void generate_token(tokenT *ptr_token, Stack *ptr_stack, int final_state) {
+    ptr_token->token_type = final_state;
+
+    if (final_state == TOKEN_IDENTIFIER) {
+        // Is token keyword, build-in function or identifier?
+        ptr_token->token_type = keyword_check(ptr_token);
+        ptr_token->token_type = function_word_check(ptr_token);
+    }
+
+    update_symtable(ptr_token, ptr_stack);
+}
+
+char read_char(char *curr_sym, FILE *input_file, file_positionT *file_pos, bool *use_previous) {
+    if (!*use_previous) {
+        *curr_sym = fgetc(input_file);
+        update_file_position(file_pos, *curr_sym);
+    }
+
+    *use_previous = false;
+}
+
+bool scan_token(finite_automataT *ptr_fa, FILE *input_file, Stack *ptr_stack, tokenT *ptr_token) {
     int curr_state = STATE_START;
     int next_state;
     static char curr_sym = 0;
@@ -117,16 +138,8 @@ void get_next_token(finite_automataT *ptr_fa, FILE *input_file, Stack *ptr_stack
     // Ensures reading of last character that belongs to next token
     static bool read_last_sym_from_previous_word = false;
 
-    // Cleans the content of token_val string
-    token_clear(ptr_token);
-
     while (curr_sym != EOF) {
-        if (!read_last_sym_from_previous_word) {
-            curr_sym = fgetc(input_file);
-            update_file_position(&file_pos, curr_sym);
-        }
-
-        read_last_sym_from_previous_word = false;
+        read_char(&curr_sym, input_file, &file_pos, &read_last_sym_from_previous_word);
 
         next_state = get_next_state(curr_sym, curr_state, ptr_fa);
         bool end_of_comment = is_end_of_comment(ptr_token, curr_state, next_state);
@@ -149,7 +162,7 @@ void get_next_token(finite_automataT *ptr_fa, FILE *input_file, Stack *ptr_stack
             if (is_final_state(curr_state, ptr_fa)) {
                 // returns token struct (represents lexical unit)
                 generate_token(ptr_token, ptr_stack, curr_state);
-                return;
+                return true;
             } else {
                 if (curr_sym != EOF) {
                     print_lex_error(&file_pos, curr_sym);
@@ -158,6 +171,16 @@ void get_next_token(finite_automataT *ptr_fa, FILE *input_file, Stack *ptr_stack
             }
         }
     }
+
+    return false;
+}
+
+// TODO: pass EOL flag to get_next_token()
+void get_next_token(finite_automataT *ptr_fa, FILE *input_file, Stack *ptr_stack, tokenT *ptr_token) {
+    // Cleans the content of token_val string
+    token_clear(ptr_token);
+
+    if (scan_token(ptr_fa, input_file, ptr_stack, ptr_token)) return;
 
     // End Of File -> finished successfully
     debug_scanner("End of file\n%s", "");
