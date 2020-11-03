@@ -31,7 +31,7 @@
 /// if an error occurred
 int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *ptr_last_token, tokenT *ptr_expr_data_and_type);
 ///The function for check if the token is an operator -,*,<,>,<=,>=
-int operator_check(*ptr_tok_num);
+int operator_check(tokenT *ptr_tok_num);
 
 /**
  * Definitions of constants
