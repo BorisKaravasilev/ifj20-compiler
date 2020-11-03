@@ -34,18 +34,12 @@ int get_next_state(char curr_sym, int curr_state, finite_automataT *ptr_fa) {
 
     // Go through all rules in FA
     for (int i = 0; i < RULES_LEN; i++) {
-        // Is rule initialized or empty? (unused array cell check)
-        if (ptr_fa->rules[i].from_state != TOKEN_EMPTY) {
-            // Rule for current state?
-            if (ptr_fa->rules[i].from_state == curr_state) {
-                // Go through all transition symbols in rule
-                // (symbols that bring you to next state)
-                if (is_accepted(curr_sym, ptr_fa->rules[i].transition_ranges)) {
-                    int next_state = ptr_fa->rules[i].to_state;
-                    debug_scanner("\nGoing from sate %d to state %d with rule #%d\n", curr_state, next_state, i);
-                    return next_state;
-                }
-            }
+        ruleT *curr_rule = &ptr_fa->rules[i];
+        int next_state = try_rule_transition(curr_sym, curr_state, curr_rule);
+
+        if (next_state != ERROR_NO_NEXT_STATE) {
+            debug_scanner("\nGoing from sate %d to state %d with rule #%d\n", curr_state, next_state, i);
+            return next_state;
         }
     }
 
@@ -53,6 +47,25 @@ int get_next_state(char curr_sym, int curr_state, finite_automataT *ptr_fa) {
     return ERROR_NO_NEXT_STATE;
 }
 
+// Tries to transition with symbol and rule from state
+int try_rule_transition(char sym, int state, ruleT *rule) {
+    // Is rule initialized? (unused array cell check)
+    if (rule->from_state != TOKEN_EMPTY) {
+        // Rule for current state?
+        if (rule->from_state == state) {
+            // Go through all transition symbols in rule
+            // (symbols that bring you to next state)
+            if (is_accepted(sym, rule->transition_ranges)) {
+                int next_state = rule->to_state;
+                return next_state;
+            }
+        }
+    }
+
+    return ERROR_NO_NEXT_STATE; // Can't transition with current rule
+}
+
+// Checks if a state is in the set of final states of finite automaton
 bool is_final_state(int state, finite_automataT *ptr_fa) {
     for (int i = 0; i < FINAL_STATES_LEN; i++) {
         if (ptr_fa->final_states[i] == state) {

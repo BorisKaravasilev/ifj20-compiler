@@ -15,6 +15,8 @@ typedef struct {
 void get_next_token(finite_automataT *ptr_fa, FILE *input_file, Stack *ptr_stack, tokenT *ptr_token);
 void token_array_free(tokenT *ptr_token_array, int array_length);
 bool is_accepted(char sym, range_or_charT transition_ranges[]);
+int get_next_state(char curr_sym, int curr_state, finite_automataT *ptr_fa);
+int try_rule_transition(char sym, int state, ruleT *rule);
 void update_file_position(file_positionT *file_pos, char curr_sym);
 void print_lex_error(file_positionT *file_pos, char curr_sym);
 bool is_end_of_comment(tokenT *ptr_token, int curr_state, int next_state);
