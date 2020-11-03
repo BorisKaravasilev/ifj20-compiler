@@ -30,6 +30,8 @@
 /// or RC_RUN_ERR constant defined in "../general/return_codes.h"
 /// if an error occurred
 int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *ptr_last_token, tokenT *ptr_expr_data_and_type);
+///The function for check if the token is an operator -,*,<,>,<=,>=
+int operator_check(* tok_num);
 
 /**
  * Definitions of constants
@@ -38,5 +40,23 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
 #define EXPRESSION_INT          40
 #define EXPRESSION_FLOAT64      41
 #define EXPRESSION_STRING       42
+
+/**
+ * Definition of stack and variables
+ */
+
+///The variable for saving the type of returned token
+int token_number;
+///The variable for moving in the switch
+int switch_case;
+///The number of brackets (++, )--
+int number_of_brackets;
+///Variable for value returned by semantic analysis
+int semantic_data_type;
+///Variable for saving last number data type (1-int, 2-float)
+int last_number_data_type;
+///Variable for saving if it is the first token of expression
+/// If the variable is set to 0 it is first token, else it is not first
+int is_it_first_token_of_expression;
 
 #endif //IFJ20_COMPILER_EXPRESSION_ANALYSIS_H
