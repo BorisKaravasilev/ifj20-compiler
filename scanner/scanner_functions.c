@@ -76,29 +76,34 @@ bool is_final_state(int state, finite_automataT *ptr_fa) {
     return false;
 }
 
-// TODO: Actual token generation and symbol label to be done
-void generate_token(tokenT *ptr_token, Stack *ptr_stack, int type) {
-    ptr_token->token_type = type;
+// Add identifier to sym table
+void add_id_to_sym_table(tokenT *ptr_token, Stack *ptr_stack) {
+    stringT *key = &ptr_token->attribute.string_val;
+    Symtable *ptr_curr_scope_sym_table = stack_top(ptr_stack).symtable;
+    st_insert_symbol(ptr_curr_scope_sym_table, key, 0);
+    debug_scanner("\n | SYMTABLE | [INSERTED KEY: '%s' TO SYMTABLE]\n\n\n", key->string);
+}
 
-    if (type == TOKEN_IDENTIFIER) {
-        // Set token type to keyword, build-in function or identifier
-        ptr_token->token_type = keyword_check(ptr_token);
-        ptr_token->token_type = function_word_check(ptr_token);
-    }
+// Push new symtable block
+void push_new_symtable_block(Stack *ptr_stack) {
+    debug_scanner("\n | SYMTABLE | [PUSH NEW SYMTABLE BLOCK]\n\n\n%s", "");
+    stack_push(ptr_stack, st_init());
+}
 
+// Pop symtable block
+void pop_symtable_block(Stack *ptr_stack) {
+    debug_scanner("\n | SYMTABLE | [POP SYMTABLE BLOCK]\n\n\n%s", "");
+    stack_pop(ptr_stack);
+}
+
+// Update symtable according to received token
+void update_symtable(tokenT *ptr_token, Stack *ptr_stack) {
     if (ptr_token->token_type == TOKEN_IDENTIFIER) {
-        stringT *key = &ptr_token->attribute.string_val;
-        Symtable *ptr_curr_scope_sym_table = stack_top(ptr_stack).symtable;
-        st_insert_symbol(ptr_curr_scope_sym_table, key, 0);
-        debug_scanner("\n | SYMTABLE | [INSERTED KEY: '%s' TO SYMTABLE]\n\n\n", key->string);
+        add_id_to_sym_table(ptr_token, ptr_stack);
     } else if (ptr_token->token_type == TOKEN_LEFT_CURLY_BRACE) {
-        // Push new symtable block
-        debug_scanner("\n | SYMTABLE | [PUSH NEW SYMTABLE BLOCK]\n\n\n%s", "");
-        stack_push(ptr_stack, st_init());
+        push_new_symtable_block(ptr_stack);
     } else if (ptr_token->token_type == TOKEN_RIGHT_CURLY_BRACE) {
-        // Pop symtable block
-        debug_scanner("\n | SYMTABLE | [POP SYMTABLE BLOCK]\n\n\n%s", "");
-        stack_pop(ptr_stack);
+        pop_symtable_block(ptr_stack);
     }
 }
 
