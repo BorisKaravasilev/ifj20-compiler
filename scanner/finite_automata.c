@@ -430,10 +430,11 @@ void init_finite_automata(finite_automataT* fa) {
     fa->rules[53].transition_ranges[0].to = '9';
 
     // --- Rule #54
-    fa->rules[54].from_state = STATE_START;
-    fa->rules[54].to_state = STATE_START;
-    fa->rules[54].transition_ranges[0].single_char = ' ';
-    fa->rules[54].transition_ranges[1].single_char = '\n';
+    // Skip white space characters rule
+    fa->rules[SKIP_SYM_RULE_INDEX].from_state = STATE_START;
+    fa->rules[SKIP_SYM_RULE_INDEX].to_state = STATE_START;
+    fa->rules[SKIP_SYM_RULE_INDEX].transition_ranges[0].single_char = ' ';
+    fa->rules[SKIP_SYM_RULE_INDEX].transition_ranges[1].single_char = '\n';
     //TODO Maybe other white space characters?
 
 }

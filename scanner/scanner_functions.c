@@ -120,6 +120,9 @@ void generate_token(tokenT *ptr_token, Stack *ptr_stack, int final_state) {
     update_symtable(ptr_token, ptr_stack);
 }
 
+// Reads new character as current symbol or uses the character from previous reading
+// (Detection of token is done by reading one character past it. This character needs to
+//   be used again as starting character of the next token)
 char read_char(char *curr_sym, FILE *input_file, file_positionT *file_pos, bool *use_previous) {
     if (!*use_previous) {
         *curr_sym = fgetc(input_file);
@@ -129,6 +132,43 @@ char read_char(char *curr_sym, FILE *input_file, file_positionT *file_pos, bool 
     *use_previous = false;
 }
 
+// Executes a transition of finite automaton, adds symbol to token and updates current state
+void fa_execute_step(finite_automataT *ptr_fa, tokenT *ptr_token, fa_stepT *step) {
+    // Clears token if it contains comment
+    bool end_of_comment = is_end_of_comment(ptr_token, *step->curr_state, *step->next_state);
+
+    bool is_string_sym = *step->curr_state == STATE_STRING || *step->next_state == STATE_STRING;
+    // White space symbols won't be added to a token if it is not a string
+    bool is_skip_sym = is_accepted(*step->curr_sym, ptr_fa->rules[SKIP_SYM_RULE_INDEX].transition_ranges);
+    bool is_attribute_sym = *step->curr_sym != EOF && !is_skip_sym && !end_of_comment;
+
+    *step->curr_state = *step->next_state; // transition
+
+    // Check if symbol should be added to token
+    if (is_string_sym) {
+        debug_scanner("curr_sym: ASCII(%d) => '%c' [STRING]\n", *step->curr_sym, *step->curr_sym);
+        token_val_add_char(ptr_token, *step->curr_sym);
+    } else if (is_attribute_sym) {
+        debug_scanner("curr_sym: ASCII(%d) => '%c' \n", *step->curr_sym, *step->curr_sym);
+        token_val_add_char(ptr_token, *step->curr_sym);
+    }
+}
+
+// Generates token if in final state or exits with lexical error
+void handle_final_state_or_error(finite_automataT *ptr_fa, Stack *ptr_stack, tokenT *ptr_token, fa_stepT *step, file_positionT *file_pos) {
+    if (is_final_state(*step->curr_state, ptr_fa)) {
+        // Is final state and sets token at 'ptr_token'
+        generate_token(ptr_token, ptr_stack, *step->curr_state);
+    } else {
+        // Exits with lexical error
+        if (*step->curr_sym != EOF) {
+            print_lex_error(file_pos, *step->curr_sym);
+            exit(RC_LEX_ERR); // End program with lexical error
+        }
+    }
+}
+
+// Scans input characters and generates token, lexical error or returns 'false' if EOF.
 bool scan_token(finite_automataT *ptr_fa, FILE *input_file, Stack *ptr_stack, tokenT *ptr_token) {
     int curr_state = STATE_START;
     int next_state;
@@ -136,46 +176,31 @@ bool scan_token(finite_automataT *ptr_fa, FILE *input_file, Stack *ptr_stack, to
     static file_positionT file_pos = {1, 0};
 
     // Ensures reading of last character that belongs to next token
-    static bool read_last_sym_from_previous_word = false;
+    static bool use_previous_sym = false;
 
     while (curr_sym != EOF) {
-        read_char(&curr_sym, input_file, &file_pos, &read_last_sym_from_previous_word);
+        read_char(&curr_sym, input_file, &file_pos, &use_previous_sym);
 
         next_state = get_next_state(curr_sym, curr_state, ptr_fa);
-        bool end_of_comment = is_end_of_comment(ptr_token, curr_state, next_state);
-        bool is_string = curr_state == STATE_STRING || next_state == STATE_STRING;
+        fa_stepT fa_step = {&curr_state, &next_state, &curr_sym};
 
+        // Can transition to next state
         if (next_state != ERROR_NO_NEXT_STATE) {
-            curr_state = next_state;
-
-            if (is_string) {
-                debug_scanner("curr_sym: ASCII(%d) => '%c' [STRING]\n", curr_sym, curr_sym);
-                token_val_add_char(ptr_token, curr_sym);
-            } else if (curr_sym != EOF && curr_sym != ' ' && curr_sym != '\n' && !end_of_comment) {
-                debug_scanner("curr_sym: ASCII(%d) => '%c' \n", curr_sym, curr_sym);
-                token_val_add_char(ptr_token, curr_sym);
-            }
+            // Update current state + add symbol to token
+            fa_execute_step(ptr_fa, ptr_token, &fa_step);
         } else {
-            read_last_sym_from_previous_word = true;
-
-            // No rule was matched
-            if (is_final_state(curr_state, ptr_fa)) {
-                // returns token struct (represents lexical unit)
-                generate_token(ptr_token, ptr_stack, curr_state);
-                return true;
-            } else {
-                if (curr_sym != EOF) {
-                    print_lex_error(&file_pos, curr_sym);
-                    exit(RC_LEX_ERR); // End program with lexical error
-                }
-            }
+            // Can't transition to next state
+            use_previous_sym = true;
+            handle_final_state_or_error(ptr_fa,ptr_stack,ptr_token,&fa_step,&file_pos);
+            return true; // Successfully generated token into 'ptr_token'
         }
     }
 
-    return false;
+    return false; // Scanned EOF
 }
 
 // TODO: pass EOL flag to get_next_token()
+// Generates token into 'ptr_token' or exits with lexical error
 void get_next_token(finite_automataT *ptr_fa, FILE *input_file, Stack *ptr_stack, tokenT *ptr_token) {
     // Cleans the content of token_val string
     token_clear(ptr_token);
