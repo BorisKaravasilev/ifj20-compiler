@@ -10,6 +10,27 @@
 
 #define ERROR_NO_NEXT_STATE -2
 
+void init_scanner(scannerT *s, FILE *input_file) {
+    s->input_fp = input_file;
+    s->file_pos.line_number = 1;
+    s->file_pos.line_char_position = 0;
+
+    // Modify 'finite_automata.c' to change FA graph
+    init_finite_automata(&s->fa);
+
+    // Top level symbol table
+    Symtable *global_scope_symtable = st_init();
+
+    stack_init(&s->st_stack);
+    stack_push(&s->st_stack, global_scope_symtable);
+
+    s->required_eol_found = true;
+}
+
+void free_scanner(scannerT *s) {
+    stack_free(&s->st_stack);
+}
+
 // Does a given symbol allow a transition in finite automaton?
 bool is_accepted(char sym, range_or_charT *transition_ranges) {
     for (int i = 0; i < TRANS_RANGES_LEN; i++) { // go through all available slots
@@ -108,7 +129,7 @@ void update_symtable(tokenT *ptr_token, Stack *ptr_stack) {
 }
 
 // Assigns correct token type and attribute to token at 'ptr_token'
-void generate_token(tokenT *ptr_token, Stack *ptr_stack, int final_state) {
+void generate_token(scannerT *s, tokenT *ptr_token, int final_state) {
     ptr_token->token_type = final_state;
 
     if (final_state == TOKEN_IDENTIFIER) {
@@ -117,30 +138,55 @@ void generate_token(tokenT *ptr_token, Stack *ptr_stack, int final_state) {
         ptr_token->token_type = function_word_check(ptr_token);
     }
 
-    update_symtable(ptr_token, ptr_stack);
+    update_symtable(ptr_token, &s->st_stack);
 }
 
 // Reads new character as current symbol or uses the character from previous reading
 // (Detection of token is done by reading one character past it. This character needs to
 //   be used again as starting character of the next token)
-char read_char(char *curr_sym, FILE *input_file, file_positionT *file_pos, bool *use_previous) {
+char read_char(scannerT *s, char *curr_sym, bool *use_previous) {
     if (!*use_previous) {
-        *curr_sym = fgetc(input_file);
-        update_file_position(file_pos, *curr_sym);
+        *curr_sym = fgetc(s->input_fp);
+        update_file_position(&s->file_pos, *curr_sym);
     }
 
     *use_previous = false;
 }
 
+
+void update_eol_found_in_skip_sym(scannerT *s, fa_stepT *step, eol_flagE eol_flag) {
+    if (eol_flag == REQUIRED) {
+        if (*step->curr_sym == EOL) s->required_eol_found = true;
+    }
+    if (eol_flag == FORBIDDEN) {
+        if (*step->curr_sym == EOL) {
+            print_syntax_error(&s->file_pos);
+            fprintf(stderr, "Unexpected end of line.\n");
+            exit(RC_SYN_ERR); // Exit program with syntax error
+        }
+    }
+}
+
+void check_required_eol_found(scannerT *s, eol_flagE eol_flag) {
+    if (eol_flag == REQUIRED) {
+        if (!s->required_eol_found) {
+            print_syntax_error(&s->file_pos);
+            fprintf(stderr, "Required end of line not found.\n");
+            exit(RC_SYN_ERR); // Exit program with syntax error
+        }
+    }
+}
+
 // Executes a transition of finite automaton, adds symbol to token and updates current state
-void fa_execute_step(finite_automataT *ptr_fa, tokenT *ptr_token, fa_stepT *step) {
+void fa_execute_step(scannerT *s, tokenT *ptr_token, fa_stepT *step, eol_flagE eol_flag) {
     // Clears token if it contains comment
     bool end_of_comment = is_end_of_comment(ptr_token, *step->curr_state, *step->next_state);
 
     bool is_string_sym = *step->curr_state == STATE_STRING || *step->next_state == STATE_STRING;
     // White space symbols won't be added to a token if it is not a string
-    bool is_skip_sym = is_accepted(*step->curr_sym, ptr_fa->rules[SKIP_SYM_RULE_INDEX].transition_ranges);
+    bool is_skip_sym = is_accepted(*step->curr_sym, s->fa.rules[SKIP_SYM_RULE_INDEX].transition_ranges);
     bool is_attribute_sym = *step->curr_sym != EOF && !is_skip_sym && !end_of_comment;
+    //bool is_end_of_skip_sequence = *step->curr_state == SKIP_SYM_RULE_INDEX;
 
     *step->curr_state = *step->next_state; // transition
 
@@ -151,47 +197,51 @@ void fa_execute_step(finite_automataT *ptr_fa, tokenT *ptr_token, fa_stepT *step
     } else if (is_attribute_sym) {
         debug_scanner("curr_sym: ASCII(%d) => '%c' \n", *step->curr_sym, *step->curr_sym);
         token_val_add_char(ptr_token, *step->curr_sym);
+        check_required_eol_found(s, eol_flag);
+    }
+
+    if (is_skip_sym && !is_string_sym) {
+        update_eol_found_in_skip_sym(s, step, eol_flag);
     }
 }
 
 // Generates token if in final state or exits with lexical error
-void handle_final_state_or_error(finite_automataT *ptr_fa, Stack *ptr_stack, tokenT *ptr_token, fa_stepT *step, file_positionT *file_pos) {
-    if (is_final_state(*step->curr_state, ptr_fa)) {
-        // Is final state and sets token at 'ptr_token'
-        generate_token(ptr_token, ptr_stack, *step->curr_state);
+void handle_final_state_or_error(scannerT *s, tokenT *ptr_token, fa_stepT *step) {
+    if (is_final_state(*step->curr_state, &s->fa)) {
+        // Is final state
+        generate_token(s, ptr_token, *step->curr_state); //  set token at 'ptr_token'
     } else {
-        // Exits with lexical error
+        // Not final state
         if (*step->curr_sym != EOF) {
-            print_lex_error(file_pos, *step->curr_sym);
-            exit(RC_LEX_ERR); // End program with lexical error
+            print_lex_error(&s->file_pos, *step->curr_sym);
+            exit(RC_LEX_ERR); // Exit program with lexical error
         }
     }
 }
 
 // Scans input characters and generates token, lexical error or returns 'false' if EOF.
-bool scan_token(finite_automataT *ptr_fa, FILE *input_file, Stack *ptr_stack, tokenT *ptr_token) {
+bool scan_token(scannerT *s, tokenT *ptr_token, eol_flagE eol_flag) {
     int curr_state = STATE_START;
     int next_state;
     static char curr_sym = 0;
-    static file_positionT file_pos = {1, 0};
 
     // Ensures reading of last character that belongs to next token
     static bool use_previous_sym = false;
 
     while (curr_sym != EOF) {
-        read_char(&curr_sym, input_file, &file_pos, &use_previous_sym);
+        read_char(s, &curr_sym, &use_previous_sym);
 
-        next_state = get_next_state(curr_sym, curr_state, ptr_fa);
+        next_state = get_next_state(curr_sym, curr_state, &s->fa);
         fa_stepT fa_step = {&curr_state, &next_state, &curr_sym};
 
         // Can transition to next state
         if (next_state != ERROR_NO_NEXT_STATE) {
             // Update current state + add symbol to token
-            fa_execute_step(ptr_fa, ptr_token, &fa_step);
+            fa_execute_step(s, ptr_token, &fa_step, eol_flag);
         } else {
             // Can't transition to next state
             use_previous_sym = true;
-            handle_final_state_or_error(ptr_fa,ptr_stack,ptr_token,&fa_step,&file_pos);
+            handle_final_state_or_error(s, ptr_token, &fa_step);
             return true; // Successfully generated token into 'ptr_token'
         }
     }
@@ -201,31 +251,16 @@ bool scan_token(finite_automataT *ptr_fa, FILE *input_file, Stack *ptr_stack, to
 
 // TODO: pass EOL flag to get_next_token()
 // Generates token into 'ptr_token' or exits with lexical error
-void get_next_token(finite_automataT *ptr_fa, FILE *input_file, Stack *ptr_stack, tokenT *ptr_token) {
+void get_next_token(scannerT *s, tokenT *ptr_token, eol_flagE eol_flag) {
     // Cleans the content of token_val string
     token_clear(ptr_token);
+    s->required_eol_found = false; // Reset value
 
-    if (scan_token(ptr_fa, input_file, ptr_stack, ptr_token)) return;
+    if (scan_token(s, ptr_token, eol_flag)) return;
 
     // End Of File -> finished successfully
     debug_scanner("End of file\n%s", "");
-    generate_token(ptr_token, ptr_stack, TOKEN_EOF);
-}
-
-// Update the tracked position of current character in input file
-void update_file_position(file_positionT *file_pos, char curr_sym) {
-    if (curr_sym == '\n') {
-        file_pos->line_number++;
-        file_pos->line_char_position = 0;
-    } else {
-        file_pos->line_char_position++;
-    }
-}
-
-// Prints lexical error message and current position in input file
-void print_lex_error(file_positionT *file_pos, char curr_sym) {
-    fprintf(stderr, "\nFinished at symbol: '%c' \n", curr_sym);
-    fprintf(stderr, "Lexical error detected [line: %d char: %d]\n", file_pos->line_number, file_pos->line_char_position);
+    generate_token(s, ptr_token, TOKEN_EOF);
 }
 
 // Clears token if it is end of comment
