@@ -22,7 +22,7 @@ typedef struct {
     file_positionT file_pos;// Position of last read character by scanner
     finite_automataT fa;    // Finite automaton
     Stack st_stack;         // Stack of symbol tables representing different scopes
-    bool required_eol_found;// Indicates if EOL required by EOL flag has been found in non-printable chars after token
+    bool required_eol_found;// Indicates if EOL required by EOL flag has been found in non-printable chars before token
 } scannerT;
 
 void init_scanner(scannerT *s, FILE *input_file);
