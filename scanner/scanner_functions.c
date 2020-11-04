@@ -249,7 +249,6 @@ bool scan_token(scannerT *s, tokenT *ptr_token, eol_flagE eol_flag) {
     return false; // Scanned EOF
 }
 
-// TODO: pass EOL flag to get_next_token()
 // Generates token into 'ptr_token' or exits with lexical error
 void get_next_token(scannerT *s, tokenT *ptr_token, eol_flagE eol_flag) {
     // Cleans the content of token_val string
