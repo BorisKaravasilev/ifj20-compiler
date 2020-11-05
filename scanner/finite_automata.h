@@ -11,11 +11,11 @@
 #ifndef __LEX_FINITE_AUTOMATA_H_
 #define __LEX_FINITE_AUTOMATA_H_
 
-#define STATES_LEN 50
-#define RULES_LEN 65
-#define TRANS_RANGES_LEN 10
-#define FINAL_STATES_LEN 35
-
+#define STATES_LEN 50 // Max.total states
+#define RULES_LEN 65 // Max. rules
+#define TRANS_RANGES_LEN 10 // Max. rule transition ranges
+#define FINAL_STATES_LEN 35 // Max. final states
+#define SKIP_SYM_RULE_INDEX 54 // Index of rule for skipping white space symbols
 
 // Represents:
 // - a range of characters (from, to), single_char == -1
@@ -43,6 +43,13 @@ typedef struct {
     int start_state;
     int final_states[FINAL_STATES_LEN];
 } finite_automataT;
+
+// Data for single step of FA
+typedef struct {
+    int *curr_state;
+    int *next_state;
+    char *curr_sym;
+} fa_stepT;
 
 void init_finite_automata(finite_automataT *fa);
 void init_int_array(int array[], int len, int init_value);
