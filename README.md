@@ -15,7 +15,22 @@ Sample FA definition in [finite_automata.c](scanner/finite_automata.c) sample FA
 
 Check TODO's in code and create issues on Github from them.
 
-### CLion Setup
+### CLion Setup - current cmake project
+
+Run / Debug configuration should be set to - "CMake Application":
+Configuration should look like this:
+- Target: <ins>ifj20_compiler</ins> (should be set automatically or should exist in dropdown menu)
+- Executable: <ins>ifj20_compiler</ins> (should be set automatically or should exist in dropdown menu)
+- Program arguments: <ins>input_files/input_1.txt</ins> or any other file in that folder
+- Working directory: <ins>*C:\full path to your project directory*\ifj20-compiler</ins> or any other file in that folder
+- Else remains blank / default
+- File -> "Reload CMake Project"
+
+#### Input file
+
+For running in CLion change "Program arguments" setting in "Edit configurations" to <ins>input_files/input_name.txt</ins>
+
+### OLD CLion Setup - obsolete
 
 - Install *Makefile* plugin from settings.
 - Install [cygwin](https://www.cygwin.com/) C compiler.
@@ -24,7 +39,7 @@ Check TODO's in code and create issues on Github from them.
 - In CLion in the upper right corner next to the green triangle, open the dropdown menu and go into "Edit configurations...", add a new configuration of type "Makefile" and type "run" in "Targets" field, select path to "Makefile" -> "Apply" -> "Ok".
 - Then just using Cmd+f5 shortcut build and run the code.
 
-#### Input file
+#### Input file - obsolete
 
 For running in CLion in file "ifj20-compiler.c" change "IS_INPUT_FROM_FILE" to true.
 Then the input will come from file and not *stdin*.

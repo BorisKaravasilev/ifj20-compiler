@@ -20,18 +20,15 @@
 #include "parser/semantic_late_check.h"
 
 #define IS_INPUT_FROM_FILE true // Input from file or stdin
-#define INPUT_FILE_NAME "input_files/input_1.txt"
 
-int main() {
+int main(int argc, char** argv) {
     // For debugging purposes in CLion (input file or stdin)
-    FILE *input_fp = get_input_file(IS_INPUT_FROM_FILE, INPUT_FILE_NAME);
+    FILE *input_fp = get_input_file(IS_INPUT_FROM_FILE, argv[1]);
 
-    // Modify 'finite_automata.c' to change FA graph
-    finite_automataT fa;
-    init_finite_automata(&fa);
+    scannerT scanner;
+    init_scanner(&scanner, input_fp);
 
-    // TODO: Change single token that is being cleaned and overwritten
-    // to dynamically allocated array of tokens that grows over time
+    // TODO: Change to dynamically allocated array or remember necessary tokens in parser
     tokenT token[TOKEN_ARRAY_LEN];
     token_array_init(token, TOKEN_ARRAY_LEN);
 
@@ -56,28 +53,16 @@ int main() {
     clear_str(&testString);
 
     for (int i = 0; i < TOKEN_ARRAY_LEN; i++) {
-        get_next_token(&fa, input_fp, &stack, &token[i]);
+        get_next_token(&scanner, &token[i], OPTIONAL);
+
         debug_token(&token[i], i);
 
         if (token[i].token_type == TOKEN_EOF) break;
     }
 
-    // Just for testing (all the inner blocks are popped, so only globally defined identifiers will be found)
-    stringT test_string;
-    string_init(&test_string);
-    string_add_string(&test_string, "num1");
-
-    ST_Item *found_item = stack_search(&stack, &test_string);
-
-    if (found_item != NULL) {
-        printf("\nFound symtable result with key '%s'\n", found_item->key.string);
-    } else {
-        printf("\nNot found in symtable\n");
-    } // end of stack symtable testing code
-
     // FREE ALL ALLOCATED MEMORY
     token_array_free(token, TOKEN_ARRAY_LEN);
-    stack_free(&stack);
+    free_scanner(&scanner);
 
     return 0;
 }

@@ -6,8 +6,6 @@
 #include <stdlib.h>
 #include "string_functions.h"
 
-// TODO: Reference old project that this file was copied from
-
 /// Initialization (creation) of a new string
 int string_init(stringT *str)
 {
