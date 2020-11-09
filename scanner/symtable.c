@@ -281,6 +281,26 @@ st_function_data_param_structT* st_get_function_return_types (Symtable* ptr_symt
     }
 }
 
+void st_function_param_list_free(st_function_data_param_structT *method_param) {
+    if (method_param != NULL) {
+        st_function_data_param_structT *temp;
+        st_function_data_param_structT *current = method_param;
+
+        while (current != NULL) {
+            temp = current;
+            current = current->next;
+            free(temp);
+        }
+    }
+}
+
+void st_function_data_free(st_item_function_structT *function_data) {
+    if (function_data != NULL) {
+        st_function_param_list_free(function_data->parameters_list_first);
+        st_function_param_list_free(function_data->return_types_list_first);
+    }
+}
+
 void st_clear_items_list (ST_Item* item) {
 
     if (item != NULL) {
@@ -288,7 +308,7 @@ void st_clear_items_list (ST_Item* item) {
 
         string_free(&item->content);
         string_free(&item->key);
-        // TODO: free function_data structure and its lists
+        st_function_data_free(item->function_data);
         free(item);
 
         ST_Item* tmp;
@@ -299,7 +319,7 @@ void st_clear_items_list (ST_Item* item) {
 
             string_free(&tmp->content);
             string_free(&tmp->key);
-            // TODO: free function_data structure and its lists
+            st_function_data_free(item->function_data);
             free(tmp);
         }
     }

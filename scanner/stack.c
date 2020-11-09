@@ -48,7 +48,7 @@ void stack_pop(Stack *s){
         stack_item *tmp;
         tmp = s->top;
         s->top = s->top->next;
-        free(tmp);
+        st_clear_all(tmp->symtable);
         s->size--;
     }
 }
@@ -59,6 +59,7 @@ void stack_free(Stack *s){
     while (s->top != NULL) {
         temp = s->top;
         s->top = s->top->next;
+        st_clear_all(temp->symtable);
         free(temp);
     }
 }

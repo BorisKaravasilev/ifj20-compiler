@@ -154,6 +154,18 @@ st_function_data_param_structT* st_get_function_return_types (Symtable* ptr_symt
 /*void st_delete_symbol (Symtable* ptr_symtable, stringT *key);*/
 
 /**
+ * @brief Dealloc function_data_param_struct list by freeing all of its elements.
+ * @param method_param Method param to be de-allocated
+ */
+void st_function_param_list_free(st_function_data_param_structT *method_param);
+
+/**
+ * @brief Dealloc function_data_struct list by freeing all of its elements.
+ * @param function_data function data struct to be de-allocated
+ */
+void st_function_data_free(st_item_function_structT *function_data);
+
+/**
  * Clears entire item list in symbol.
  * @param pointer to symbol table
  */

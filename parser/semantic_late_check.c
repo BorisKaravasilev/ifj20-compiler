@@ -58,12 +58,29 @@ void late_check_stack_pop(late_check_stack *s){
     }
 }
 
+void late_check_method_param_list_free(method_param_structT *method_param) {
+    if (method_param != NULL) {
+        method_param_structT *temp;
+        method_param_structT *current = method_param;
+
+        while (current != NULL) {
+            temp = current;
+            current = current->next;
+            free(temp);
+        }
+    }
+}
+
 void late_check_stack_free(late_check_stack *s){
     late_check_stack_item *temp = NULL;
 
     while (s->top != NULL) {
         temp = s->top;
         s->top = s->top->next;
+
+        string_free(&temp->method_name);
+        late_check_method_param_list_free(temp->parameters_list_first);
+        late_check_method_param_list_free(temp->return_types_list_first);
         free(temp);
     }
 }

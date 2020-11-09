@@ -74,8 +74,14 @@ bool late_check_stack_push_method(late_check_stack *s, stringT *name);
 void late_check_stack_pop(late_check_stack *s);
 
 /**
- * @brief Empty stack by popping all of its elements from it.
- * @param s Stack to be emptied.
+ * @brief Dealloc method_param_struct list by freeing all of its elements.
+ * @param method_param Method param to be de-allocated
+ */
+void late_check_method_param_list_free(method_param_structT *method_param);
+
+/**
+ * @brief Dealloc stack by freeing all of its elements.
+ * @param s Stack to be de-allocated.
  */
 void late_check_stack_free(late_check_stack *s);
 
