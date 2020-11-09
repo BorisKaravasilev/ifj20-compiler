@@ -83,24 +83,23 @@ late_check_stack_item* late_check_stack_search(late_check_stack *s, stringT *met
     return NULL;
 }
 
-void late_check_stack_item_add_parameter(late_check_stack_item *item, stringT *id, Data_type data_type) {
+void late_check_stack_item_add_parameter(late_check_stack_item *item, Data_type data_type) {
     if (item == NULL) {
         return;
     }
 
-    late_check_paramT *new_parameter;
-    if ((new_parameter = (late_check_paramT *) malloc(sizeof(late_check_paramT))) == NULL) {
+    method_param_structT *new_parameter;
+    if ((new_parameter = (method_param_structT *) malloc(sizeof(method_param_structT))) == NULL) {
         exit(SEMANTIC_LATE_CHECK_MALLOC_ERROR);
     }
-    string_init(&new_parameter->name);
-    string_copy(&new_parameter->name, id);
     new_parameter->data_type = data_type;
     new_parameter->next = NULL;
+    new_parameter->index = item->parameters_count++;
 
     if (item->parameters_list_first == NULL) {
         item->parameters_list_first = new_parameter;
     } else {
-        late_check_paramT *current = item->parameters_list_first;
+        method_param_structT *current = item->parameters_list_first;
 
         while (current->next != NULL) {
             current = current->next;

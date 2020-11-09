@@ -101,7 +101,7 @@ bool is_final_state(int state, finite_automataT *ptr_fa) {
 void add_id_to_sym_table(tokenT *ptr_token, Stack *ptr_stack) {
     stringT *key = &ptr_token->attribute.string_val;
     Symtable *ptr_curr_scope_sym_table = stack_top(ptr_stack).symtable;
-    st_insert_symbol(ptr_curr_scope_sym_table, key, 0);
+    st_insert_symbol(ptr_curr_scope_sym_table, key, false);
     debug_scanner("\n | SYMTABLE | [INSERTED KEY: '%s' TO SYMTABLE]\n\n\n", key->string);
 }
 

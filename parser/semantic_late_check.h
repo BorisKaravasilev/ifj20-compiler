@@ -13,21 +13,11 @@
 /**
  * @brief Structure of a stack element.
  */
-typedef struct late_check_param_struct {
-    int index;
-    stringT name;
-    Data_type data_type;
-    struct late_check_param_struct *next;
-} late_check_paramT;
-
-/**
- * @brief Structure of a stack element.
- */
-typedef struct late_check_return_type_struct {
+typedef struct method_param_struct {
     int index;
     Data_type data_type;
-    struct late_check_return_type_struct *next;
-} late_check_return_typeT;
+    struct method_param_struct *next;
+} method_param_structT;
 
 /**
  * @brief Structure of a stack element.
@@ -36,8 +26,8 @@ typedef struct late_check_stackElem {
     stringT method_name;
     int parameters_count;
     int return_types_count;
-    late_check_paramT *parameters_list_first;
-    late_check_return_typeT *return_types_list_first;
+    method_param_structT *parameters_list_first;
+    method_param_structT *return_types_list_first;
     struct late_check_stackElem *next;
 } late_check_stack_item;
 
@@ -100,7 +90,7 @@ late_check_stack_item* late_check_stack_search(late_check_stack *s, stringT *met
  * @param param_type type of parameter based on the enum
  * @param data_type Data type of the function parameter or return value
  */
-void late_check_stack_item_add_parameter(late_check_stack_item *item, stringT *id, Data_type data_type);
+void late_check_stack_item_add_parameter(late_check_stack_item *item, Data_type data_type);
 
 /**
  * @brief Creates function parameters and chains them in the stack_item
