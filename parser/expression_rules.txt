@@ -1,0 +1,61 @@
+List of valid tokens:
+--------------------------------------------------
+Case 0: First token or operator +, ==, != or left bracket (not a final state)
+
+TOKEN_LEFT_BRACKET
+TOKEN_STRING_LITERAL
+TOKEN_INTEGER_LITERAL
+TOKEN_DECIMAL_LITERAL
+TOKEN_EXPONENT_LITERAL
+TOKEN_IDENTIFIER
+--------------------------------------------------
+Case 1: Operators without + and / (not a final state)
+
+TOKEN_LEFT_BRACKET
+TOKEN_INTEGER_LITERAL
+TOKEN_DECIMAL_LITERAL
+TOKEN_EXPONENT_LITERAL
+TOKEN_IDENTIFIER
+--------------------------------------------------
+Case 2: String (can be a final state)
+
+TOKEN_EOF
+TOKEN_RIGHT_BRACKET
+TOKEN_PLUS
+--------------------------------------------------
+Case 3: Number or identifier (can be a final state)
+
+TOKEN_RIGHT_BRACKET
+TOKEN_EOF
+TOKEN_MINUS
+TOKEN_MULTIPLICATION
+TOKEN_LEFT_ARROW
+TOKEN_RIGHT_ARROW
+TOKEN_LESS_OR_EQUAL
+TOKEN_GREATER_OR_EQUAL
+TOKEN_PLUS
+TOKEN_DOUBLE_EQUAL
+TOKEN_NOT_EQUAL
+TOKEN_DIVISION
+--------------------------------------------------
+Case 4: Operator / (not a final state)
+
+TOKEN_LEFT_BRACKET
+TOKEN_INTEGER_LITERAL
+TOKEN_DECIMAL_LITERAL
+TOKEN_EXPONENT_LITERAL
+TOKEN_IDENTIFIER
+--------------------------------------------------
+Case 5: Right bracket (can be a final state)
+
+TOKEN_EOF
+TOKEN_MINUS
+TOKEN_MULTIPLICATION
+TOKEN_LEFT_ARROW
+TOKEN_RIGHT_ARROW
+TOKEN_LESS_OR_EQUAL
+TOKEN_GREATER_OR_EQUAL
+TOKEN_PLUS
+TOKEN_DOUBLE_EQUAL
+TOKEN_NOT_EQUAL
+TOKEN_DIVISION
