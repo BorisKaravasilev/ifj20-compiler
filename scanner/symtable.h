@@ -19,6 +19,7 @@
 #include <stdbool.h>
 
 #include "../general/string_functions.h"
+#include "../general/return_codes.h"
 
 /**
  * @brief Enum of all possible Symbol data types

@@ -79,18 +79,24 @@ bool compare_param_lists(method_param_structT *late_check_param_list, st_functio
     return true;
 }
 
+// TODO: Search if user function must have at least one return type
 void check_semantic_for_methods_call(late_check_stack *late_check_s, Symtable *global_symtable) {
     if (late_check_s != NULL && global_symtable != NULL) {
         while (late_check_s->top != NULL) {
             // Find method in symbol table
             ST_Item *symbol = st_search(global_symtable, &late_check_s->top->method_name);
             if (symbol == NULL || !st_item_is_function(symbol)) {
+                fprintf(stderr, "Error: Calling undefined function \'%s\'", late_check_s->top->method_name.string);
                 exit(RC_SEMANTIC_IDENTIFIER_ERR);
             }
-            if (compare_param_lists(late_check_s->top->parameters_list_first, symbol->function_data->parameters_list_first) == false ||
-                compare_param_lists(late_check_s->top->return_types_list_first, symbol->function_data->return_types_list_first) == false) {
+            if (compare_param_lists(late_check_s->top->parameters_list_first, symbol->function_data->parameters_list_first) == false) {
+                fprintf(stderr, "Error: Invalid parameters supplied to function \'%s\'", symbol->key.string);
+                exit(RC_SEMANTIC_FUNC_PARAM_ERR);
+            } else if (compare_param_lists(late_check_s->top->return_types_list_first, symbol->function_data->return_types_list_first) == false) {
+                fprintf(stderr, "Error: Invalid return types for function \'%s\'", symbol->key.string);
                 exit(RC_SEMANTIC_FUNC_PARAM_ERR);
             }
+
             late_check_stack_pop(late_check_s);
         }
     }

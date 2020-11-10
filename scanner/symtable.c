@@ -94,13 +94,22 @@ ST_Item* st_insert_symbol (Symtable* ptr_symtable, stringT* key, bool function) 
         return NULL;
     }
 
-    ST_Item* temp = NULL;
+    ST_Item* temp = st_search(ptr_symtable, key);
     ST_Item* new_item;
 
-    temp = st_search(ptr_symtable, key);
-
     if (temp != NULL) {
-        return NULL;
+        // Redefinition of identifier leads to semantic error
+        if (st_item_is_function(temp)) {
+            if (function) {
+                fprintf(stderr, "Error: Redefinition of function \'%s\'\n", temp->key.string);
+            } else {
+                fprintf(stderr, "Error: Function with name \'%s\' exists. Cannot create variable with same identifier.\n", temp->key.string);
+            }
+        } else {
+            fprintf(stderr, "Error: Redefinition of variable \'%s\'\n", temp->key.string);
+        }
+
+        exit(RC_SEMANTIC_IDENTIFIER_ERR);
     } else {
         new_item = st_create_item();
         if (new_item == NULL) {
