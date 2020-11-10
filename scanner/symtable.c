@@ -94,6 +94,7 @@ ST_Item* st_insert_symbol (Symtable* ptr_symtable, stringT* key, bool function) 
         return NULL;
     }
 
+    // TODO: Check if not to search in the entire symtable stack
     ST_Item* temp = st_search(ptr_symtable, key);
     ST_Item* new_item;
 

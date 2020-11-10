@@ -1,6 +1,11 @@
-//
-// Created by Petr Vrtal on 26.10.2020.
-//
+/**
+ * Project: Implementation of a compiler of the IFJ20 language.
+ *
+ * @file semantic_late_check.h
+ * @brief Stack implementation for late semantic analysis.
+ * @author Petr Vrtal <xvrtal01@stud.fit.vutbr.cz>
+ * @date 26. 10. 2020
+ */
 
 #ifndef IFJ20_COMPILER_SEMANTIC_LATE_CHECK_H
 #define IFJ20_COMPILER_SEMANTIC_LATE_CHECK_H
