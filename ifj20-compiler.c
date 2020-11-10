@@ -32,28 +32,6 @@ int main(int argc, char** argv) {
     tokenT token[TOKEN_ARRAY_LEN];
     token_array_init(token, TOKEN_ARRAY_LEN);
 
-    Symtable *symtable = st_init();
-    Stack stack;
-    stack_init(&stack);
-    stack_push(&stack, symtable);
-
-    stringT testString;
-    string_init(&testString);
-    string_add_string(&testString, "testMethod");
-
-    st_insert_symbol(symtable, &testString, true);
-    st_add_function_param(st_search(symtable, &testString), TYPE_DECIMAL);
-    st_add_function_param(st_search(symtable, &testString), TYPE_STRING);
-    st_add_function_return_type(st_search(symtable, &testString), TYPE_INT);
-
-    late_check_stack late_check;
-    late_check_stack_init(&late_check);
-
-    late_check_stack_push_method(&late_check, &testString);
-    late_check_stack_item_add_parameter(late_check_stack_search(&late_check, &testString), TYPE_DECIMAL);
-    late_check_stack_item_add_parameter(late_check_stack_search(&late_check, &testString), TYPE_STRING);
-    late_check_stack_item_add_return_type(late_check_stack_search(&late_check, &testString), TYPE_INT);
-
     for (int i = 0; i < TOKEN_ARRAY_LEN; i++) {
         get_next_token(&scanner, &token[i], OPTIONAL);
 
@@ -61,10 +39,6 @@ int main(int argc, char** argv) {
 
         if (token[i].token_type == TOKEN_EOF) break;
     }
-
-    check_semantic_for_methods_call(&late_check, symtable);
-    late_check_stack_free(&late_check);
-    clear_str(&testString);
 
     // FREE ALL ALLOCATED MEMORY
     token_array_free(token, TOKEN_ARRAY_LEN);
