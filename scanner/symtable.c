@@ -159,6 +159,10 @@ ST_Item* st_item_change_defined(Symtable* ptr_symtable, stringT* key, bool defin
     }
 }
 
+bool st_item_is_function(ST_Item *item) {
+    return item->function_data != NULL;
+}
+
 int st_add_function_param (ST_Item* symbol, Data_type type) {
 
     /*If symbol ptr is NULL we return false*/

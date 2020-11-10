@@ -9,6 +9,8 @@
 
 #include <stdbool.h>
 #include "../scanner/symtable.h"
+#include "../scanner/stack.h"
+#include "../general/return_codes.h"
 
 /**
  * @brief Structure of a stack element.
@@ -74,6 +76,26 @@ bool late_check_stack_push_method(late_check_stack *s, stringT *name);
 void late_check_stack_pop(late_check_stack *s);
 
 /**
+ * @brief Executes check for param list equality
+ * @param late_check_param_list Late check parameters list
+ * @param symtable_param_list Symtable parameters list
+ */
+bool compare_param_lists(method_param_structT *late_check_param_list, st_function_data_param_structT *symtable_param_list);
+
+/**
+ * @brief Executes function declaration semantic check for every function call in stack
+ * @param late_check_s Late check stack with function call records
+ * @param global_symtable Global symtable in which to search for function declaration
+ */
+void check_semantic_for_methods_call(late_check_stack *late_check_s, Symtable *global_symtable);
+
+/**
+ * @brief Frees late check stack item structure
+ * @param item Late check stack item
+ */
+void late_check_stack_item_free(late_check_stack_item *item);
+
+/**
  * @brief Dealloc method_param_struct list by freeing all of its elements.
  * @param method_param Method param to be de-allocated
  */
@@ -93,7 +115,14 @@ late_check_stack_item* late_check_stack_search(late_check_stack *s, stringT *met
 
 /**
  * @brief Creates function parameters and chains them in the stack_item
- * @param param_type type of parameter based on the enum
+ * @param item pointer at late_check_stack item
+ * @param data_type Data type of the function parameter or return value
+ */
+void late_check_stack_item_add_parameter(late_check_stack_item *item, Data_type data_type);
+
+/**
+ * @brief Creates function return types and chains them in the stack_item
+ * @param @param item pointer at late_check_stack item
  * @param data_type Data type of the function parameter or return value
  */
 void late_check_stack_item_add_parameter(late_check_stack_item *item, Data_type data_type);

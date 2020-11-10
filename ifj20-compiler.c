@@ -47,7 +47,7 @@ int main(int argc, char** argv) {
     late_check_stack_push_method(&late_check, &testString);
     late_check_stack_item_add_parameter(late_check_stack_search(&late_check, &testString), TYPE_DECIMAL);
     late_check_stack_item_add_parameter(late_check_stack_search(&late_check, &testString), TYPE_STRING);
-    late_check_stack_item_add_parameter(late_check_stack_search(&late_check, &testString), TYPE_INT);
+    late_check_stack_item_add_return_type(late_check_stack_search(&late_check, &testString), TYPE_INT);
 
     printf("late_check_method_found_name: %s, params: [type: %d]\n", late_check_stack_search(&late_check, &testString)->method_name.string);
 

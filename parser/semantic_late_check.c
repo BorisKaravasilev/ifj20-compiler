@@ -53,8 +53,50 @@ void late_check_stack_pop(late_check_stack *s){
         late_check_stack_item *tmp;
         tmp = s->top;
         s->top = s->top->next;
+        late_check_stack_item_free(tmp);
         free(tmp);
         s->size--;
+    }
+}
+
+bool compare_param_lists(method_param_structT *late_check_param_list, st_function_data_param_structT *symtable_param_list) {
+    method_param_structT *lc_current = late_check_param_list;
+    st_function_data_param_structT *st_current = symtable_param_list;
+
+    while (lc_current != NULL || st_current != NULL) {
+        if (lc_current == NULL || st_current == NULL) {
+            return false;
+        } else {
+            if (lc_current->data_type != st_current->data_type) {
+                return false;
+            }
+        }
+
+        lc_current = lc_current->next;
+        st_current = st_current->next;
+    }
+
+    return true;
+}
+
+void check_semantic_for_methods_call(late_check_stack *late_check_s, Symtable *global_symtable) {
+    if (late_check_s != NULL && global_symtable != NULL) {
+        while (late_check_s->top != NULL) {
+            // Find method in symbol table
+            ST_Item *symbol = st_search(global_symtable, &late_check_s->top->method_name);
+            if (symbol == NULL || !st_item_is_function(symbol)) {
+                exit(RC_SEMANTIC_IDENTIFIER_ERR);
+            }
+            late_check_stack_pop(late_check_s);
+        }
+    }
+}
+
+void late_check_stack_item_free(late_check_stack_item *item) {
+    if (item != NULL) {
+        string_free(&item->method_name);
+        late_check_method_param_list_free(item->parameters_list_first);
+        late_check_method_param_list_free(item->return_types_list_first);
     }
 }
 
@@ -78,9 +120,7 @@ void late_check_stack_free(late_check_stack *s){
         temp = s->top;
         s->top = s->top->next;
 
-        string_free(&temp->method_name);
-        late_check_method_param_list_free(temp->parameters_list_first);
-        late_check_method_param_list_free(temp->return_types_list_first);
+        late_check_stack_item_free(temp);
         free(temp);
     }
 }
@@ -125,4 +165,27 @@ void late_check_stack_item_add_parameter(late_check_stack_item *item, Data_type 
     }
 }
 
+void late_check_stack_item_add_return_type(late_check_stack_item *item, Data_type data_type) {
+    if (item == NULL) {
+        return;
+    }
 
+    method_param_structT *new_parameter;
+    if ((new_parameter = (method_param_structT *) malloc(sizeof(method_param_structT))) == NULL) {
+        exit(SEMANTIC_LATE_CHECK_MALLOC_ERROR);
+    }
+    new_parameter->data_type = data_type;
+    new_parameter->next = NULL;
+    new_parameter->index = item->return_types_count++;
+
+    if (item->return_types_list_first == NULL) {
+        item->return_types_list_first = new_parameter;
+    } else {
+        method_param_structT *current = item->return_types_list_first;
+
+        while (current->next != NULL) {
+            current = current->next;
+        }
+        current->next = new_parameter;
+    }
+}

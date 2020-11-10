@@ -107,6 +107,11 @@ ST_Item* st_insert_symbol (Symtable* ptr_symtable, stringT* key, bool function);
 ST_Item* st_item_change_defined(Symtable* ptr_symtable, stringT* key, bool defined);
 
 /**
+ *
+ */
+bool st_item_is_function(ST_Item *item);
+
+/**
  * Adds new parameter to the function symbol.
  * @param pointer to symbol data
  * @param symbol data type
