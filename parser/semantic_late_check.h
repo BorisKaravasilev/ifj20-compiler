@@ -121,13 +121,6 @@ late_check_stack_item* late_check_stack_search(late_check_stack *s, stringT *met
 void late_check_stack_item_add_parameter(late_check_stack_item *item, Data_type data_type);
 
 /**
- * @brief Creates function return types and chains them in the stack_item
- * @param @param item pointer at late_check_stack item
- * @param data_type Data type of the function parameter or return value
- */
-void late_check_stack_item_add_parameter(late_check_stack_item *item, Data_type data_type);
-
-/**
  * @brief Creates function parameters and chains them in the stack_item
  * @param param_type type of parameter based on the enum
  * @param data_type Data type of the function parameter or return value

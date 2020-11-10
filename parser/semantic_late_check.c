@@ -87,6 +87,10 @@ void check_semantic_for_methods_call(late_check_stack *late_check_s, Symtable *g
             if (symbol == NULL || !st_item_is_function(symbol)) {
                 exit(RC_SEMANTIC_IDENTIFIER_ERR);
             }
+            if (compare_param_lists(late_check_s->top->parameters_list_first, symbol->function_data->parameters_list_first) == false ||
+                compare_param_lists(late_check_s->top->return_types_list_first, symbol->function_data->return_types_list_first) == false) {
+                exit(RC_SEMANTIC_FUNC_PARAM_ERR);
+            }
             late_check_stack_pop(late_check_s);
         }
     }
