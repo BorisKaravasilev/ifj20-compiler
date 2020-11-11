@@ -33,7 +33,13 @@ void update_file_position(file_positionT *file_pos, char curr_sym) {
 
 // Prints lexical error message and current position in input file
 void print_lex_error(file_positionT *file_pos, char curr_sym) {
-    fprintf(stderr, "\nFinished at symbol: '%c' \n", curr_sym);
+    if (curr_sym == '\r') {
+        fprintf(stderr, "\nFinished at line break '\\r' \n");
+    } else if (curr_sym == '\n' ) {
+        fprintf(stderr, "\nFinished at line break '\\n' \n");
+    } else {
+        fprintf(stderr, "\nFinished at symbol: '%c' \n", curr_sym);
+    }
     fprintf(stderr, "Lexical error detected [line: %d char: %d]\n", file_pos->line_number, file_pos->line_char_position);
 }
 
