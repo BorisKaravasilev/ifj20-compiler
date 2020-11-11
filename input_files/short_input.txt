@@ -1,2 +1,5 @@
+// Program 1: Vypocet faktorialu (iterativne)
+package main
+
 ab cd
 fg h  + 12

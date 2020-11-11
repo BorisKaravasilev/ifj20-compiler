@@ -25,6 +25,9 @@ void init_scanner(scannerT *s, FILE *input_file) {
     stack_push(&s->st_stack, global_scope_symtable);
 
     s->required_eol_found = true;
+
+    s->curr_sym = 0;
+    s->use_previous_sym = false;
 }
 
 void free_scanner(scannerT *s) {
@@ -144,22 +147,22 @@ void generate_token(scannerT *s, tokenT *ptr_token, int final_state) {
 // Reads new character as current symbol or uses the character from previous reading
 // (Detection of token is done by reading one character past it. This character needs to
 //   be used again as starting character of the next token)
-char read_char(scannerT *s, char *curr_sym, bool *use_previous) {
-    if (!*use_previous) {
-        *curr_sym = fgetc(s->input_fp);
-        update_file_position(&s->file_pos, *curr_sym);
+char read_char(scannerT *s) {
+    if (!s->use_previous_sym) {
+        s->curr_sym = fgetc(s->input_fp);
+        update_file_position(&s->file_pos, s->curr_sym);
     }
 
-    *use_previous = false;
+    s->use_previous_sym = false;
 }
 
-
-void update_eol_found_in_skip_sym(scannerT *s, fa_stepT *step, eol_flagE eol_flag) {
+// Toggles 'required_eol_found' in scanner or exits with error
+void update_eol_found_in_skip_sym(scannerT *s, eol_flagE eol_flag) {
     if (eol_flag == REQUIRED) {
-        if (*step->curr_sym == EOL) s->required_eol_found = true;
+        if (s->curr_sym == EOL) s->required_eol_found = true;
     }
     if (eol_flag == FORBIDDEN) {
-        if (*step->curr_sym == EOL) {
+        if (s->curr_sym == EOL) {
             print_syntax_error(&s->file_pos);
             fprintf(stderr, "Unexpected end of line.\n");
             exit(RC_SYN_ERR); // Exit program with syntax error
@@ -167,6 +170,7 @@ void update_eol_found_in_skip_sym(scannerT *s, fa_stepT *step, eol_flagE eol_fla
     }
 }
 
+// If EOL was required after token and wasn't found exits with error
 void check_required_eol_found(scannerT *s, eol_flagE eol_flag) {
     if (eol_flag == REQUIRED) {
         if (!s->required_eol_found) {
@@ -175,6 +179,28 @@ void check_required_eol_found(scannerT *s, eol_flagE eol_flag) {
             exit(RC_SYN_ERR); // Exit program with syntax error
         }
     }
+}
+
+// Checks non-printable symbols after token for EOL
+// and if doesn't satisfy EOL flag exits with error
+void check_eol_after_token(scannerT *s, eol_flagE eol_flag) {
+    int curr_state = STATE_START;
+    int next_state = STATE_START;
+    bool skipped_symbol;
+
+    do {
+        read_char(s);
+        next_state = get_next_state(s->curr_sym, curr_state, &s->fa);
+        skipped_symbol = next_state == STATE_START;
+
+        if (skipped_symbol) {
+            curr_state = next_state;
+            update_eol_found_in_skip_sym(s, eol_flag);
+        } else {
+            s->use_previous_sym = true;
+            check_required_eol_found(s, eol_flag);
+        }
+    } while (skipped_symbol);
 }
 
 // Executes a transition of finite automaton, adds symbol to token and updates current state
@@ -186,7 +212,6 @@ void fa_execute_step(scannerT *s, tokenT *ptr_token, fa_stepT *step, eol_flagE e
     // White space symbols won't be added to a token if it is not a string
     bool is_skip_sym = is_accepted(*step->curr_sym, s->fa.rules[SKIP_SYM_RULE_INDEX].transition_ranges);
     bool is_attribute_sym = *step->curr_sym != EOF && !is_skip_sym && !end_of_comment;
-    //bool is_end_of_skip_sequence = *step->curr_state == SKIP_SYM_RULE_INDEX;
 
     *step->curr_state = *step->next_state; // transition
 
@@ -197,19 +222,15 @@ void fa_execute_step(scannerT *s, tokenT *ptr_token, fa_stepT *step, eol_flagE e
     } else if (is_attribute_sym) {
         debug_scanner("curr_sym: ASCII(%d) => '%c' \n", *step->curr_sym, *step->curr_sym);
         token_val_add_char(ptr_token, *step->curr_sym);
-        check_required_eol_found(s, eol_flag);
-    }
-
-    if (is_skip_sym && !is_string_sym) {
-        update_eol_found_in_skip_sym(s, step, eol_flag);
     }
 }
 
 // Generates token if in final state or exits with lexical error
-void handle_final_state_or_error(scannerT *s, tokenT *ptr_token, fa_stepT *step) {
+void handle_final_state_or_error(scannerT *s, tokenT *ptr_token, fa_stepT *step, eol_flagE eol_flag) {
     if (is_final_state(*step->curr_state, &s->fa)) {
         // Is final state
         generate_token(s, ptr_token, *step->curr_state); //  set token at 'ptr_token'
+        check_eol_after_token(s, eol_flag);
     } else {
         // Not final state
         if (*step->curr_sym != EOF) {
@@ -223,16 +244,12 @@ void handle_final_state_or_error(scannerT *s, tokenT *ptr_token, fa_stepT *step)
 bool scan_token(scannerT *s, tokenT *ptr_token, eol_flagE eol_flag) {
     int curr_state = STATE_START;
     int next_state;
-    static char curr_sym = 0;
 
-    // Ensures reading of last character that belongs to next token
-    static bool use_previous_sym = false;
+    while (s->curr_sym != EOF) {
+        read_char(s);
 
-    while (curr_sym != EOF) {
-        read_char(s, &curr_sym, &use_previous_sym);
-
-        next_state = get_next_state(curr_sym, curr_state, &s->fa);
-        fa_stepT fa_step = {&curr_state, &next_state, &curr_sym};
+        next_state = get_next_state(s->curr_sym, curr_state, &s->fa);
+        fa_stepT fa_step = {&curr_state, &next_state, &s->curr_sym};
 
         // Can transition to next state
         if (next_state != ERROR_NO_NEXT_STATE) {
@@ -240,8 +257,8 @@ bool scan_token(scannerT *s, tokenT *ptr_token, eol_flagE eol_flag) {
             fa_execute_step(s, ptr_token, &fa_step, eol_flag);
         } else {
             // Can't transition to next state
-            use_previous_sym = true;
-            handle_final_state_or_error(s, ptr_token, &fa_step);
+            s->use_previous_sym = true; // Ensures reading of last character that belongs to next token
+            handle_final_state_or_error(s, ptr_token, &fa_step, eol_flag);
             return true; // Successfully generated token into 'ptr_token'
         }
     }
