@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
     // For debugging purposes in CLion (input file or stdin)
     FILE *input_fp = get_input_file(IS_INPUT_FROM_FILE, argv[1]);
 
-    scannerT scanner;
+    //Scanner is now global variable in scanner_functions.h
     init_scanner(&scanner, input_fp);
 
     // TODO: Change to dynamically allocated array or remember necessary tokens in parser

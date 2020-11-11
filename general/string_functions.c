@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "string_functions.h"
+#include "../general/return_codes.h"
 
 /// Initialization (creation) of a new string
 int string_init(stringT *str)
@@ -13,7 +14,7 @@ int string_init(stringT *str)
     if ((str->string = (char*) malloc(STRING_LENGTH)) == NULL)
     {
         ///It is an error
-        return 1;
+        return RC_RUN_ERR;
     }
     ///The string is empty
     str->string[0] = '\0';
@@ -51,7 +52,7 @@ int string_add_character(stringT *str, char character)
         if ((str->string = (char*) realloc(str->string, str->length + STRING_LENGTH)) == NULL)
         {
             ///If memory allocation fail, it is an error
-            return 1;
+            return RC_RUN_ERR;
         }
         str->alloc_size = str->length + STRING_LENGTH;
     }
@@ -68,7 +69,7 @@ int string_add_string(stringT *str, char* word) {
     int req_length = str->length + length + 1;
     if (req_length >= str->alloc_size) {
         if (!(str->string = (char *) realloc(str->string, req_length)))
-            return 1;
+            return RC_RUN_ERR;
         str->alloc_size = req_length;
     }
     str->length += length;
@@ -87,7 +88,7 @@ int string_copy(stringT *first, stringT *second)
         if ((first->string = (char*) realloc(first->string, new_length + 1)) == NULL)
         {
             ///If memory allocation fail, it is an error
-            return 1;
+            return RC_RUN_ERR;
         }
         first->alloc_size = new_length + 1;
     }
