@@ -8,6 +8,8 @@
 
 #include "symtable.h"
 
+// TODO: check return values
+
 unsigned long st_hash (stringT* key) {
     int hash = 503;
     char* temp;
@@ -55,11 +57,7 @@ ST_Item* st_create_item () {
         exit(SYMTABLE_MALLOC_ERROR);
     }
 
-    temp->key = NULL;
-    temp->content = NULL;
-    temp->function = 0;
-    temp->defined = 0;
-    temp->params = NULL;
+    temp->function_data = NULL;
     temp->next = NULL;
 
     return temp;
@@ -75,7 +73,7 @@ ST_Item* st_search (Symtable* ptr_symtable, stringT* key) {
 
         if (temp != NULL) {
             /*We move through chained symbols until we get NULL*/
-            while (string_compare(temp->key, key) != 0) {
+            while (string_compare(&temp->key, key) != 0) {
                 if (temp->next == NULL) {
                     return NULL;
                 } else {
@@ -89,49 +87,52 @@ ST_Item* st_search (Symtable* ptr_symtable, stringT* key) {
     }
 }
 
-ST_Item* st_insert_symbol (Symtable* ptr_symtable, stringT* key, int function) {
+ST_Item* st_insert_symbol (Symtable* ptr_symtable, stringT* key, bool function) {
 
     /*If symtable ptr is NULL we return*/
     if (ptr_symtable == NULL) {
         return NULL;
     }
 
-    ST_Item* temp = NULL;
+    // TODO: Check if not to search in the entire symtable stack
+    ST_Item* temp = st_search(ptr_symtable, key);
     ST_Item* new_item;
 
-    temp = st_search(ptr_symtable, key);
-
     if (temp != NULL) {
-        return NULL;
+        // Redefinition of identifier leads to semantic error
+        if (st_item_is_function(temp)) {
+            if (function) {
+                fprintf(stderr, "Error: Redefinition of function \'%s\'\n", temp->key.string);
+            } else {
+                fprintf(stderr, "Error: Function with name \'%s\' exists. Cannot create variable with same identifier.\n", temp->key.string);
+            }
+        } else {
+            fprintf(stderr, "Error: Redefinition of variable \'%s\'\n", temp->key.string);
+        }
+
+        exit(RC_SEMANTIC_IDENTIFIER_ERR);
     } else {
         new_item = st_create_item();
         if (new_item == NULL) {
             return NULL;
         }
 
-        /*We allocate memory for new symbol's key*/
-        if ((new_item->key = malloc(key->alloc_size)) == NULL) {
-            exit(SYMTABLE_MALLOC_ERROR);
-        }
-
-        /*We allocate memory for new symbol's content*/
-        if ((new_item->content = (stringT *) malloc (key->alloc_size)) == NULL)
-            exit(SYMTABLE_MALLOC_ERROR);
-
-        /*We allocate memory for new symbol's params*/
-        if ((new_item->params = (stringT *) malloc (key->alloc_size)) == NULL)
-            exit(SYMTABLE_MALLOC_ERROR);
-
-        string_init(new_item->key);
-        string_init(new_item->content);
-        string_init(new_item->params);
+        string_init(&new_item->key);
+        string_init(&new_item->content);
 
         temp = ptr_symtable->items[st_hash(key)];
-        string_copy(new_item->key, key);
+        string_copy(&new_item->key, key);
 
         new_item->type = TYPE_NIL;
-        new_item->function = function;
-        new_item->defined = 0;
+
+        if (function && new_item->function_data == NULL) {
+            if ((new_item->function_data = (st_item_function_structT *) malloc(sizeof(st_item_function_structT))) == NULL) {
+                exit(SYMTABLE_MALLOC_ERROR);
+            }
+            new_item->function_data->defined = false;
+            new_item->function_data->parameters_list_first = NULL;
+            new_item->function_data->return_types_list_first = NULL;
+        }
 
         if (temp != NULL) {
             while (temp != NULL) {
@@ -150,7 +151,7 @@ ST_Item* st_insert_symbol (Symtable* ptr_symtable, stringT* key, int function) {
     return new_item;
 }
 
-ST_Item* st_item_change_defined(Symtable* ptr_symtable, stringT* key, int defined) {
+ST_Item* st_item_change_defined(Symtable* ptr_symtable, stringT* key, bool defined) {
     /*If symtable ptr is NULL we return*/
     if (ptr_symtable == NULL) {
         return NULL;
@@ -160,36 +161,81 @@ ST_Item* st_item_change_defined(Symtable* ptr_symtable, stringT* key, int define
     if (temp == NULL) {
         return NULL;
     } else {
-        temp->defined = defined;
+        if (temp->function_data != NULL) {
+            temp->function_data->defined = defined;
+        }
+
         return temp;
     }
 }
 
-int st_add_param (ST_Item* symbol, Data_type type) {
+bool st_item_is_function(ST_Item *item) {
+    return item->function_data != NULL;
+}
+
+int st_add_function_param (ST_Item* symbol, Data_type type) {
 
     /*If symbol ptr is NULL we return false*/
     if (symbol == NULL) {
+        // TODO: change possible return value
         return 1;
     }
 
-    switch (type) {
-        case TYPE_INT:
-            if ((string_add_character(symbol->params, 'i')) == 1)
-                return 1;
-            break;
+    if (symbol->function_data == NULL) {
+        return 1;
+    }
 
-        case TYPE_DECIMAL:
-            if ((string_add_character(symbol->params, 'd')) == 1)
-                return 1;
-            break;
+    st_function_data_param_structT *new_parameter;
+    if ((new_parameter = (st_function_data_param_structT *) malloc(sizeof(st_function_data_param_structT))) == NULL) {
+        exit(SYMTABLE_MALLOC_ERROR);
+    }
+    new_parameter->data_type = type;
+    new_parameter->next = NULL;
+    new_parameter->index = symbol->function_data->parameters_count++;
 
-        case TYPE_STRING:
-            if ((string_add_character(symbol->params, 's')) == 1)
-                return 1;
-            break;
+    if (symbol->function_data->parameters_list_first == NULL) {
+        symbol->function_data->parameters_list_first = new_parameter;
+    } else {
+        st_function_data_param_structT *current = symbol->function_data->parameters_list_first;
 
-        default:
-            break;
+        while (current->next != NULL) {
+            current = current->next;
+        }
+        current->next = new_parameter;
+    }
+
+    return 0;
+}
+
+int st_add_function_return_type (ST_Item* symbol, Data_type type) {
+
+    /*If symbol ptr is NULL we return false*/
+    if (symbol == NULL) {
+        // TODO: change possible return value
+        return 1;
+    }
+
+    if (symbol->function_data == NULL) {
+        return 1;
+    }
+
+    st_function_data_param_structT *new_parameter;
+    if ((new_parameter = (st_function_data_param_structT *) malloc(sizeof(st_function_data_param_structT))) == NULL) {
+        exit(SYMTABLE_MALLOC_ERROR);
+    }
+    new_parameter->data_type = type;
+    new_parameter->next = NULL;
+    new_parameter->index = symbol->function_data->return_types_count++;
+
+    if (symbol->function_data->return_types_list_first == NULL) {
+        symbol->function_data->return_types_list_first = new_parameter;
+    } else {
+        st_function_data_param_structT *current = symbol->function_data->return_types_list_first;
+
+        while (current->next != NULL) {
+            current = current->next;
+        }
+        current->next = new_parameter;
     }
 
     return 0;
@@ -204,7 +250,7 @@ char* st_get_content (Symtable* ptr_symtable, stringT* key) {
         ST_Item *searched = st_search(ptr_symtable, key);
 
         if (searched != NULL) { /*If element was found we return it's data*/
-            return string_get(searched->content);
+            return string_get(&searched->content);
         } else { /*If element is not present in the table we return NULL*/
             return NULL;
         }
@@ -213,7 +259,7 @@ char* st_get_content (Symtable* ptr_symtable, stringT* key) {
     }
 }
 
-char* st_get_params (Symtable* ptr_symtable, stringT* key) {
+st_function_data_param_structT* st_get_function_params (Symtable* ptr_symtable, stringT* key) {
 
     /*If pointer at table is valid*/
     if (ptr_symtable != NULL) {
@@ -221,13 +267,51 @@ char* st_get_params (Symtable* ptr_symtable, stringT* key) {
         /*We create a temporary variable for searched symbol*/
         ST_Item *searched = st_search(ptr_symtable, key);
 
-        if (searched != NULL) { /*If element was found we return it's data*/
-            return string_get(searched->params);
+        if (searched != NULL && searched->function_data != NULL) { /*If element was found we return it's data*/
+            return searched->function_data->parameters_list_first;
         } else { /*If element is not present in the table we return NULL*/
             return NULL;
         }
     } else {
         return NULL;
+    }
+}
+
+st_function_data_param_structT* st_get_function_return_types (Symtable* ptr_symtable, stringT* key) {
+
+    /*If pointer at table is valid*/
+    if (ptr_symtable != NULL) {
+
+        /*We create a temporary variable for searched symbol*/
+        ST_Item *searched = st_search(ptr_symtable, key);
+
+        if (searched != NULL && searched->function_data != NULL) { /*If element was found we return it's data*/
+            return searched->function_data->return_types_list_first;
+        } else { /*If element is not present in the table we return NULL*/
+            return NULL;
+        }
+    } else {
+        return NULL;
+    }
+}
+
+void st_function_param_list_free(st_function_data_param_structT *method_param) {
+    if (method_param != NULL) {
+        st_function_data_param_structT *temp;
+        st_function_data_param_structT *current = method_param;
+
+        while (current != NULL) {
+            temp = current;
+            current = current->next;
+            free(temp);
+        }
+    }
+}
+
+void st_function_data_free(st_item_function_structT *function_data) {
+    if (function_data != NULL) {
+        st_function_param_list_free(function_data->parameters_list_first);
+        st_function_param_list_free(function_data->return_types_list_first);
     }
 }
 
@@ -236,14 +320,9 @@ void st_clear_items_list (ST_Item* item) {
     if (item != NULL) {
         ST_Item* next = item->next;
 
-        if (item->content != NULL){
-            string_free(item->content);
-        }
-
-        if (item->params != NULL){
-            string_free(item->params);
-        }
-        string_free(item->key);
+        string_free(&item->content);
+        string_free(&item->key);
+        st_function_data_free(item->function_data);
         free(item);
 
         ST_Item* tmp;
@@ -252,14 +331,9 @@ void st_clear_items_list (ST_Item* item) {
             tmp = next;
             next = next->next;
 
-            if (tmp->content != NULL){
-                string_free(tmp->content);
-            }
-
-            if (tmp->params != NULL){
-                string_free(tmp->params);
-            }
-            string_free(tmp->key);
+            string_free(&tmp->content);
+            string_free(&tmp->key);
+            st_function_data_free(item->function_data);
             free(tmp);
         }
     }
@@ -275,7 +349,6 @@ void st_clear_all (Symtable* ptr_symtable) {
             ptr_symtable->items[i] = NULL;
         }
         free(ptr_symtable);
-
     }
 }
 

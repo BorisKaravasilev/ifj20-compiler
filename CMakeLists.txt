@@ -17,6 +17,10 @@ add_executable(ifj20_compiler
         general/utility_functions.h
         parser/expression_analysis.c
         parser/expression_analysis.h
+        parser/semantic_late_check.c
+        parser/semantic_late_check.h
+        parser/semantic_functions.c
+        parser/semantic_functions.h
         scanner/finite_automata.c
         scanner/finite_automata.h
         scanner/scanner_functions.c
