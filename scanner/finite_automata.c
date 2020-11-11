@@ -68,7 +68,6 @@ void init_finite_automata(finite_automataT* fa) {
     fa->states[36] = STATE_DECIMAL_NUMBER_NOT_END;
     fa->states[37] = TOKEN_DECIMAL_LITERAL;
     fa->states[38] = TOKEN_EXPONENT_LITERAL;
-    fa->states[39] = TOKEN_SLASH;
 
     // Start state
     fa->start_state = STATE_START;
@@ -99,7 +98,6 @@ void init_finite_automata(finite_automataT* fa) {
     fa->final_states[22] = TOKEN_INTEGER_LITERAL;
     fa->final_states[23] = TOKEN_DECIMAL_LITERAL;
     fa->final_states[24] = TOKEN_EXPONENT_LITERAL;
-    fa->final_states[25] = TOKEN_SLASH;
 
     // --- Rule #0
     fa->rules[0].from_state = STATE_START;
@@ -204,11 +202,11 @@ void init_finite_automata(finite_automataT* fa) {
 
     // --- Rule #20
     fa->rules[20].from_state = STATE_START;
-    fa->rules[20].to_state = TOKEN_SLASH;
+    fa->rules[20].to_state = TOKEN_DIVISION;
     fa->rules[20].transition_ranges[0].single_char = '/';
 
     // --- Rule #21
-    fa->rules[21].from_state = TOKEN_SLASH;
+    fa->rules[21].from_state = TOKEN_DIVISION;
     fa->rules[21].to_state = STATE_LINE_COMMENT_BODY;
     fa->rules[21].transition_ranges[0].single_char = '/';
 
@@ -228,7 +226,7 @@ void init_finite_automata(finite_automataT* fa) {
     fa->rules[23].transition_ranges[1].single_char = EOF;
 
     // --- Rule #24
-    fa->rules[24].from_state = TOKEN_SLASH;
+    fa->rules[24].from_state = TOKEN_DIVISION;
     fa->rules[24].to_state = STATE_BLOCK_COMMENT_BODY;
     fa->rules[24].transition_ranges[0].single_char = '*';
 
