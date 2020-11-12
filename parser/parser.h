@@ -12,17 +12,21 @@
 
 #include <stdio.h>
 
+#include "expression_analysis.h"
 #include "return_codes.h"
 #include "scanner_functions.h"
 #include "token_types.h"
 
 #define SYNTAX_OK 0
 
+void err_print(char *str, int token_type);
+
+int id(scannerT *ptr_scanner, tokenT token[]);
 int item(scannerT *ptr_scanner, tokenT token[]);
 int print_next(scannerT *ptr_scanner, tokenT token[]);
 int print(scannerT *ptr_scanner, tokenT token[]);
 int builtin_func(scannerT *ptr_scanner, tokenT token[]);
-int expr(scannerT *ptr_scanner, tokenT token[]);
+int expr(scannerT *ptr_scanner, tokenT token[], bool two_tokens);
 int assign(scannerT *ptr_scanner, tokenT token[]);
 int assign_next(scannerT *ptr_scanner, tokenT token[]);
 int assign_list(scannerT *ptr_scanner, tokenT token[]);
@@ -43,4 +47,4 @@ int func(scannerT *ptr_scanner, tokenT token[]);
 int program(scannerT *ptr_scanner, tokenT token[]);
 int parse(scannerT *ptr_scanner, tokenT token[]);
 
-#endif //IFJ20_COMPILER_PARSER_H
+#endif  // IFJ20_COMPILER_PARSER_H
