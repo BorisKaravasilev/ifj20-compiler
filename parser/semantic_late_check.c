@@ -107,6 +107,7 @@ void late_check_stack_item_free(late_check_stack_item *item) {
         string_free(&item->method_name);
         late_check_method_param_list_free(item->parameters_list_first);
         late_check_method_param_list_free(item->return_types_list_first);
+        free(item);
     }
 }
 

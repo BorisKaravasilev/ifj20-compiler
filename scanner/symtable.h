@@ -29,7 +29,8 @@ typedef enum {
     TYPE_INT,
     TYPE_DECIMAL,
     TYPE_STRING,
-    TYPE_NIL
+    TYPE_NIL,
+    TYPE_BLANK_VARIABLE,
 } Data_type;
 
 /**
