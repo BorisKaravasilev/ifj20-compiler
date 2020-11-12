@@ -33,36 +33,16 @@ int main(int argc, char** argv) {
     tokenT token[TOKEN_ARRAY_LEN];
     token_array_init(token, TOKEN_ARRAY_LEN);
 
-    Symtable *symtable = st_init();
-    Stack stack;
-    stack_init(&stack);
-    stack_push(&stack, symtable);
+    // Top level symbol table
+    Symtable *global_scope_symtable = st_init();
 
-    stringT testString;
-    string_init(&testString);
-    string_add_string(&testString, "testMethod");
-
-    st_insert_symbol(symtable, &testString, true);
-    st_add_function_param(st_search(symtable, &testString), TYPE_DECIMAL);
-    st_add_function_param(st_search(symtable, &testString), TYPE_STRING);
-    st_add_function_return_type(st_search(symtable, &testString), TYPE_INT);
-
-    late_check_stack late_check;
-    late_check_stack_init(&late_check);
-
-    late_check_stack_push_method(&late_check, &testString);
-    late_check_stack_item_add_parameter(late_check_stack_search(&late_check, &testString), TYPE_DECIMAL);
-    late_check_stack_item_add_parameter(late_check_stack_search(&late_check, &testString), TYPE_STRING);
-    late_check_stack_item_add_return_type(late_check_stack_search(&late_check, &testString), TYPE_INT);
+    stack_init(&scanner.st_stack);
+    stack_push(&scanner.st_stack, global_scope_symtable);
 
     int return_code = parse(&scanner, token);
 
     if (return_code != 0)
         return return_code;
-
-    check_semantic_for_methods_call(&late_check, symtable);
-    late_check_stack_free(&late_check);
-    clear_str(&testString);
 
     // FREE ALL ALLOCATED MEMORY
     token_array_free(token, TOKEN_ARRAY_LEN);

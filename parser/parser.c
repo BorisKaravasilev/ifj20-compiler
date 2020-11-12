@@ -544,11 +544,21 @@ int id_list1(scannerT *ptr_scanner, tokenT token[]){
  * A command with an identifier (definition, one or multiple assignments, function call)
  */
 int id_command(scannerT *ptr_scanner, tokenT token[]){
+    Symtable *ptr_curr_scope_sym_table = stack_top(&ptr_scanner->st_stack).symtable;
+    stringT key;
+    string_init(&key);
+    string_copy(&key, &token[token_index].attribute.string_val);
+
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // :=, =, ( or ,
     printf("%d\n", token[token_index].token_type);
 
     switch (token[token_index].token_type){
         case TOKEN_COLON_EQUAL:
+            // SEMANTIC: Insert identifier to symtable
+            st_insert_symbol(ptr_curr_scope_sym_table, &key, false);
+            string_free(&key);
+            // END SEMANTIC
+            return assign(ptr_scanner, token);
         case TOKEN_EQUAL:
             return assign(ptr_scanner, token);
 
