@@ -25,7 +25,7 @@ int operator_check(tokenT *ptr_tok_num)
 }
 
 ///The parsing function for the expressions (detailed description can be found in the "expression_analysis.h")
-int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *ptr_last_token, tokenT *ptr_expr_data_and_type, scannerT scanner)
+int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *ptr_last_token, tokenT *ptr_expr_data_and_type, scannerT *scanner)
 {
     //TODO: Maybe change to dynamically allocated array in the future
     tokenT tokens_of_expression[TOKEN_ARRAY_LEN];
@@ -70,7 +70,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                 if (is_it_first_token_of_expression != 0)
                 {
                     ///Load the token
-                    get_next_token(&scanner, ptr_last_token, OPTIONAL);
+                    get_next_token(scanner, ptr_last_token, OPTIONAL);
                 }
                 else
                 {
@@ -230,7 +230,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
             case 1:
             {
                 ///Load the token
-                get_next_token(&scanner, ptr_last_token, OPTIONAL);
+                get_next_token(scanner, ptr_last_token, OPTIONAL);
                 ///We save the token to the structure of tokens
                 if (number_of_token > TOKEN_ARRAY_LEN)
                 {
@@ -355,7 +355,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
             case 2:
             {
                 ///Load the token
-                get_next_token(&scanner, ptr_last_token, OPTIONAL);
+                get_next_token(scanner, ptr_last_token, OPTIONAL);
                 ///We save the token to the structure of tokens
                 if (number_of_token > TOKEN_ARRAY_LEN)
                 {
@@ -377,18 +377,8 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                 }
                 else if (ptr_last_token->token_type == TOKEN_EOF)
                 {
-                    ///Now we must check if number_of_brackets variable contains 0
-                    if (number_of_brackets == 0)
-                    {
-                        //TODO Evaluate the expression and generate the code here
-                        token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
-                        return 0;
-                    }
-                    else
-                    {
-                        token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
-                        return RC_SYN_ERR;
-                    }
+                    token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                    return RC_SYN_ERR;
                 }
                 else if (ptr_last_token->token_type == TOKEN_RIGHT_BRACKET)
                 {
@@ -415,7 +405,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                 if (is_it_first_token_of_expression != 0)
                 {
                     ///Load the token
-                    get_next_token(&scanner, ptr_last_token, OPTIONAL);
+                    get_next_token(scanner, ptr_last_token, OPTIONAL);
                     ///We save the token to the structure of tokens
                     if (number_of_token > TOKEN_ARRAY_LEN)
                     {
@@ -449,18 +439,8 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                 }
                 else if (ptr_last_token->token_type == TOKEN_EOF)
                 {
-                    ///Now we must check if the number_of_brackets variable contains 0
-                    if (number_of_brackets == 0)
-                    {
-                        //TODO Evaluate the expression and generate the code here
-                        token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
-                        return 0;
-                    }
-                    else
-                    {
-                        token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
-                        return RC_SYN_ERR;
-                    }
+                    token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                    return RC_SYN_ERR;
                 }
                 else if (operator_check(ptr_last_token))
                 {
@@ -505,7 +485,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
             case 4:
             {
                 ///Load the token
-                get_next_token(&scanner, ptr_last_token, OPTIONAL);
+                get_next_token(scanner, ptr_last_token, OPTIONAL);
                 ///We save the token to the structure of tokens
                 if (number_of_token > TOKEN_ARRAY_LEN)
                 {
@@ -632,7 +612,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
             case 5:
             {
                 ///Load the token
-                get_next_token(&scanner, ptr_last_token, OPTIONAL);
+                get_next_token(scanner, ptr_last_token, OPTIONAL);
                 ///We save the token to the structure of tokens
                 if (number_of_token > TOKEN_ARRAY_LEN)
                 {
