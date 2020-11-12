@@ -13,9 +13,9 @@
 #define SEMANTIC_LATE_CHECK_MALLOC_ERROR 99
 
 #include <stdbool.h>
-#include "../scanner/symtable.h"
-#include "../scanner/stack.h"
-#include "../general/return_codes.h"
+#include "symtable.h"
+#include "stack.h"
+#include "return_codes.h"
 
 /**
  * @brief Structure of a stack element.

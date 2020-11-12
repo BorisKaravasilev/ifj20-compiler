@@ -2,6 +2,8 @@
 // Created by Boris on 09-Oct-20.
 //
 
+#include <stdlib.h>
+#include "return_codes.h"
 #include "utility_functions.h"
 
 // Returns pointer to file or 'stdin'
@@ -13,6 +15,7 @@ FILE *get_input_file(bool enabled, char *file_name) {
 
         if (fp == NULL) {
             fprintf(stderr, "Input file doesn't exist\n");
+            exit(RC_RUN_ERR);
         } else {
             return fp;
         }

@@ -9,8 +9,8 @@
 #ifndef IFJ20_COMPILER_EXPRESSION_ANALYSIS_H
 #define IFJ20_COMPILER_EXPRESSION_ANALYSIS_H
 
-#include "../scanner/scanner_functions.h"
-#include "../scanner/token_functions.h"
+#include "scanner_functions.h"
+#include "token_functions.h"
 
 /**
  * Heads of functions

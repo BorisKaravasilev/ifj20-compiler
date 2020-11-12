@@ -5,8 +5,8 @@
 #include "scanner_functions.h"
 #include "token_types.h"
 #include "states_list.h"
-#include "../general/return_codes.h"
-#include "../general/debugging.h"
+#include "return_codes.h"
+#include "debugging.h"
 
 #define ERROR_NO_NEXT_STATE -2
 

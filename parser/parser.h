@@ -12,14 +12,14 @@
 
 #include <stdio.h>
 
-#include "../general/return_codes.h"
-#include "../scanner/scanner_functions.h"
-#include "../scanner/token_types.h"
-#include "../parser/expression_analysis.h"
+#include "expression_analysis.h"
+#include "return_codes.h"
+#include "scanner_functions.h"
+#include "token_types.h"
 
 #define SYNTAX_OK 0
 
-void err_print(char* str, int token_type);
+void err_print(char *str, int token_type);
 
 int id(scannerT *ptr_scanner, tokenT token[]);
 int item(scannerT *ptr_scanner, tokenT token[]);
@@ -47,4 +47,4 @@ int func(scannerT *ptr_scanner, tokenT token[]);
 int program(scannerT *ptr_scanner, tokenT token[]);
 int parse(scannerT *ptr_scanner, tokenT token[]);
 
-#endif //IFJ20_COMPILER_PARSER_H
+#endif  // IFJ20_COMPILER_PARSER_H

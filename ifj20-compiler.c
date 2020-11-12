@@ -9,18 +9,10 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#include "scanner/finite_automata.h"
-#include "scanner/scanner_functions.h"
-#include "general/utility_functions.h"
-#include "scanner/token_types.h"
-#include "general/return_codes.h"
-#include "scanner/symtable.h"
-#include "scanner/token_functions.h"
-#include "scanner/stack.h"
-#include "parser/semantic_late_check.h"
-#include "parser/parser.h"
+#include "scanner_functions.h"
+#include "parser.h"
 
-#define IS_INPUT_FROM_FILE true // Input from file or stdin
+#define IS_INPUT_FROM_FILE false // Input from file or stdin
 
 int main(int argc, char** argv) {
     // For debugging purposes in CLion (input file or stdin)

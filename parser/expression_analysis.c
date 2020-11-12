@@ -7,7 +7,7 @@
  */
 
 #include "expression_analysis.h"
-#include "../scanner/token_types.h"
+#include "token_types.h"
 
 ///The function for check if the token is an operator -,*,<,>,<=,>=
 int operator_check(tokenT *ptr_tok_num)
