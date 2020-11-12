@@ -10,8 +10,6 @@
 
 #define ERROR_NO_NEXT_STATE -2
 
-bool main_skip = true;
-
 void init_scanner(scannerT *s, FILE *input_file) {
     s->input_fp = input_file;
     s->file_pos.line_number = 1;
@@ -19,12 +17,6 @@ void init_scanner(scannerT *s, FILE *input_file) {
 
     // Modify 'finite_automata.c' to change FA graph
     init_finite_automata(&s->fa);
-
-    // Top level symbol table
-    Symtable *global_scope_symtable = st_init();
-
-    stack_init(&s->st_stack);
-    stack_push(&s->st_stack, global_scope_symtable);
 
     s->required_eol_found = true;
 
@@ -102,44 +94,6 @@ bool is_final_state(int state, finite_automataT *ptr_fa) {
     return false;
 }
 
-// Add identifier to sym table
-void add_id_to_sym_table(tokenT *ptr_token, Stack *ptr_stack) {
-    stringT *key = &ptr_token->attribute.string_val;
-    Symtable *ptr_curr_scope_sym_table = stack_top(ptr_stack).symtable;
-    bool is_main = (string_compare_constant(key, "main") == 0);
-    
-    if (is_main && main_skip) {
-        main_skip = false;
-        return;
-    }
-    
-    st_insert_symbol(ptr_curr_scope_sym_table, key, false);
-    debug_scanner("\n | SYMTABLE | [INSERTED KEY: '%s' TO SYMTABLE]\n\n\n", key->string);
-}
-
-// Push new symtable block
-void push_new_symtable_block(Stack *ptr_stack) {
-    debug_scanner("\n | SYMTABLE | [PUSH NEW SYMTABLE BLOCK]\n\n\n%s", "");
-    stack_push(ptr_stack, st_init());
-}
-
-// Pop symtable block
-void pop_symtable_block(Stack *ptr_stack) {
-    debug_scanner("\n | SYMTABLE | [POP SYMTABLE BLOCK]\n\n\n%s", "");
-    stack_pop(ptr_stack);
-}
-
-// Update symtable according to received token
-void update_symtable(tokenT *ptr_token, Stack *ptr_stack) {
-    if (ptr_token->token_type == TOKEN_IDENTIFIER) {
-        add_id_to_sym_table(ptr_token, ptr_stack);
-    } else if (ptr_token->token_type == TOKEN_LEFT_CURLY_BRACE) {
-        push_new_symtable_block(ptr_stack);
-    } else if (ptr_token->token_type == TOKEN_RIGHT_CURLY_BRACE) {
-        pop_symtable_block(ptr_stack);
-    }
-}
-
 // Assigns correct token type and attribute to token at 'ptr_token'
 void generate_token(scannerT *s, tokenT *ptr_token, int final_state) {
     ptr_token->token_type = final_state;
@@ -149,8 +103,6 @@ void generate_token(scannerT *s, tokenT *ptr_token, int final_state) {
         ptr_token->token_type = keyword_check(ptr_token);
         ptr_token->token_type = function_word_check(ptr_token);
     }
-
-    update_symtable(ptr_token, &s->st_stack);
 }
 
 // Reads new character as current symbol or uses the character from previous reading
