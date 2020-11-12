@@ -13,6 +13,13 @@ int token_index = 0, tmp_result = 0;
 bool unget_token = false;
 
 /*
+    puts("-----------------------------------");
+    for (int i = 0; i < TOKEN_ARRAY_LEN; i++)
+        printf("%d: %d\n", i, token[i].token_type);
+    puts("-----------------------------------");
+ */
+
+/*
  * Print error string to stderr
  */
 void err_print(char* str, int token_type){
@@ -820,11 +827,6 @@ int return_type(scannerT *ptr_scanner, tokenT token[]){
 int return_type_list(scannerT *ptr_scanner, tokenT token[]){
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // ( or {
     printf("%d\n", token[token_index].token_type);
-
-    puts("-----------------------------------");
-    for (int i = 0; i < TOKEN_ARRAY_LEN; i++)
-        printf("%d: %d\n", i, token[i].token_type);
-    puts("-----------------------------------");
 
     if (token[token_index].token_type == TOKEN_LEFT_CURLY_BRACE){
         return SYNTAX_OK;
