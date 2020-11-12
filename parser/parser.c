@@ -27,12 +27,33 @@ void err_print(char* str, int token_type){
 }
 
 /*
+ * An identifier - regular or special _
+ */
+int id(scannerT *ptr_scanner, tokenT token[]){
+    if (!unget_token) {
+        get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // identifier or _
+    }
+    else {
+        unget_token = false;
+    }
+
+    if (token[token_index].token_type == TOKEN_UNDERSCORE) {
+        return SYNTAX_OK;
+    }
+    else if (token[token_index].token_type == TOKEN_IDENTIFIER) {
+        // TODO prostor na semantiku :D
+        return SYNTAX_OK;
+    }
+
+    return RC_SYN_ERR;
+}
+
+/*
  * An item - integer, float or string
  */
 int item(scannerT *ptr_scanner, tokenT token[]){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // int, float or string literal
-        printf("%d\n", token[token_index].token_type);
     }
     else {
         unget_token = false;
@@ -52,7 +73,6 @@ int item(scannerT *ptr_scanner, tokenT token[]){
  */
 int print_next(scannerT *ptr_scanner, tokenT token[]){
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // , or )
-    printf("%d\n", token[token_index].token_type);
 
     switch (token[token_index].token_type) {
         case TOKEN_RIGHT_BRACKET:
@@ -60,7 +80,6 @@ int print_next(scannerT *ptr_scanner, tokenT token[]){
 
         case TOKEN_COMMA:
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // int / float / str, id
-            printf("%d\n", token[token_index].token_type);
 
             if (token[token_index].token_type == TOKEN_IDENTIFIER){
                 return print_next(ptr_scanner, token);
@@ -85,7 +104,6 @@ int print_next(scannerT *ptr_scanner, tokenT token[]){
  */
 int print(scannerT *ptr_scanner, tokenT token[]){
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // int / float / str, id, )
-    printf("Print start, token: %d\n", token[token_index].token_type);
 
     switch (token[token_index].token_type) {
         case TOKEN_RIGHT_BRACKET:
@@ -110,7 +128,6 @@ int print(scannerT *ptr_scanner, tokenT token[]){
 int builtin_func(scannerT *ptr_scanner, tokenT token[]){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // built-in function name
-        printf("%d\n", token[token_index].token_type);
     }
     else {
         unget_token = false;
@@ -121,7 +138,6 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
         case TOKEN_FUNCTION_INPUTI:
         case TOKEN_FUNCTION_INPUTF:
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // (
-            printf("%d\n", token[token_index].token_type);
 
             if (token[token_index].token_type != TOKEN_LEFT_BRACKET){
                 err_print("(", token[token_index].token_type);
@@ -129,7 +145,6 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
             }
 
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // )
-            printf("%d\n", token[token_index].token_type);
 
             if (token[token_index].token_type == TOKEN_RIGHT_BRACKET){
                 return SYNTAX_OK;
@@ -142,7 +157,6 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
         case TOKEN_FUNCTION_INT2FLOAT:
         case TOKEN_FUNCTION_CHR:
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // (
-            printf("%d\n", token[token_index].token_type);
 
             if (token[token_index].token_type != TOKEN_LEFT_BRACKET){
                 err_print("(", token[token_index].token_type);
@@ -150,7 +164,6 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
             }
 
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // int
-            printf("%d\n", token[token_index].token_type);
 
             if (token[token_index].token_type != TOKEN_INTEGER_LITERAL){
                 err_print("int", token[token_index].token_type);
@@ -158,7 +171,6 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
             }
 
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // )
-            printf("%d\n", token[token_index].token_type);
 
             if (token[token_index].token_type == TOKEN_RIGHT_BRACKET){
                 return SYNTAX_OK;
@@ -170,7 +182,6 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
 
         case TOKEN_FUNCTION_PRINT:
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // (
-            printf("%d\n", token[token_index].token_type);
 
             if (token[token_index].token_type != TOKEN_LEFT_BRACKET){
                 err_print("(", token[token_index].token_type);
@@ -181,7 +192,6 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
 
         case TOKEN_FUNCTION_FLOAT2INT:
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // (
-            printf("%d\n", token[token_index].token_type);
 
             if (token[token_index].token_type != TOKEN_LEFT_BRACKET){
                 err_print("(", token[token_index].token_type);
@@ -189,7 +199,6 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
             }
 
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // float
-            printf("%d\n", token[token_index].token_type);
 
             if (token[token_index].token_type != TOKEN_KEYWORD_FLOAT64){
                 err_print("float", token[token_index].token_type);
@@ -197,7 +206,6 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
             }
 
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // )
-            printf("%d\n", token[token_index].token_type);
 
             if (token[token_index].token_type == TOKEN_RIGHT_BRACKET){
                 return SYNTAX_OK;
@@ -209,7 +217,6 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
 
         case TOKEN_FUNCTION_LEN:
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // (
-            printf("%d\n", token[token_index].token_type);
 
             if (token[token_index].token_type != TOKEN_LEFT_BRACKET){
                 err_print("(", token[token_index].token_type);
@@ -217,7 +224,6 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
             }
 
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // string
-            printf("%d\n", token[token_index].token_type);
 
             if (token[token_index].token_type != TOKEN_STRING_LITERAL){
                 err_print("string", token[token_index].token_type);
@@ -225,7 +231,6 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
             }
 
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // )
-            printf("%d\n", token[token_index].token_type);
 
             if (token[token_index].token_type == TOKEN_RIGHT_BRACKET){
                 return SYNTAX_OK;
@@ -237,7 +242,6 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
 
         case TOKEN_FUNCTION_SUBSTR:
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // (
-            printf("%d\n", token[token_index].token_type);
 
             if (token[token_index].token_type != TOKEN_LEFT_BRACKET){
                 err_print("(", token[token_index].token_type);
@@ -245,7 +249,6 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
             }
 
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // string
-            printf("%d\n", token[token_index].token_type);
 
             if (token[token_index].token_type != TOKEN_STRING_LITERAL){
                 err_print("string", token[token_index].token_type);
@@ -253,7 +256,6 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
             }
 
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // ,
-            printf("%d\n", token[token_index].token_type);
 
             if (token[token_index].token_type != TOKEN_COMMA){
                 err_print(",", token[token_index].token_type);
@@ -261,7 +263,6 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
             }
 
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // int
-            printf("%d\n", token[token_index].token_type);
 
             if (token[token_index].token_type != TOKEN_INTEGER_LITERAL){
                 err_print("int", token[token_index].token_type);
@@ -269,7 +270,6 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
             }
 
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // ,
-            printf("%d\n", token[token_index].token_type);
 
             if (token[token_index].token_type != TOKEN_COMMA){
                 err_print(",", token[token_index].token_type);
@@ -277,7 +277,6 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
             }
 
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // int
-            printf("%d\n", token[token_index].token_type);
 
             if (token[token_index].token_type != TOKEN_INTEGER_LITERAL){
                 err_print("int", token[token_index].token_type);
@@ -285,7 +284,6 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
             }
 
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // )
-            printf("%d\n", token[token_index].token_type);
 
             if (token[token_index].token_type == TOKEN_RIGHT_BRACKET){
                 return SYNTAX_OK;
@@ -297,7 +295,6 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
 
         case TOKEN_FUNCTION_ORD:
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // (
-            printf("%d\n", token[token_index].token_type);
 
             if (token[token_index].token_type != TOKEN_LEFT_BRACKET){
                 err_print("(", token[token_index].token_type);
@@ -305,7 +302,6 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
             }
 
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // string
-            printf("%d\n", token[token_index].token_type);
 
             if (token[token_index].token_type != TOKEN_STRING_LITERAL){
                 err_print("string", token[token_index].token_type);
@@ -313,7 +309,6 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
             }
 
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // ,
-            printf("%d\n", token[token_index].token_type);
 
             if (token[token_index].token_type != TOKEN_COMMA){
                 err_print(",", token[token_index].token_type);
@@ -321,7 +316,6 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
             }
 
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // int
-            printf("%d\n", token[token_index].token_type);
 
             if (token[token_index].token_type != TOKEN_INTEGER_LITERAL){
                 err_print("int", token[token_index].token_type);
@@ -329,7 +323,6 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
             }
 
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // )
-            printf("%d\n", token[token_index].token_type);
 
             if (token[token_index].token_type == TOKEN_RIGHT_BRACKET){
                 return SYNTAX_OK;
@@ -347,16 +340,30 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
 /*
  * An expression - resolved by precedential syntactic analysis
  */
-int expr(scannerT *ptr_scanner, tokenT token[]){
+int expr(scannerT *ptr_scanner, tokenT token[], bool two_tokens){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // beginning of expr
-        printf("%d\n", token[token_index].token_type);
     }
     else {
         unget_token = false;
     }
 
-    // TODO according to existing implementation of PSA
+    tokenT last_expr_token, expr_result_token;
+    token_init(&last_expr_token);
+    token_init(&expr_result_token);
+
+    if (two_tokens){
+        tmp_result = expr_check(&token[token_index - 1], &token[token_index], &last_expr_token, &expr_result_token, ptr_scanner);
+        if (tmp_result != SYNTAX_OK)
+            return tmp_result;
+    }
+    else {
+        tmp_result = expr_check(NULL, &token[token_index], &last_expr_token, &expr_result_token, ptr_scanner);
+        if (tmp_result != SYNTAX_OK)
+            return tmp_result;
+    }
+
+    // TODO doplnit
     return SYNTAX_OK;
 }
 
@@ -366,24 +373,9 @@ int expr(scannerT *ptr_scanner, tokenT token[]){
 int assign(scannerT *ptr_scanner, tokenT token[]){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // id, item, built-in function or expression
-        printf("%d\n", token[token_index].token_type);
     }
     else {
         unget_token = false;
-    }
-
-    if (token[token_index].token_type == TOKEN_IDENTIFIER){
-        // check following token, if (, then function parameter list follows, otherwise an extra token was read
-        get_next_token(ptr_scanner, &token[++token_index], OPTIONAL);
-        printf("%d\n", token[token_index].token_type);
-
-        if (token[token_index].token_type == TOKEN_LEFT_BRACKET) {
-            return id_list1(ptr_scanner, token);
-        }
-        else {
-            unget_token = true;
-            return SYNTAX_OK;
-        }
     }
 
     unget_token = true;
@@ -396,7 +388,19 @@ int assign(scannerT *ptr_scanner, tokenT token[]){
     if (tmp_result == SYNTAX_OK)
         return SYNTAX_OK;
 
-    return expr(ptr_scanner, token); // TODO expr?
+    if (token[token_index].token_type == TOKEN_IDENTIFIER){
+        // check following token, if (, then function parameter list follows, otherwise an extra token was read
+        get_next_token(ptr_scanner, &token[++token_index], OPTIONAL);
+
+        if (token[token_index].token_type == TOKEN_LEFT_BRACKET) {
+            return id_list1(ptr_scanner, token);
+        }
+        else {
+            return expr(ptr_scanner, token, true);
+        }
+    }
+
+    return expr(ptr_scanner, token, false); // TODO expr?
 }
 
 /*
@@ -405,7 +409,6 @@ int assign(scannerT *ptr_scanner, tokenT token[]){
 int assign_next(scannerT *ptr_scanner, tokenT token[]){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // , or extra token was read
-        printf("%d\n", token[token_index].token_type);
     }
     else {
         unget_token = false;
@@ -430,7 +433,6 @@ int assign_next(scannerT *ptr_scanner, tokenT token[]){
 int assign_list(scannerT *ptr_scanner, tokenT token[]){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // id, item, built-in function or expression
-        printf("%d\n", token[token_index].token_type);
     }
     else {
         unget_token = false;
@@ -449,7 +451,6 @@ int assign_list(scannerT *ptr_scanner, tokenT token[]){
  */
 int id_next2(scannerT *ptr_scanner, tokenT token[]){
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // = or ,
-    printf("%d\n", token[token_index].token_type);
 
     switch (token[token_index].token_type){
         case TOKEN_EQUAL:
@@ -457,7 +458,6 @@ int id_next2(scannerT *ptr_scanner, tokenT token[]){
 
         case TOKEN_COMMA:
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // id
-            printf("%d\n", token[token_index].token_type);
 
             if (token[token_index].token_type != TOKEN_IDENTIFIER){
                 err_print("id", token[token_index].token_type);
@@ -477,7 +477,6 @@ int id_next2(scannerT *ptr_scanner, tokenT token[]){
  */
 int id_list2(scannerT *ptr_scanner, tokenT token[]){
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // id or =
-    printf("%d\n", token[token_index].token_type);
 
     switch (token[token_index].token_type){
         case TOKEN_EQUAL:
@@ -497,7 +496,6 @@ int id_list2(scannerT *ptr_scanner, tokenT token[]){
  */
 int id_next1(scannerT *ptr_scanner, tokenT token[]){
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // ) or ,
-    printf("%d\n", token[token_index].token_type);
 
     switch (token[token_index].token_type){
         case TOKEN_RIGHT_BRACKET:
@@ -505,7 +503,6 @@ int id_next1(scannerT *ptr_scanner, tokenT token[]){
 
         case TOKEN_COMMA:
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); //  id
-            printf("%d\n", token[token_index].token_type);
 
             if (token[token_index].token_type != TOKEN_IDENTIFIER){
                 err_print("id", token[token_index].token_type);
@@ -525,7 +522,6 @@ int id_next1(scannerT *ptr_scanner, tokenT token[]){
  */
 int id_list1(scannerT *ptr_scanner, tokenT token[]){
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // id or )
-    printf("%d\n", token[token_index].token_type);
 
     switch (token[token_index].token_type){
         case TOKEN_RIGHT_BRACKET:
@@ -545,7 +541,6 @@ int id_list1(scannerT *ptr_scanner, tokenT token[]){
  */
 int id_command(scannerT *ptr_scanner, tokenT token[]){
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // :=, =, ( or ,
-    printf("%d\n", token[token_index].token_type);
 
     switch (token[token_index].token_type){
         case TOKEN_COLON_EQUAL:
@@ -573,31 +568,21 @@ int id_command(scannerT *ptr_scanner, tokenT token[]){
  */
 int cycle_assign(scannerT *ptr_scanner, tokenT token[]){
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // id or {
-    printf("%d\n", token[token_index].token_type);
 
     if (token[token_index].token_type == TOKEN_LEFT_CURLY_BRACE){
         return SYNTAX_OK;
     }
     else if (token[token_index].token_type == TOKEN_IDENTIFIER){
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // =
-        printf("%d\n", token[token_index].token_type);
 
         if (token[token_index].token_type != TOKEN_EQUAL){
             err_print("=", token[token_index].token_type);
             return RC_SYN_ERR;
         }
 
-        tmp_result = expr(ptr_scanner, token); // TODO expr?
+        tmp_result = expr(ptr_scanner, token, false); // TODO expr?
         if (tmp_result != SYNTAX_OK)
             return tmp_result;
-
-        if (!unget_token) {
-            get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // {
-            printf("%d\n", token[token_index].token_type);
-        }
-        else {
-            unget_token = false;
-        }
 
         if (token[token_index].token_type != TOKEN_LEFT_CURLY_BRACE){
             err_print("{", token[token_index].token_type);
@@ -617,14 +602,12 @@ int cycle_assign(scannerT *ptr_scanner, tokenT token[]){
  */
 int cycle_init(scannerT *ptr_scanner, tokenT token[]){
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // id or ;
-    printf("%d\n", token[token_index].token_type);
 
     if (token[token_index].token_type == TOKEN_SEMICOLON){
         return SYNTAX_OK;
     }
     else if (token[token_index].token_type == TOKEN_IDENTIFIER){
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // :=
-        printf("%d\n", token[token_index].token_type);
 
         if (token[token_index].token_type != TOKEN_COLON_EQUAL){
             err_print(":=", token[token_index].token_type);
@@ -637,7 +620,6 @@ int cycle_init(scannerT *ptr_scanner, tokenT token[]){
 
         if (!unget_token) {
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // ;
-            printf("%d\n", token[token_index].token_type);
         }
         else {
             unget_token = false;
@@ -668,17 +650,9 @@ int command(scannerT *ptr_scanner, tokenT token[]){
             return id_command(ptr_scanner, token);
 
         case TOKEN_KEYWORD_IF: // TODO expr?
-            tmp_result = expr(ptr_scanner, token);
+            tmp_result = expr(ptr_scanner, token, false);
             if (tmp_result != SYNTAX_OK)
                 return tmp_result;
-
-            if (!unget_token) {
-                get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // {
-                printf("%d\n", token[token_index].token_type);
-            }
-            else {
-                unget_token = false;
-            }
 
             if (token[token_index].token_type != TOKEN_LEFT_CURLY_BRACE){
                 err_print("{", token[token_index].token_type);
@@ -691,7 +665,6 @@ int command(scannerT *ptr_scanner, tokenT token[]){
 
             if (!unget_token) {
                 get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // else
-                printf("%d\n", token[token_index].token_type);
             }
             else {
                 unget_token = false;
@@ -703,7 +676,6 @@ int command(scannerT *ptr_scanner, tokenT token[]){
             }
 
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // {
-            printf("%d\n", token[token_index].token_type);
 
             if (token[token_index].token_type != TOKEN_LEFT_CURLY_BRACE){
                 err_print("{", token[token_index].token_type);
@@ -717,17 +689,9 @@ int command(scannerT *ptr_scanner, tokenT token[]){
             if (tmp_result != SYNTAX_OK)
                 return tmp_result;
 
-            tmp_result = expr(ptr_scanner, token); // TODO expr?
+            tmp_result = expr(ptr_scanner, token, false); // TODO expr?
             if (tmp_result != SYNTAX_OK)
                 return tmp_result;
-
-            if (!unget_token) {
-                get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // ;
-                printf("%d\n", token[token_index].token_type);
-            }
-            else {
-                unget_token = false;
-            }
 
             if (token[token_index].token_type != TOKEN_SEMICOLON){
                 err_print(";", token[token_index].token_type);
@@ -743,7 +707,6 @@ int command(scannerT *ptr_scanner, tokenT token[]){
         case TOKEN_KEYWORD_RETURN:
             // a function can return zero or more values
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL);  // check }
-            printf("%d\n", token[token_index].token_type);
 
             unget_token = true;
             if (token[token_index].token_type == TOKEN_RIGHT_CURLY_BRACE){
@@ -762,7 +725,7 @@ int command(scannerT *ptr_scanner, tokenT token[]){
     if (tmp_result == SYNTAX_OK)
         return SYNTAX_OK;
 
-    return expr(ptr_scanner, token); // TODO expr?
+    return RC_SYN_ERR;
 }
 
 /*
@@ -771,7 +734,6 @@ int command(scannerT *ptr_scanner, tokenT token[]){
 int command_list(scannerT *ptr_scanner, tokenT token[]){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // command or }
-        printf("%d\n", token[token_index].token_type);
     }
     else {
         unget_token = false;
@@ -794,11 +756,9 @@ int command_list(scannerT *ptr_scanner, tokenT token[]){
  */
 int return_type(scannerT *ptr_scanner, tokenT token[]){
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // , or )
-    printf("%d\n", token[token_index].token_type);
 
     if (token[token_index].token_type == TOKEN_RIGHT_BRACKET){
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // {
-        printf("%d\n", token[token_index].token_type);
 
         if (token[token_index].token_type == TOKEN_LEFT_CURLY_BRACE){
             return SYNTAX_OK;
@@ -826,7 +786,6 @@ int return_type(scannerT *ptr_scanner, tokenT token[]){
  */
 int return_type_list(scannerT *ptr_scanner, tokenT token[]){
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // ( or {
-    printf("%d\n", token[token_index].token_type);
 
     if (token[token_index].token_type == TOKEN_LEFT_CURLY_BRACE){
         return SYNTAX_OK;
@@ -837,11 +796,9 @@ int return_type_list(scannerT *ptr_scanner, tokenT token[]){
     }
 
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // ) or item
-    printf("%d\n", token[token_index].token_type);
 
     if (token[token_index].token_type == TOKEN_RIGHT_BRACKET){
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // {
-        printf("%d\n", token[token_index].token_type);
 
         if (token[token_index].token_type == TOKEN_LEFT_CURLY_BRACE){
             return SYNTAX_OK;
@@ -866,7 +823,6 @@ int return_type_list(scannerT *ptr_scanner, tokenT token[]){
  */
 int param(scannerT *ptr_scanner, tokenT token[]){
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // , or )
-    printf("%d\n", token[token_index].token_type);
 
     if (token[token_index].token_type == TOKEN_RIGHT_BRACKET){
         return SYNTAX_OK;
@@ -877,7 +833,6 @@ int param(scannerT *ptr_scanner, tokenT token[]){
     }
 
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // function parameter (ID)
-    printf("%d\n", token[token_index].token_type);
 
     if (token[token_index].token_type == TOKEN_IDENTIFIER){
         tmp_result = item(ptr_scanner, token);
@@ -893,7 +848,6 @@ int param(scannerT *ptr_scanner, tokenT token[]){
  */
 int param_list(scannerT *ptr_scanner, tokenT token[]){
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // function parameter (ID) or )
-    printf("%d\n", token[token_index].token_type);
 
     if (token[token_index].token_type == TOKEN_RIGHT_BRACKET){
         return SYNTAX_OK;
@@ -916,7 +870,6 @@ int param_list(scannerT *ptr_scanner, tokenT token[]){
  */
 int func(scannerT *ptr_scanner, tokenT token[]){
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // function name (ID)
-    printf("%d\n", token[token_index].token_type);
 
     if (token[token_index].token_type != TOKEN_IDENTIFIER){
         err_print("identifier (function name)", token[token_index].token_type);
@@ -924,7 +877,6 @@ int func(scannerT *ptr_scanner, tokenT token[]){
     }
 
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // left opening bracket
-    printf("%d\n", token[token_index].token_type);
 
     if (token[token_index].token_type != TOKEN_LEFT_BRACKET){
         err_print("left opening bracket", token[token_index].token_type);
@@ -951,7 +903,6 @@ int func(scannerT *ptr_scanner, tokenT token[]){
  */
 int program(scannerT *ptr_scanner, tokenT token[]){
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // "func" / EOF
-    printf("%d\n", token[token_index].token_type);
 
     if (token[token_index].token_type == TOKEN_KEYWORD_FUNC){
         tmp_result = func(ptr_scanner, token);
@@ -973,7 +924,6 @@ int program(scannerT *ptr_scanner, tokenT token[]){
  */
 int parse(scannerT *ptr_scanner, tokenT token[]){
     get_next_token(ptr_scanner, &token[token_index], OPTIONAL); // "package"
-    printf("%d\n", token[token_index].token_type);
 
     if (token[token_index].token_type != TOKEN_KEYWORD_PACKAGE){
         err_print("package keyword", token[token_index].token_type);
@@ -981,9 +931,8 @@ int parse(scannerT *ptr_scanner, tokenT token[]){
     }
 
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // "main"
-    printf("%d\n", token[token_index].token_type);
 
-    if (token[token_index].token_type != TOKEN_IDENTIFIER &&
+    if (token[token_index].token_type != TOKEN_IDENTIFIER ||
     !string_compare_constant(&token[token_index].attribute.string_val, "main\n")){ // TODO remove newline
         err_print("main keyword", token[token_index].token_type);
         return RC_SYN_ERR;

@@ -15,14 +15,18 @@
 #include "../general/return_codes.h"
 #include "../scanner/scanner_functions.h"
 #include "../scanner/token_types.h"
+#include "../parser/expression_analysis.h"
 
 #define SYNTAX_OK 0
 
+void err_print(char* str, int token_type);
+
+int id(scannerT *ptr_scanner, tokenT token[]);
 int item(scannerT *ptr_scanner, tokenT token[]);
 int print_next(scannerT *ptr_scanner, tokenT token[]);
 int print(scannerT *ptr_scanner, tokenT token[]);
 int builtin_func(scannerT *ptr_scanner, tokenT token[]);
-int expr(scannerT *ptr_scanner, tokenT token[]);
+int expr(scannerT *ptr_scanner, tokenT token[], bool two_tokens);
 int assign(scannerT *ptr_scanner, tokenT token[]);
 int assign_next(scannerT *ptr_scanner, tokenT token[]);
 int assign_list(scannerT *ptr_scanner, tokenT token[]);
