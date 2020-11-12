@@ -8,6 +8,8 @@ SOURCE_FOLDERS = $(wildcard general/*.c) \
                  $(wildcard *.c)
 obj = $(SOURCE_FOLDERS:.c=.o)
 
+compile_and_clean: all clean
+
 all: $(obj)
 	$(CC) $(CFLAGS) -o $(BIN) $^ $(LFLAGS)
 
