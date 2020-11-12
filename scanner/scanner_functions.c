@@ -10,6 +10,8 @@
 
 #define ERROR_NO_NEXT_STATE -2
 
+bool main_skip = true;
+
 void init_scanner(scannerT *s, FILE *input_file) {
     s->input_fp = input_file;
     s->file_pos.line_number = 1;
@@ -104,7 +106,14 @@ bool is_final_state(int state, finite_automataT *ptr_fa) {
 void add_id_to_sym_table(tokenT *ptr_token, Stack *ptr_stack) {
     stringT *key = &ptr_token->attribute.string_val;
     Symtable *ptr_curr_scope_sym_table = stack_top(ptr_stack).symtable;
+
+    bool is_main = (string_compare_constant(key, "main") == 0);
+    if (is_main && main_skip) {
+        main_skip = false;
+        return;
+    }
     st_insert_symbol(ptr_curr_scope_sym_table, key, false);
+
     debug_scanner("\n | SYMTABLE | [INSERTED KEY: '%s' TO SYMTABLE]\n\n\n", key->string);
 }
 
