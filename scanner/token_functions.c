@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include "token_functions.h"
 #include "token_types.h"
-#include "../general/debugging.h"
+#include "debugging.h"
 
 void token_init (tokenT *ptr_token) {
     ptr_token->token_type = TOKEN_EMPTY;

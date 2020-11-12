@@ -10,8 +10,8 @@
 #ifndef IFJ20_COMPILER_SEMANTIC_FUNCTIONS_H
 #define IFJ20_COMPILER_SEMANTIC_FUNCTIONS_H
 
-#include "../scanner/symtable.h"
-#include "../general/return_codes.h"
+#include "symtable.h"
+#include "return_codes.h"
 
 /**
  * @brief Structure for a assignment structure.

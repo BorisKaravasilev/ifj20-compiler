@@ -12,9 +12,9 @@
 
 #include <stdio.h>
 
-#include "../general/return_codes.h"
-#include "../scanner/scanner_functions.h"
-#include "../scanner/token_types.h"
+#include "return_codes.h"
+#include "scanner_functions.h"
+#include "token_types.h"
 
 #define SYNTAX_OK 0
 

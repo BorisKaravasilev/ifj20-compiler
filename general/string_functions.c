@@ -5,7 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "string_functions.h"
-#include "../general/return_codes.h"
+#include "return_codes.h"
 
 /// Initialization (creation) of a new string
 int string_init(stringT *str)

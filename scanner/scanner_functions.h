@@ -6,7 +6,7 @@
 #include "token_functions.h"
 #include "stack.h"
 #include "symtable.h"
-#include "../general/utility_functions.h"
+#include "utility_functions.h"
 
 #define EOL '\n'
 

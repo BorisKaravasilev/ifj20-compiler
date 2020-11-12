@@ -12,7 +12,7 @@
 
 #define TOKEN_ARRAY_LEN 100
 
-#include "../general/string_functions.h"
+#include "string_functions.h"
 #include "symtable.h"
 
 // TODO: Consider union
