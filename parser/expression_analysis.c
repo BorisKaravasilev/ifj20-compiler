@@ -7,9 +7,7 @@
  */
 
 #include "expression_analysis.h"
-#include "return_codes.h"
 #include "token_types.h"
-#include "scanner_functions.h"
 
 ///The function for check if the token is an operator -,*,<,>,<=,>=
 int operator_check(tokenT *ptr_tok_num)
@@ -160,6 +158,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                     switch_case = 3;
 
                     //TODO semantic_data_type = data type of the identifier saved in ptr_last_token
+                    /*
                     ///If semantic_data_type contains int
                     if (semantic_data_type == EXPRESSION_INT)
                     {
@@ -217,6 +216,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                         token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
                         return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
                     }
+                    */
                 }
                 else
                 {
@@ -297,6 +297,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                     switch_case = 3;
 
                     //TODO semantic_data_type = data type of the identifier saved in ptr_last_token
+                    /*
                     ///If semantic_data_type contains int
                     if (semantic_data_type == EXPRESSION_INT)
                     {
@@ -340,6 +341,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                         token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
                         return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
                     }
+                    */
                 }
                 else
                 {
@@ -582,6 +584,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                     switch_case = 3;
 
                     //TODO semantic_data_type = data type of the identifier saved in ptr_last_token
+                    /*
                     ///If semantic_data_type contains int
                     if (semantic_data_type == EXPRESSION_INT)
                     {
@@ -615,6 +618,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                         token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
                         return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
                     }
+                    */
                 }
                 else
                 {
@@ -647,21 +651,6 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                 {
                     token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
                     return RC_RUN_ERR;
-                }
-                else if (ptr_last_token->token_type == TOKEN_EOF)
-                {
-                    ///Now we must check if the number_of_brackets variable contains 0
-                    if (number_of_brackets == 0)
-                    {
-                        //TODO Evaluate the expression and generate the code here
-                        token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
-                        return 0;
-                    }
-                    else
-                    {
-                        token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
-                        return RC_SYN_ERR;
-                    }
                 }
                 else if (operator_check(ptr_last_token))
                 {
