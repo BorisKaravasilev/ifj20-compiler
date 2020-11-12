@@ -823,7 +823,7 @@ int return_type_list(scannerT *ptr_scanner, tokenT token[]){
 
     puts("-----------------------------------");
     for (int i = 0; i < TOKEN_ARRAY_LEN; i++)
-        printf("%d: %d\n", i, token[token_index].token_type);
+        printf("%d: %d\n", i, token[i].token_type);
     puts("-----------------------------------");
 
     if (token[token_index].token_type == TOKEN_LEFT_CURLY_BRACE){
