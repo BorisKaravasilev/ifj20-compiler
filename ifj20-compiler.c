@@ -55,8 +55,7 @@ int main(int argc, char** argv) {
     late_check_stack_item_add_parameter(late_check_stack_search(&late_check, &testString), TYPE_STRING);
     late_check_stack_item_add_return_type(late_check_stack_search(&late_check, &testString), TYPE_INT);
 
-    int return_code;
-    return_code = parse(scanner, token);
+    int return_code = parse(scanner, token);
 
     if (return_code != 0)
         return return_code;
