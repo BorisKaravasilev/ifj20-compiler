@@ -10,8 +10,6 @@
 
 #define ERROR_NO_NEXT_STATE -2
 
-bool main_skip = true;
-
 void init_scanner(scannerT *s, FILE *input_file) {
     s->input_fp = input_file;
     s->file_pos.line_number = 1;
@@ -19,12 +17,6 @@ void init_scanner(scannerT *s, FILE *input_file) {
 
     // Modify 'finite_automata.c' to change FA graph
     init_finite_automata(&s->fa);
-
-    // Top level symbol table
-    Symtable *global_scope_symtable = st_init();
-
-    stack_init(&s->st_stack);
-    stack_push(&s->st_stack, global_scope_symtable);
 
     s->required_eol_found = true;
 
