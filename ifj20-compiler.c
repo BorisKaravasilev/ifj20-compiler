@@ -18,6 +18,7 @@
 #include "scanner/token_functions.h"
 #include "scanner/stack.h"
 #include "parser/semantic_late_check.h"
+#include "parser/parser.h"
 
 #define IS_INPUT_FROM_FILE true // Input from file or stdin
 
@@ -25,7 +26,7 @@ int main(int argc, char** argv) {
     // For debugging purposes in CLion (input file or stdin)
     FILE *input_fp = get_input_file(IS_INPUT_FROM_FILE, argv[1]);
 
-    //Scanner is now global variable in scanner_functions.h
+    scannerT scanner;
     init_scanner(&scanner, input_fp);
 
     // TODO: Change to dynamically allocated array or remember necessary tokens in parser
@@ -54,13 +55,10 @@ int main(int argc, char** argv) {
     late_check_stack_item_add_parameter(late_check_stack_search(&late_check, &testString), TYPE_STRING);
     late_check_stack_item_add_return_type(late_check_stack_search(&late_check, &testString), TYPE_INT);
 
-    for (int i = 0; i < TOKEN_ARRAY_LEN; i++) {
-        get_next_token(&scanner, &token[i], OPTIONAL);
+    int return_code = parse(scanner, token);
 
-        debug_token(&token[i], i);
-
-        if (token[i].token_type == TOKEN_EOF) break;
-    }
+    if (return_code != 0)
+        return return_code;
 
     check_semantic_for_methods_call(&late_check, symtable);
     late_check_stack_free(&late_check);
