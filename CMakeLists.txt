@@ -21,6 +21,8 @@ add_executable(ifj20_compiler
         parser/semantic_late_check.h
         parser/semantic_functions.c
         parser/semantic_functions.h
+        parser/parser.c
+        parser/parser.h
         scanner/finite_automata.c
         scanner/finite_automata.h
         scanner/scanner_functions.c

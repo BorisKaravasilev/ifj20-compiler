@@ -36,7 +36,4 @@ int get_next_state(char curr_sym, int curr_state, finite_automataT *ptr_fa);
 int try_rule_transition(char sym, int state, ruleT *rule);
 bool is_end_of_comment(tokenT *ptr_token, int curr_state, int next_state);
 
-///Global variable scanner
-scannerT scanner;
-
 #endif
