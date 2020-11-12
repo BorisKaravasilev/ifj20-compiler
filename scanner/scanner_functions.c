@@ -156,7 +156,7 @@ void generate_token(scannerT *s, tokenT *ptr_token, int final_state) {
 // Reads new character as current symbol or uses the character from previous reading
 // (Detection of token is done by reading one character past it. This character needs to
 //   be used again as starting character of the next token)
-char read_char(scannerT *s) {
+void read_char(scannerT *s) {
     if (!s->use_previous_sym) {
         s->curr_sym = fgetc(s->input_fp);
         update_file_position(&s->file_pos, s->curr_sym);
@@ -281,11 +281,13 @@ void get_next_token(scannerT *s, tokenT *ptr_token, eol_flagE eol_flag) {
     token_clear(ptr_token);
     s->required_eol_found = false; // Reset value
 
-    if (scan_token(s, ptr_token, eol_flag)) return;
-
-    // End Of File -> finished successfully
-    debug_scanner("End of file\n%s", "");
-    generate_token(s, ptr_token, TOKEN_EOF);
+    if (!scan_token(s, ptr_token, eol_flag)) {
+        // End Of File -> finished successfully
+        debug_scanner("End of file\n%s", "");
+        generate_token(s, ptr_token, TOKEN_EOF);
+    } else {
+        debug_token(ptr_token, 0);
+    }
 }
 
 // Clears token if it is end of comment
