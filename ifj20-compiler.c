@@ -12,7 +12,7 @@
 #include "scanner_functions.h"
 #include "parser.h"
 
-#define IS_INPUT_FROM_FILE false // Input from file or stdin
+#define IS_INPUT_FROM_FILE true // Input from file or stdin
 
 int main(int argc, char** argv) {
     // For debugging purposes in CLion (input file or stdin)

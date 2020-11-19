@@ -32,7 +32,7 @@
     } while (0)
 
 // Switches for debugging prints for separate parts (you can add more)
-#define DEBUG_SCANNER false
-#define DEBUG_PARSER false
+#define DEBUG_SCANNER true
+#define DEBUG_PARSER true
 
 #endif //IFJ20_COMPILER_DEBUGGING_H

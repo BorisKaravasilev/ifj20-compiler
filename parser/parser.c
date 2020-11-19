@@ -51,7 +51,7 @@ int id(scannerT *ptr_scanner, tokenT token[]){
 /*
  * An item - integer, float or string
  */
-int item(scannerT *ptr_scanner, tokenT token[]){
+int item(scannerT *ptr_scanner, tokenT token[], int *item_type){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // int, float or string literal
     }
@@ -59,9 +59,26 @@ int item(scannerT *ptr_scanner, tokenT token[]){
         unget_token = false;
     }
 
-    if (token[token_index].token_type == TOKEN_INTEGER_LITERAL ||
-        token[token_index].token_type == TOKEN_DECIMAL_LITERAL ||
-        token[token_index].token_type == TOKEN_STRING_LITERAL) {
+    // TODO: Was creating syntax error - maybe invalid token type in if statement bellow?
+    if (token[token_index].token_type == TOKEN_KEYWORD_INT ||
+        token[token_index].token_type == TOKEN_KEYWORD_FLOAT64 ||
+        token[token_index].token_type == TOKEN_KEYWORD_STRING) {
+
+        if (item_type != NULL) {
+            switch(token[token_index].token_type) {
+                case TOKEN_KEYWORD_INT:
+                    *item_type = TYPE_INT;
+                    break;
+                case TOKEN_KEYWORD_FLOAT64:
+                    *item_type = TYPE_DECIMAL;
+                    break;
+                case TOKEN_KEYWORD_STRING:
+                    *item_type = TYPE_STRING;
+                    break;
+                default:
+                    break;
+            }
+        }
         return SYNTAX_OK;
     }
 
@@ -86,7 +103,7 @@ int print_next(scannerT *ptr_scanner, tokenT token[]){
             }
             else {
                 unget_token = true;
-                tmp_result = item(ptr_scanner, token);
+                tmp_result = item(ptr_scanner, token, NULL);
                 if (tmp_result != SYNTAX_OK)
                     return tmp_result;
 
@@ -114,7 +131,7 @@ int print(scannerT *ptr_scanner, tokenT token[]){
 
         default:
             unget_token = true;
-            tmp_result = item(ptr_scanner, token);
+            tmp_result = item(ptr_scanner, token, NULL);
             if (tmp_result != SYNTAX_OK)
                 return tmp_result;
 
@@ -379,7 +396,7 @@ int assign(scannerT *ptr_scanner, tokenT token[]){
     }
 
     unget_token = true;
-    tmp_result = item(ptr_scanner, token);
+    tmp_result = item(ptr_scanner, token, NULL);
     if (tmp_result == SYNTAX_OK)
         return SYNTAX_OK;
 
@@ -540,17 +557,33 @@ int id_list1(scannerT *ptr_scanner, tokenT token[]){
  * A command with an identifier (definition, one or multiple assignments, function call)
  */
 int id_command(scannerT *ptr_scanner, tokenT token[]){
+    Symtable *ptr_curr_scope_sym_table = stack_top(&ptr_scanner->st_stack).symtable;
+    ST_Item *symbol;
+
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // :=, =, ( or ,
 
     switch (token[token_index].token_type){
         case TOKEN_COLON_EQUAL:
+            // SEMANTIC: Insert identifier to symtable
+            symbol = st_insert_symbol(ptr_curr_scope_sym_table, &token[token_index-1].attribute.string_val, false);
+            // END SEMANTIC
+            return assign(ptr_scanner, token);
         case TOKEN_EQUAL:
+            // SEMANTIC: Check if identifier exists in symtable
+            if (stack_search(&ptr_scanner->st_stack, &token[token_index-1].attribute.string_val) == NULL) {
+                fprintf(stderr, "Error: Undefined variable \'%s\'", token[token_index-1].attribute.string_val.string);
+                string_free(&token[token_index-1].attribute.string_val);
+                exit(RC_SEMANTIC_IDENTIFIER_ERR);
+            }
+            // END SEMANTIC
             return assign(ptr_scanner, token);
 
         case TOKEN_LEFT_BRACKET:
+            string_free(&token[token_index-1].attribute.string_val);
             return id_list1(ptr_scanner, token);
 
         case TOKEN_COMMA:
+            string_free(&token[token_index-1].attribute.string_val);
             tmp_result = id_list2(ptr_scanner, token);
             if (tmp_result != SYNTAX_OK)
                 return tmp_result;
@@ -558,6 +591,7 @@ int id_command(scannerT *ptr_scanner, tokenT token[]){
             return assign_list(ptr_scanner, token);
 
         default:
+            string_free(&token[token_index-1].attribute.string_val);
             err_print(":=, =, ( or ,", token[token_index].token_type);
             return RC_SYN_ERR;
     }
@@ -754,7 +788,7 @@ int command_list(scannerT *ptr_scanner, tokenT token[]){
 /*
  * The optional continuation of a list of function return types
  */
-int return_type(scannerT *ptr_scanner, tokenT token[]){
+int return_type(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol){
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // , or )
 
     if (token[token_index].token_type == TOKEN_RIGHT_BRACKET){
@@ -769,11 +803,14 @@ int return_type(scannerT *ptr_scanner, tokenT token[]){
         }
     }
     else if (token[token_index].token_type == TOKEN_COMMA){
-        tmp_result = item(ptr_scanner, token);
-        if (tmp_result != SYNTAX_OK)
+        int item_type;
+        tmp_result = item(ptr_scanner, token, &item_type);
+        if (tmp_result != SYNTAX_OK) {
             return tmp_result;
+        }
+        st_add_function_return_type(ptr_curr_symbol, item_type);
 
-        return return_type(ptr_scanner, token);
+        return return_type(ptr_scanner, token, ptr_curr_symbol);
     }
     else {
         err_print(", or }", token[token_index].token_type);
@@ -784,7 +821,7 @@ int return_type(scannerT *ptr_scanner, tokenT token[]){
 /*
  * The beginning of a list of function return types
  */
-int return_type_list(scannerT *ptr_scanner, tokenT token[]){
+int return_type_list(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol){
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // ( or {
 
     if (token[token_index].token_type == TOKEN_LEFT_CURLY_BRACE){
@@ -810,18 +847,21 @@ int return_type_list(scannerT *ptr_scanner, tokenT token[]){
     }
     else {  // item received
         unget_token = true;
-        tmp_result = item(ptr_scanner, token);
-        if (tmp_result != SYNTAX_OK)
+        int item_type;
+        tmp_result = item(ptr_scanner, token, &item_type);
+        if (tmp_result != SYNTAX_OK) {
             return tmp_result;
+        }
+        st_add_function_return_type(ptr_curr_symbol, item_type);
 
-        return return_type(ptr_scanner, token);
+        return return_type(ptr_scanner, token, ptr_curr_symbol);
     }
 }
 
 /*
  * The optional continuation of a list of function parameters
  */
-int param(scannerT *ptr_scanner, tokenT token[]){
+int param(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol){
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // , or )
 
     if (token[token_index].token_type == TOKEN_RIGHT_BRACKET){
@@ -835,34 +875,44 @@ int param(scannerT *ptr_scanner, tokenT token[]){
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // function parameter (ID)
 
     if (token[token_index].token_type == TOKEN_IDENTIFIER){
-        tmp_result = item(ptr_scanner, token);
-        if (tmp_result != SYNTAX_OK)
+        int item_type;
+        tmp_result = item(ptr_scanner, token, &item_type);
+        if (tmp_result != SYNTAX_OK) {
             return tmp_result;
+        }
+        st_add_function_param(ptr_curr_symbol, item_type);
     }
 
-    return param(ptr_scanner, token);
+    return param(ptr_scanner, token, ptr_curr_symbol);
 }
 
 /*
  * The beginning of a list of function parameters
  */
-int param_list(scannerT *ptr_scanner, tokenT token[]){
+int param_list(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol){
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // function parameter (ID) or )
 
     if (token[token_index].token_type == TOKEN_RIGHT_BRACKET){
         return SYNTAX_OK;
     }
     else if (token[token_index].token_type == TOKEN_IDENTIFIER){
-        tmp_result = item(ptr_scanner, token);
-        if (tmp_result != SYNTAX_OK)
+        int item_type;
+        Symtable *ptr_curr_scope_sym_table = stack_top(&ptr_scanner->st_stack).symtable;
+        ST_Item *newParamSymbol = st_insert_symbol(ptr_curr_scope_sym_table, &token[token_index].attribute.string_val, false);
+
+        tmp_result = item(ptr_scanner, token, &item_type);
+        if (tmp_result != SYNTAX_OK) {
             return tmp_result;
+        }
+        st_add_function_param(ptr_curr_symbol, item_type);
+        newParamSymbol->type = item_type;
     }
     else {
         err_print("function parameter (ID) or )", token[token_index].token_type);
         return RC_SYN_ERR;
     }
 
-    return param(ptr_scanner, token);
+    return param(ptr_scanner, token, ptr_curr_symbol);
 }
 
 /*
@@ -876,6 +926,11 @@ int func(scannerT *ptr_scanner, tokenT token[]){
         return RC_SYN_ERR;
     }
 
+    // SEMANTIC: Add function to symtable
+    Symtable *ptr_curr_scope_sym_table = stack_top(&ptr_scanner->st_stack).symtable;
+    ST_Item *symbol = st_insert_symbol(ptr_curr_scope_sym_table, &token[token_index].attribute.string_val, true);
+    // END SEMANTIC
+
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // left opening bracket
 
     if (token[token_index].token_type != TOKEN_LEFT_BRACKET){
@@ -883,11 +938,11 @@ int func(scannerT *ptr_scanner, tokenT token[]){
         return RC_SYN_ERR;
     }
 
-    tmp_result = param_list(ptr_scanner, token);
+    tmp_result = param_list(ptr_scanner, token, symbol);
     if (tmp_result != SYNTAX_OK)
         return tmp_result;
 
-    tmp_result = return_type_list(ptr_scanner, token);
+    tmp_result = return_type_list(ptr_scanner, token, symbol);
     if (tmp_result != SYNTAX_OK)
         return tmp_result;
 
