@@ -161,3 +161,45 @@ void assignment_add_user_function(assignmentT *item, ST_Item *function) {
         current_function_return_type = current_function_return_type->next;
     }
 }
+
+void assignment_add_built_in_function(assignmentT *item, built_in_functionT *function) {
+    if (item == NULL || function == NULL) {
+        return;
+    }
+
+    for(int i = 0; i < function->return_types_count; i++) {
+        Data_type return_type;
+        switch (function->return_types[i]) {
+            case 'i':
+                return_type = TYPE_INT;
+                break;
+            case 'f':
+                return_type = TYPE_DECIMAL;
+                break;
+            case 's':
+                return_type = TYPE_STRING;
+                break;
+            default:
+                break;
+        }
+
+        assignment_paramT *new_expr;
+        if ((new_expr = (assignment_paramT *) malloc(sizeof(assignment_paramT))) == NULL) {
+            exit(RC_RUN_ERR);
+        }
+        new_expr->data_type = return_type;
+        new_expr->next = NULL;
+        new_expr->index = item->expressions_count++;
+
+        if (item->right_side_types_list_first == NULL) {
+            item->right_side_types_list_first = new_expr;
+        } else {
+            assignment_paramT *current = item->right_side_types_list_first;
+
+            while (current->next != NULL) {
+                current = current->next;
+            }
+            current->next = new_expr;
+        }
+    }
+}

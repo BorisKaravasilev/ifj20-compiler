@@ -92,6 +92,20 @@ void assignment_add_identifier(assignmentT *item, int token_type, ST_Item *st_it
  */
 void assignment_add_expression(assignmentT *item, Data_type type);
 
+/**
+ * @brief Create and chain new data types on right side based on user function
+ * @param item pointer at assignment structure
+ * @param function Symtable item
+ */
+void assignment_add_user_function(assignmentT *item, ST_Item *function);
+
+/**
+ * @brief Create and chain new data types on right side based on built in function
+ * @param item pointer at assignment structure
+ * @param function Symtable item
+ */
+void assignment_add_built_in_function(assignmentT *item, built_in_functionT *function);
+
 static const built_in_functionT built_in_functions[10] = {
         {
                 .function_name = "inputs",
