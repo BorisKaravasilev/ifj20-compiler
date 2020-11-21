@@ -12,6 +12,8 @@
 int token_index = 0, tmp_result = 0;
 bool unget_token = false;
 
+assignmentT assignment_check_struct;
+
 /*
     puts("-----------------------------------");
     for (int i = 0; i < TOKEN_ARRAY_LEN; i++)
@@ -142,7 +144,7 @@ int print(scannerT *ptr_scanner, tokenT token[]){
 /*
  * A built-in function
  */
-int builtin_func(scannerT *ptr_scanner, tokenT token[]){
+int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // built-in function name
     }
@@ -154,6 +156,9 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
         case TOKEN_FUNCTION_INPUTS:
         case TOKEN_FUNCTION_INPUTI:
         case TOKEN_FUNCTION_INPUTF:
+            if (built_in_func_type != NULL) {
+                *built_in_func_type = token[token_index].token_type;
+            }
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // (
 
             if (token[token_index].token_type != TOKEN_LEFT_BRACKET){
@@ -173,6 +178,9 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
 
         case TOKEN_FUNCTION_INT2FLOAT:
         case TOKEN_FUNCTION_CHR:
+            if (built_in_func_type != NULL) {
+                *built_in_func_type = token[token_index].token_type;
+            }
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // (
 
             if (token[token_index].token_type != TOKEN_LEFT_BRACKET){
@@ -198,6 +206,9 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
             }
 
         case TOKEN_FUNCTION_PRINT:
+            if (built_in_func_type != NULL) {
+                *built_in_func_type = token[token_index].token_type;
+            }
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // (
 
             if (token[token_index].token_type != TOKEN_LEFT_BRACKET){
@@ -208,6 +219,9 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
             return print(ptr_scanner, token);
 
         case TOKEN_FUNCTION_FLOAT2INT:
+            if (built_in_func_type != NULL) {
+                *built_in_func_type = token[token_index].token_type;
+            }
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // (
 
             if (token[token_index].token_type != TOKEN_LEFT_BRACKET){
@@ -233,6 +247,9 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
             }
 
         case TOKEN_FUNCTION_LEN:
+            if (built_in_func_type != NULL) {
+                *built_in_func_type = token[token_index].token_type;
+            }
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // (
 
             if (token[token_index].token_type != TOKEN_LEFT_BRACKET){
@@ -258,6 +275,9 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
             }
 
         case TOKEN_FUNCTION_SUBSTR:
+            if (built_in_func_type != NULL) {
+                *built_in_func_type = token[token_index].token_type;
+            }
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // (
 
             if (token[token_index].token_type != TOKEN_LEFT_BRACKET){
@@ -311,6 +331,9 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
             }
 
         case TOKEN_FUNCTION_ORD:
+            if (built_in_func_type != NULL) {
+                *built_in_func_type = token[token_index].token_type;
+            }
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // (
 
             if (token[token_index].token_type != TOKEN_LEFT_BRACKET){
@@ -387,7 +410,7 @@ int expr(scannerT *ptr_scanner, tokenT token[], bool two_tokens){
 /*
  * An individual assignment
  */
-int assign(scannerT *ptr_scanner, tokenT token[]){
+int assign(scannerT *ptr_scanner, tokenT token[], bool definition){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // id, item, built-in function or expression
     }
@@ -396,16 +419,25 @@ int assign(scannerT *ptr_scanner, tokenT token[]){
     }
 
     unget_token = true;
-    tmp_result = item(ptr_scanner, token, NULL);
-    if (tmp_result == SYNTAX_OK)
+
+    int item_type;
+    tmp_result = item(ptr_scanner, token, &item_type);
+    if (tmp_result == SYNTAX_OK) {
+        assignment_add_expression(&assignment_check_struct, item_type, NULL);
         return SYNTAX_OK;
+    }
 
     unget_token = true;
-    tmp_result = builtin_func(ptr_scanner, token);
-    if (tmp_result == SYNTAX_OK)
+
+    int built_in_func_type_token;
+    tmp_result = builtin_func(ptr_scanner, token, &built_in_func_type_token);
+    if (tmp_result == SYNTAX_OK) {
+        assignment_add_built_in_function(&assignment_check_struct, built_in_func_type_token);
         return SYNTAX_OK;
+    }
 
     if (token[token_index].token_type == TOKEN_IDENTIFIER){
+        // TODO: SEMANTIC add expression to assignment with type based on symtable item
         // check following token, if (, then function parameter list follows, otherwise an extra token was read
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL);
 
@@ -559,6 +591,7 @@ int id_list1(scannerT *ptr_scanner, tokenT token[]){
 int id_command(scannerT *ptr_scanner, tokenT token[]){
     Symtable *ptr_curr_scope_sym_table = stack_top(&ptr_scanner->st_stack).symtable;
     ST_Item *symbol;
+    int result;
 
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // :=, =, ( or ,
 
@@ -566,17 +599,28 @@ int id_command(scannerT *ptr_scanner, tokenT token[]){
         case TOKEN_COLON_EQUAL:
             // SEMANTIC: Insert identifier to symtable
             symbol = st_insert_symbol(ptr_curr_scope_sym_table, &token[token_index-1].attribute.string_val, false);
+            assignment_add_identifier(&assignment_check_struct, token[token_index-1].token_type, symbol);
             // END SEMANTIC
-            return assign(ptr_scanner, token);
+            result = assign(ptr_scanner, token, true);
+            assignment_derive_id_type(&assignment_check_struct);
+            assignment_struct_empty(&assignment_check_struct);
+            return result;
         case TOKEN_EQUAL:
             // SEMANTIC: Check if identifier exists in symtable
-            if (stack_search(&ptr_scanner->st_stack, &token[token_index-1].attribute.string_val) == NULL) {
-                fprintf(stderr, "Error: Undefined variable \'%s\'", token[token_index-1].attribute.string_val.string);
-                string_free(&token[token_index-1].attribute.string_val);
-                exit(RC_SEMANTIC_IDENTIFIER_ERR);
+            // TODO: Proper check for "_" identifier
+            if (string_compare_constant(&token[token_index-1].attribute.string_val, "_") != 0) {
+                if ((symbol = stack_search(&ptr_scanner->st_stack, &token[token_index-1].attribute.string_val)) == NULL) {
+                    fprintf(stderr, "Error: Undefined variable \'%s\'", token[token_index-1].attribute.string_val.string);
+                    string_free(&token[token_index-1].attribute.string_val);
+                    exit(RC_SEMANTIC_IDENTIFIER_ERR);
+                }
             }
+            assignment_add_identifier(&assignment_check_struct, token[token_index-1].token_type, symbol);
             // END SEMANTIC
-            return assign(ptr_scanner, token);
+            result = assign(ptr_scanner, token, false);
+            compare_left_right_params(assignment_check_struct.left_side_types_list_first, assignment_check_struct.right_side_types_list_first);
+            assignment_struct_empty(&assignment_check_struct);
+            return result;
 
         case TOKEN_LEFT_BRACKET:
             string_free(&token[token_index-1].attribute.string_val);

@@ -10,15 +10,19 @@
 #ifndef IFJ20_COMPILER_SEMANTIC_FUNCTIONS_H
 #define IFJ20_COMPILER_SEMANTIC_FUNCTIONS_H
 
+#include <string.h>
 #include "symtable.h"
 #include "return_codes.h"
 #include "../scanner/token_types.h"
+
+#define BUILT_IN_FUNCTIONS_COUNT 10
 
 /**
  * @brief Structure for a assignment structure.
  */
 typedef struct assignment_param_struct {
     int index;
+    ST_Item *symbol;
     Data_type data_type;
     struct assignment_param_struct *next;
 } assignment_paramT;
@@ -34,7 +38,7 @@ typedef struct assignment_struct {
 } assignmentT;
 
 typedef struct built_in_function_struct {
-    char* function_name;
+    int function_token_type;
     int parameters_count;
     int return_types_count;
     char* parameter_types;
@@ -73,6 +77,12 @@ void assignment_struct_free(assignmentT *s);
 void compare_left_right_params(assignment_paramT *left, assignment_paramT *right);
 
 /**
+ * @brief Derives id data type on left side from expression on righ side in the assignment structure.
+ * @param s Assignment structure.
+ */
+void assignment_derive_id_type(assignmentT *s);
+
+/**
  * @brief Dealloc assignment_param_struct list by freeing all of its elements.
  * @param method_param Method param to be de-allocated
  */
@@ -90,7 +100,7 @@ void assignment_add_identifier(assignmentT *item, int token_type, ST_Item *st_it
  * @param item pointer at assignment structure
  * @param key Identifier name
  */
-void assignment_add_expression(assignmentT *item, Data_type type);
+void assignment_add_expression(assignmentT *item, Data_type type, ST_Item *symbol);
 
 /**
  * @brief Create and chain new data types on right side based on user function
@@ -104,74 +114,74 @@ void assignment_add_user_function(assignmentT *item, ST_Item *function);
  * @param item pointer at assignment structure
  * @param function Symtable item
  */
-void assignment_add_built_in_function(assignmentT *item, built_in_functionT *function);
+void assignment_add_built_in_function(assignmentT *item, int function_token);
 
-static const built_in_functionT built_in_functions[10] = {
+static const built_in_functionT built_in_functions[BUILT_IN_FUNCTIONS_COUNT] = {
         {
-                .function_name = "inputs",
+                .function_token_type = TOKEN_FUNCTION_INPUTS,
                 .parameters_count = 0,
                 .return_types_count = 2,
                 .parameter_types = "",
                 .return_types = "si",
         },
         {
-                .function_name = "inputi",
+                .function_token_type = TOKEN_FUNCTION_INPUTI,
                 .parameters_count = 0,
                 .return_types_count = 2,
                 .parameter_types = "",
                 .return_types = "ii",
         },
         {
-                .function_name = "inputf",
+                .function_token_type = TOKEN_FUNCTION_INPUTF,
                 .parameters_count = 0,
                 .return_types_count = 2,
                 .parameter_types = "",
                 .return_types = "fi",
         },
         {
-                .function_name = "print",
+                .function_token_type = TOKEN_FUNCTION_PRINT,
                 .parameters_count = -1, // if param count -1 then function accepts 0 to n terms
                 .return_types_count = 0,
                 .parameter_types = "",
                 .return_types = "",
         },
         {
-                .function_name = "int2float",
+                .function_token_type = TOKEN_FUNCTION_INT2FLOAT,
                 .parameters_count = 1,
                 .return_types_count = 1,
                 .parameter_types = "i",
                 .return_types = "f",
         },
         {
-            .function_name = "float2int",
+            .function_token_type = TOKEN_FUNCTION_FLOAT2INT,
             .parameters_count = 1,
             .return_types_count = 1,
             .parameter_types = "f",
             .return_types = "i",
         },
         {
-            .function_name = "len",
+            .function_token_type = TOKEN_FUNCTION_LEN,
             .parameters_count = 1,
             .return_types_count = 1,
             .parameter_types = "s",
             .return_types = "i",
         },
         {
-            .function_name = "substr",
+            .function_token_type = TOKEN_FUNCTION_SUBSTR,
             .parameters_count = 3,
             .return_types_count = 2,
             .parameter_types = "sii",
             .return_types = "si",
         },
         {
-            .function_name = "ord",
+            .function_token_type = TOKEN_FUNCTION_ORD,
             .parameters_count = 2,
             .return_types_count = 2,
             .parameter_types = "si",
             .return_types = "ii",
         },
         {
-            .function_name = "chr",
+            .function_token_type = TOKEN_FUNCTION_CHR,
             .parameters_count = 1,
             .return_types_count = 2,
             .parameter_types = "i",

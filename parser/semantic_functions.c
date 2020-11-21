@@ -62,12 +62,45 @@ void compare_left_right_params(assignment_paramT *left, assignment_paramT *right
     while (l_current != NULL || r_current != NULL) {
         if (l_current == NULL || r_current == NULL) {
             // TODO: Maybe another semantic error dont know atm
-            exit(RC_SEMANTIC_OTHER_ERR);
+            exit(RC_SEMANTIC_VAR_TYPE_ERR);
         } else {
             if (l_current->data_type != r_current->data_type) {
                 // TODO: Maybe another semantic error dont know atm
-                exit(RC_SEMANTIC_OTHER_ERR);
+                if (l_current->data_type != TYPE_BLANK_VARIABLE) {
+                    exit(RC_SEMANTIC_VAR_TYPE_ERR);
+                }
             }
+        }
+
+        l_current = l_current->next;
+        r_current = r_current->next;
+    }
+}
+
+void assignment_derive_id_type(assignmentT *s) {
+    if (s == NULL) {
+        return;
+    }
+
+    if (s->expressions_count != s->identifiers_count) {
+        exit(RC_SEMANTIC_VAR_TYPE_ERR);
+    }
+
+    assignment_paramT *l_current = s->left_side_types_list_first;
+    assignment_paramT *r_current = s->right_side_types_list_first;
+
+    while (l_current != NULL) {
+        if (l_current->data_type == TYPE_NIL) {
+
+            Data_type right_side_data_type;
+            if (r_current->symbol != NULL) {
+                right_side_data_type = r_current->symbol->type;
+            } else {
+                right_side_data_type = r_current->data_type;
+            }
+
+            l_current->symbol->type = right_side_data_type;
+            l_current->data_type = right_side_data_type;
         }
 
         l_current = l_current->next;
@@ -80,18 +113,19 @@ void assignment_add_identifier(assignmentT *item, int token_type, ST_Item *st_it
         return;
     }
 
-    Data_type type = TYPE_ERROR;
-    if (token_type == TOKEN_UNDERSCORE) {
-        type = TYPE_BLANK_VARIABLE;
-    } else {
-        type = st_item->type;
-    }
-
     assignment_paramT *new_id;
     if ((new_id = (assignment_paramT *) malloc(sizeof(assignment_paramT))) == NULL) {
         exit(RC_RUN_ERR);
     }
-    new_id->data_type = type;
+
+    if (token_type == TOKEN_UNDERSCORE) {
+        new_id->symbol = NULL;
+        new_id->data_type = TYPE_BLANK_VARIABLE;
+    } else {
+        new_id->symbol = st_item;
+        new_id->data_type = st_item->type;
+    }
+
     new_id->next = NULL;
     new_id->index = item->identifiers_count++;
 
@@ -107,7 +141,7 @@ void assignment_add_identifier(assignmentT *item, int token_type, ST_Item *st_it
     }
 }
 
-void assignment_add_expression(assignmentT *item, Data_type type) {
+void assignment_add_expression(assignmentT *item, Data_type type, ST_Item *symbol) {
     if (item == NULL) {
         return;
     }
@@ -116,7 +150,14 @@ void assignment_add_expression(assignmentT *item, Data_type type) {
     if ((new_expr = (assignment_paramT *) malloc(sizeof(assignment_paramT))) == NULL) {
         exit(RC_RUN_ERR);
     }
-    new_expr->data_type = type;
+
+    if (symbol == NULL) {
+        new_expr->symbol = NULL;
+        new_expr->data_type = type;
+    } else {
+        new_expr->symbol = symbol;
+        new_expr->data_type = symbol->type;
+    }
     new_expr->next = NULL;
     new_expr->index = item->expressions_count++;
 
@@ -162,14 +203,24 @@ void assignment_add_user_function(assignmentT *item, ST_Item *function) {
     }
 }
 
-void assignment_add_built_in_function(assignmentT *item, built_in_functionT *function) {
-    if (item == NULL || function == NULL) {
+built_in_functionT get_built_in_function_by_key(int token_type) {
+    for(int i = 0; i < BUILT_IN_FUNCTIONS_COUNT; i++) {
+        if (token_type == built_in_functions[i].function_token_type) {
+            return built_in_functions[i];
+        }
+    }
+}
+
+void assignment_add_built_in_function(assignmentT *item, int function_token) {
+    if (item == NULL) {
         return;
     }
 
-    for(int i = 0; i < function->return_types_count; i++) {
+    built_in_functionT function = get_built_in_function_by_key(function_token);
+
+    for(int i = 0; i < function.return_types_count; i++) {
         Data_type return_type;
-        switch (function->return_types[i]) {
+        switch (function.return_types[i]) {
             case 'i':
                 return_type = TYPE_INT;
                 break;

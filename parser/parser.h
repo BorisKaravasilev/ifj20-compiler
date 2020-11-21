@@ -16,6 +16,7 @@
 #include "return_codes.h"
 #include "scanner_functions.h"
 #include "token_types.h"
+#include "semantic_functions.h"
 
 #define SYNTAX_OK 0
 
@@ -25,9 +26,9 @@ int id(scannerT *ptr_scanner, tokenT token[]);
 int item(scannerT *ptr_scanner, tokenT token[], int *item_type);
 int print_next(scannerT *ptr_scanner, tokenT token[]);
 int print(scannerT *ptr_scanner, tokenT token[]);
-int builtin_func(scannerT *ptr_scanner, tokenT token[]);
+int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type);
 int expr(scannerT *ptr_scanner, tokenT token[], bool two_tokens);
-int assign(scannerT *ptr_scanner, tokenT token[]);
+int assign(scannerT *ptr_scanner, tokenT token[], bool definition);
 int assign_next(scannerT *ptr_scanner, tokenT token[]);
 int assign_list(scannerT *ptr_scanner, tokenT token[]);
 int id_next1(scannerT *ptr_scanner, tokenT token[]);
