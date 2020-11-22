@@ -8,6 +8,9 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+// Turns off all debugging prints and disables input from file
+#define PRODUCTION false
+
 // ATTENTION
 // __VA_ARGS__ can't be empty so you always have to provide some argument
 // example workaround 'debug_scanner("String without any args%s", "")'
@@ -32,7 +35,9 @@
     } while (0)
 
 // Switches for debugging prints for separate parts (you can add more)
-#define DEBUG_SCANNER true
-#define DEBUG_PARSER true
+#define DEBUG_SCANNER true && !PRODUCTION
+#define DEBUG_PARSER false && !PRODUCTION
+
+#define IS_INPUT_FROM_FILE true && !PRODUCTION // Input from file or stdin
 
 #endif //IFJ20_COMPILER_DEBUGGING_H

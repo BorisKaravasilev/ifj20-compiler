@@ -1,7 +1,7 @@
 /**
  * Project: Implementation of a compiler of the IFJ20 language.
  *
- * @file stack.c
+ * @file stack.h
  * @brief Stack implementation for semantic analysis.
  * @author Dominik Večeřa <xvecer23@stud.fit.vutbr.cz>
  * @date 25. 10. 2020
