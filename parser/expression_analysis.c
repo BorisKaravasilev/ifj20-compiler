@@ -295,7 +295,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                 else if (ptr_last_token->token_type == TOKEN_IDENTIFIER)
                 {
                     switch_case = 3;
-
+                    semantic_data_type = stack_search(&scanner->st_stack, &ptr_last_token->attribute.string_val)->type;
                     //TODO semantic_data_type = data type of the identifier saved in ptr_last_token
                     /*
                     ///If semantic_data_type contains int

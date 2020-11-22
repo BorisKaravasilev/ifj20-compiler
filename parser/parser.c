@@ -13,6 +13,7 @@ int token_index = 0, tmp_result = 0;
 bool unget_token = false;
 
 assignmentT assignment_check_struct;
+ST_Item *current_function_block_symbol = NULL;
 
 /*
     puts("-----------------------------------");
@@ -380,7 +381,7 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
 /*
  * An expression - resolved by precedential syntactic analysis
  */
-int expr(scannerT *ptr_scanner, tokenT token[], bool two_tokens){
+int expr(scannerT *ptr_scanner, tokenT token[], bool two_tokens, int *result_data_type){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // beginning of expr
     }
@@ -403,6 +404,22 @@ int expr(scannerT *ptr_scanner, tokenT token[], bool two_tokens){
             return tmp_result;
     }
 
+    // SEMANTIC
+    switch (expr_result_token.token_type) {
+        case EXPRESSION_INT:
+            *result_data_type = TYPE_INT;
+            break;
+        case EXPRESSION_FLOAT64:
+            *result_data_type = TYPE_DECIMAL;
+            break;
+        case EXPRESSION_STRING:
+            *result_data_type = TYPE_STRING;
+            break;
+        default:
+            break;
+    }
+    // SEMANTIC END
+
     // TODO doplnit
     return SYNTAX_OK;
 }
@@ -410,7 +427,7 @@ int expr(scannerT *ptr_scanner, tokenT token[], bool two_tokens){
 /*
  * An individual assignment
  */
-int assign(scannerT *ptr_scanner, tokenT token[], bool definition){
+int assign(scannerT *ptr_scanner, tokenT token[]){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // id, item, built-in function or expression
     }
@@ -437,19 +454,31 @@ int assign(scannerT *ptr_scanner, tokenT token[], bool definition){
     }
 
     if (token[token_index].token_type == TOKEN_IDENTIFIER){
-        // TODO: SEMANTIC add expression to assignment with type based on symtable item
         // check following token, if (, then function parameter list follows, otherwise an extra token was read
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL);
 
         if (token[token_index].token_type == TOKEN_LEFT_BRACKET) {
+            // TODO: add function call to late check struct
             return id_list1(ptr_scanner, token);
         }
         else {
-            return expr(ptr_scanner, token, true);
+            ST_Item *identifier;
+            if ((identifier = stack_search(&ptr_scanner->st_stack, &token[token_index-1].attribute.string_val)) == NULL) {
+                fprintf(stderr, "Error: Undefined variable \'%s\'", token[token_index-1].attribute.string_val.string);
+                return RC_SEMANTIC_IDENTIFIER_ERR;
+            }
+            // TODO: add id on right side to assign struct
+            int expr_result_type;
+            int result = expr(ptr_scanner, token, true, &expr_result_type);
+            assignment_add_expression(&assignment_check_struct, expr_result_type, NULL);
+            return result;
         }
     }
 
-    return expr(ptr_scanner, token, false); // TODO expr?
+    int expr_result_type;
+    int result = expr(ptr_scanner, token, false, &expr_result_type); // TODO expr?
+    assignment_add_expression(&assignment_check_struct, expr_result_type, NULL);
+    return result;
 }
 
 /*
@@ -598,12 +627,12 @@ int id_command(scannerT *ptr_scanner, tokenT token[]){
     switch (token[token_index].token_type){
         case TOKEN_COLON_EQUAL:
             // SEMANTIC: Insert identifier to symtable
+            assignment_struct_empty(&assignment_check_struct);
             symbol = st_insert_symbol(ptr_curr_scope_sym_table, &token[token_index-1].attribute.string_val, false);
             assignment_add_identifier(&assignment_check_struct, token[token_index-1].token_type, symbol);
             // END SEMANTIC
-            result = assign(ptr_scanner, token, true);
+            result = assign(ptr_scanner, token);
             assignment_derive_id_type(&assignment_check_struct);
-            assignment_struct_empty(&assignment_check_struct);
             return result;
         case TOKEN_EQUAL:
             // SEMANTIC: Check if identifier exists in symtable
@@ -611,23 +640,22 @@ int id_command(scannerT *ptr_scanner, tokenT token[]){
             if (string_compare_constant(&token[token_index-1].attribute.string_val, "_") != 0) {
                 if ((symbol = stack_search(&ptr_scanner->st_stack, &token[token_index-1].attribute.string_val)) == NULL) {
                     fprintf(stderr, "Error: Undefined variable \'%s\'", token[token_index-1].attribute.string_val.string);
-                    string_free(&token[token_index-1].attribute.string_val);
-                    exit(RC_SEMANTIC_IDENTIFIER_ERR);
+                    return RC_SEMANTIC_IDENTIFIER_ERR;
                 }
             }
-            assignment_add_identifier(&assignment_check_struct, token[token_index-1].token_type, symbol);
-            // END SEMANTIC
-            result = assign(ptr_scanner, token, false);
-            compare_left_right_params(assignment_check_struct.left_side_types_list_first, assignment_check_struct.right_side_types_list_first);
             assignment_struct_empty(&assignment_check_struct);
+            assignment_add_identifier(&assignment_check_struct, token[token_index-1].token_type, NULL);
+            // END SEMANTIC
+            result = assign(ptr_scanner, token);
+            compare_left_right_params(assignment_check_struct.left_side_types_list_first, assignment_check_struct.right_side_types_list_first);
             return result;
 
         case TOKEN_LEFT_BRACKET:
-            string_free(&token[token_index-1].attribute.string_val);
+            // TODO: Begin function call late check by creating function in that structure
             return id_list1(ptr_scanner, token);
 
         case TOKEN_COMMA:
-            string_free(&token[token_index-1].attribute.string_val);
+            // TODO: multiple left side ids assignment
             tmp_result = id_list2(ptr_scanner, token);
             if (tmp_result != SYNTAX_OK)
                 return tmp_result;
@@ -635,7 +663,6 @@ int id_command(scannerT *ptr_scanner, tokenT token[]){
             return assign_list(ptr_scanner, token);
 
         default:
-            string_free(&token[token_index-1].attribute.string_val);
             err_print(":=, =, ( or ,", token[token_index].token_type);
             return RC_SYN_ERR;
     }
@@ -658,7 +685,7 @@ int cycle_assign(scannerT *ptr_scanner, tokenT token[]){
             return RC_SYN_ERR;
         }
 
-        tmp_result = expr(ptr_scanner, token, false); // TODO expr?
+        tmp_result = expr(ptr_scanner, token, false, NULL); // TODO expr?
         if (tmp_result != SYNTAX_OK)
             return tmp_result;
 
@@ -728,7 +755,7 @@ int command(scannerT *ptr_scanner, tokenT token[]){
             return id_command(ptr_scanner, token);
 
         case TOKEN_KEYWORD_IF: // TODO expr?
-            tmp_result = expr(ptr_scanner, token, false);
+            tmp_result = expr(ptr_scanner, token, false, NULL);
             if (tmp_result != SYNTAX_OK)
                 return tmp_result;
 
@@ -767,7 +794,7 @@ int command(scannerT *ptr_scanner, tokenT token[]){
             if (tmp_result != SYNTAX_OK)
                 return tmp_result;
 
-            tmp_result = expr(ptr_scanner, token, false); // TODO expr?
+            tmp_result = expr(ptr_scanner, token, false, NULL); // TODO expr?
             if (tmp_result != SYNTAX_OK)
                 return tmp_result;
 
@@ -799,7 +826,7 @@ int command(scannerT *ptr_scanner, tokenT token[]){
     }
 
     unget_token = true;
-    tmp_result = builtin_func(ptr_scanner, token);
+    tmp_result = builtin_func(ptr_scanner, token, NULL);
     if (tmp_result == SYNTAX_OK)
         return SYNTAX_OK;
 
@@ -973,6 +1000,7 @@ int func(scannerT *ptr_scanner, tokenT token[]){
     // SEMANTIC: Add function to symtable
     Symtable *ptr_curr_scope_sym_table = stack_top(&ptr_scanner->st_stack).symtable;
     ST_Item *symbol = st_insert_symbol(ptr_curr_scope_sym_table, &token[token_index].attribute.string_val, true);
+    current_function_block_symbol = symbol;
     // END SEMANTIC
 
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // left opening bracket
