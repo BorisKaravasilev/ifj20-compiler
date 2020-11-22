@@ -31,6 +31,8 @@ F_FOLDER="./parser"
 flattening
 F_FOLDER="./scanner"
 flattening
+F_FOLDER="./generator"
+flattening
 
 cp ifj20-compiler.c ${TMP_SRC_FOLDER}/ifj20-compiler.c
 

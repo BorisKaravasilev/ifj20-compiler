@@ -11,8 +11,7 @@
 
 #include "scanner_functions.h"
 #include "parser.h"
-
-#define IS_INPUT_FROM_FILE false // Input from file or stdin
+#include "debugging.h"
 
 int main(int argc, char** argv) {
     // For debugging purposes in CLion (input file or stdin)
