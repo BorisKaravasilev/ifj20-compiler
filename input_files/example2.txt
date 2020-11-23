@@ -7,8 +7,8 @@ func factorial(n int) (int) {
         return 1
     } else {
         tmp := 0
-        tmp = factorial(dec_n)
-        return n * tmp
+        tmp = factorial(dec_n) // TODO: left right side assignment semantic check + with built in and user functions
+        return n * tmp // TODO: Check for returning types - should match function definition
     }
 }
 
@@ -16,13 +16,13 @@ func main() {
     print("Zadejte cislo pro vypocet faktorialu: ")
     a := 0
     err := 0
-    a, err = inputi()
+    a, err = inputi() // TODO: multiple id assignment
     if err == 0 {
         if a < 0 {
             print("Faktorial nejde spocitat!", "\n")
         } else {
             vysl := 0
-            vysl = factorial(a)
+            vysl = factorial(a) // TODO: integrate function call late check
             print("Vysledek je ", vysl, "\n")
         }
     } else {

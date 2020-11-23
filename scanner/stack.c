@@ -69,19 +69,11 @@ ST_Item* stack_search(Stack* stack, stringT* key) {
         return NULL;
     }
 
-    stack_item* actual = stack->top;
+    stack_item *actual = stack->top;
     while(actual != NULL) {
-        ST_Item *search_item = actual->symtable->items[st_hash(key)];
+        ST_Item *search_item = st_search(actual->symtable, key);
 
         if (search_item != NULL) {
-            /*We move through chained symbols until we get NULL*/
-            while (string_compare(&search_item->key, key) != 0) {
-                if (search_item->next == NULL) {
-                    return NULL;
-                } else {
-                    search_item = search_item->next;
-                }
-            }
             return search_item;
         } else {
             actual = actual->next;

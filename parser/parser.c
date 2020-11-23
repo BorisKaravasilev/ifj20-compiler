@@ -12,6 +12,9 @@
 int token_index = 0, tmp_result = 0;
 bool unget_token = false;
 
+assignmentT assignment_check_struct;
+ST_Item *current_function_block_symbol = NULL;
+
 /*
     puts("-----------------------------------");
     for (int i = 0; i < TOKEN_ARRAY_LEN; i++)
@@ -51,7 +54,7 @@ int id(scannerT *ptr_scanner, tokenT token[]){
 /*
  * An item - integer, float or string
  */
-int item(scannerT *ptr_scanner, tokenT token[]){
+int item(scannerT *ptr_scanner, tokenT token[], int *item_type){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // int, float or string literal
     }
@@ -59,9 +62,26 @@ int item(scannerT *ptr_scanner, tokenT token[]){
         unget_token = false;
     }
 
-    if (token[token_index].token_type == TOKEN_INTEGER_LITERAL ||
-        token[token_index].token_type == TOKEN_DECIMAL_LITERAL ||
-        token[token_index].token_type == TOKEN_STRING_LITERAL) {
+    // TODO: Was creating syntax error - maybe invalid token type in if statement bellow?
+    if (token[token_index].token_type == TOKEN_KEYWORD_INT ||
+        token[token_index].token_type == TOKEN_KEYWORD_FLOAT64 ||
+        token[token_index].token_type == TOKEN_KEYWORD_STRING) {
+
+        if (item_type != NULL) {
+            switch(token[token_index].token_type) {
+                case TOKEN_KEYWORD_INT:
+                    *item_type = TYPE_INT;
+                    break;
+                case TOKEN_KEYWORD_FLOAT64:
+                    *item_type = TYPE_DECIMAL;
+                    break;
+                case TOKEN_KEYWORD_STRING:
+                    *item_type = TYPE_STRING;
+                    break;
+                default:
+                    break;
+            }
+        }
         return SYNTAX_OK;
     }
 
@@ -86,7 +106,7 @@ int print_next(scannerT *ptr_scanner, tokenT token[]){
             }
             else {
                 unget_token = true;
-                tmp_result = item(ptr_scanner, token);
+                tmp_result = item(ptr_scanner, token, NULL);
                 if (tmp_result != SYNTAX_OK)
                     return tmp_result;
 
@@ -114,7 +134,7 @@ int print(scannerT *ptr_scanner, tokenT token[]){
 
         default:
             unget_token = true;
-            tmp_result = item(ptr_scanner, token);
+            tmp_result = item(ptr_scanner, token, NULL);
             if (tmp_result != SYNTAX_OK)
                 return tmp_result;
 
@@ -125,7 +145,7 @@ int print(scannerT *ptr_scanner, tokenT token[]){
 /*
  * A built-in function
  */
-int builtin_func(scannerT *ptr_scanner, tokenT token[]){
+int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // built-in function name
     }
@@ -137,6 +157,9 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
         case TOKEN_FUNCTION_INPUTS:
         case TOKEN_FUNCTION_INPUTI:
         case TOKEN_FUNCTION_INPUTF:
+            if (built_in_func_type != NULL) {
+                *built_in_func_type = token[token_index].token_type;
+            }
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // (
 
             if (token[token_index].token_type != TOKEN_LEFT_BRACKET){
@@ -156,6 +179,9 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
 
         case TOKEN_FUNCTION_INT2FLOAT:
         case TOKEN_FUNCTION_CHR:
+            if (built_in_func_type != NULL) {
+                *built_in_func_type = token[token_index].token_type;
+            }
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // (
 
             if (token[token_index].token_type != TOKEN_LEFT_BRACKET){
@@ -181,6 +207,9 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
             }
 
         case TOKEN_FUNCTION_PRINT:
+            if (built_in_func_type != NULL) {
+                *built_in_func_type = token[token_index].token_type;
+            }
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // (
 
             if (token[token_index].token_type != TOKEN_LEFT_BRACKET){
@@ -191,6 +220,9 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
             return print(ptr_scanner, token);
 
         case TOKEN_FUNCTION_FLOAT2INT:
+            if (built_in_func_type != NULL) {
+                *built_in_func_type = token[token_index].token_type;
+            }
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // (
 
             if (token[token_index].token_type != TOKEN_LEFT_BRACKET){
@@ -216,6 +248,9 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
             }
 
         case TOKEN_FUNCTION_LEN:
+            if (built_in_func_type != NULL) {
+                *built_in_func_type = token[token_index].token_type;
+            }
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // (
 
             if (token[token_index].token_type != TOKEN_LEFT_BRACKET){
@@ -241,6 +276,9 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
             }
 
         case TOKEN_FUNCTION_SUBSTR:
+            if (built_in_func_type != NULL) {
+                *built_in_func_type = token[token_index].token_type;
+            }
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // (
 
             if (token[token_index].token_type != TOKEN_LEFT_BRACKET){
@@ -294,6 +332,9 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
             }
 
         case TOKEN_FUNCTION_ORD:
+            if (built_in_func_type != NULL) {
+                *built_in_func_type = token[token_index].token_type;
+            }
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // (
 
             if (token[token_index].token_type != TOKEN_LEFT_BRACKET){
@@ -340,7 +381,7 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[]){
 /*
  * An expression - resolved by precedential syntactic analysis
  */
-int expr(scannerT *ptr_scanner, tokenT token[], bool two_tokens){
+int expr(scannerT *ptr_scanner, tokenT token[], bool two_tokens, int *result_data_type){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // beginning of expr
     }
@@ -363,6 +404,22 @@ int expr(scannerT *ptr_scanner, tokenT token[], bool two_tokens){
             return tmp_result;
     }
 
+    // SEMANTIC
+    switch (expr_result_token.token_type) {
+        case EXPRESSION_INT:
+            *result_data_type = TYPE_INT;
+            break;
+        case EXPRESSION_FLOAT64:
+            *result_data_type = TYPE_DECIMAL;
+            break;
+        case EXPRESSION_STRING:
+            *result_data_type = TYPE_STRING;
+            break;
+        default:
+            break;
+    }
+    // SEMANTIC END
+
     // TODO doplnit
     return SYNTAX_OK;
 }
@@ -379,28 +436,49 @@ int assign(scannerT *ptr_scanner, tokenT token[]){
     }
 
     unget_token = true;
-    tmp_result = item(ptr_scanner, token);
-    if (tmp_result == SYNTAX_OK)
+
+    int item_type;
+    tmp_result = item(ptr_scanner, token, &item_type);
+    if (tmp_result == SYNTAX_OK) {
+        assignment_add_expression(&assignment_check_struct, item_type, NULL);
         return SYNTAX_OK;
+    }
 
     unget_token = true;
-    tmp_result = builtin_func(ptr_scanner, token);
-    if (tmp_result == SYNTAX_OK)
+
+    int built_in_func_type_token;
+    tmp_result = builtin_func(ptr_scanner, token, &built_in_func_type_token);
+    if (tmp_result == SYNTAX_OK) {
+        assignment_add_built_in_function(&assignment_check_struct, built_in_func_type_token);
         return SYNTAX_OK;
+    }
 
     if (token[token_index].token_type == TOKEN_IDENTIFIER){
         // check following token, if (, then function parameter list follows, otherwise an extra token was read
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL);
 
         if (token[token_index].token_type == TOKEN_LEFT_BRACKET) {
+            // TODO: add function call to late check struct
             return id_list1(ptr_scanner, token);
         }
         else {
-            return expr(ptr_scanner, token, true);
+            ST_Item *identifier;
+            if ((identifier = stack_search(&ptr_scanner->st_stack, &token[token_index-1].attribute.string_val)) == NULL) {
+                fprintf(stderr, "Error: Undefined variable \'%s\'", token[token_index-1].attribute.string_val.string);
+                return RC_SEMANTIC_IDENTIFIER_ERR;
+            }
+            // TODO: add id on right side to assign struct
+            int expr_result_type;
+            int result = expr(ptr_scanner, token, true, &expr_result_type);
+            assignment_add_expression(&assignment_check_struct, expr_result_type, NULL);
+            return result;
         }
     }
 
-    return expr(ptr_scanner, token, false); // TODO expr?
+    int expr_result_type;
+    int result = expr(ptr_scanner, token, false, &expr_result_type); // TODO expr?
+    assignment_add_expression(&assignment_check_struct, expr_result_type, NULL);
+    return result;
 }
 
 /*
@@ -540,17 +618,44 @@ int id_list1(scannerT *ptr_scanner, tokenT token[]){
  * A command with an identifier (definition, one or multiple assignments, function call)
  */
 int id_command(scannerT *ptr_scanner, tokenT token[]){
+    Symtable *ptr_curr_scope_sym_table = stack_top(&ptr_scanner->st_stack).symtable;
+    ST_Item *symbol;
+    int result;
+
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // :=, =, ( or ,
 
     switch (token[token_index].token_type){
         case TOKEN_COLON_EQUAL:
+            // SEMANTIC: Insert identifier to symtable
+            assignment_struct_empty(&assignment_check_struct);
+            symbol = st_insert_symbol(ptr_curr_scope_sym_table, &token[token_index-1].attribute.string_val, false);
+            assignment_add_identifier(&assignment_check_struct, token[token_index-1].token_type, symbol);
+            // END SEMANTIC
+            result = assign(ptr_scanner, token);
+            assignment_derive_id_type(&assignment_check_struct);
+            return result;
         case TOKEN_EQUAL:
-            return assign(ptr_scanner, token);
+            // SEMANTIC: Check if identifier exists in symtable
+            // TODO: Proper check for "_" identifier
+            if (string_compare_constant(&token[token_index-1].attribute.string_val, "_") != 0) {
+                if ((symbol = stack_search(&ptr_scanner->st_stack, &token[token_index-1].attribute.string_val)) == NULL) {
+                    fprintf(stderr, "Error: Undefined variable \'%s\'", token[token_index-1].attribute.string_val.string);
+                    return RC_SEMANTIC_IDENTIFIER_ERR;
+                }
+            }
+            assignment_struct_empty(&assignment_check_struct);
+            assignment_add_identifier(&assignment_check_struct, token[token_index-1].token_type, NULL);
+            // END SEMANTIC
+            result = assign(ptr_scanner, token);
+            compare_left_right_params(assignment_check_struct.left_side_types_list_first, assignment_check_struct.right_side_types_list_first);
+            return result;
 
         case TOKEN_LEFT_BRACKET:
+            // TODO: Begin function call late check by creating function in that structure
             return id_list1(ptr_scanner, token);
 
         case TOKEN_COMMA:
+            // TODO: multiple left side ids assignment
             tmp_result = id_list2(ptr_scanner, token);
             if (tmp_result != SYNTAX_OK)
                 return tmp_result;
@@ -580,7 +685,7 @@ int cycle_assign(scannerT *ptr_scanner, tokenT token[]){
             return RC_SYN_ERR;
         }
 
-        tmp_result = expr(ptr_scanner, token, false); // TODO expr?
+        tmp_result = expr(ptr_scanner, token, false, NULL); // TODO expr?
         if (tmp_result != SYNTAX_OK)
             return tmp_result;
 
@@ -650,7 +755,7 @@ int command(scannerT *ptr_scanner, tokenT token[]){
             return id_command(ptr_scanner, token);
 
         case TOKEN_KEYWORD_IF: // TODO expr?
-            tmp_result = expr(ptr_scanner, token, false);
+            tmp_result = expr(ptr_scanner, token, false, NULL);
             if (tmp_result != SYNTAX_OK)
                 return tmp_result;
 
@@ -689,7 +794,7 @@ int command(scannerT *ptr_scanner, tokenT token[]){
             if (tmp_result != SYNTAX_OK)
                 return tmp_result;
 
-            tmp_result = expr(ptr_scanner, token, false); // TODO expr?
+            tmp_result = expr(ptr_scanner, token, false, NULL); // TODO expr?
             if (tmp_result != SYNTAX_OK)
                 return tmp_result;
 
@@ -721,7 +826,7 @@ int command(scannerT *ptr_scanner, tokenT token[]){
     }
 
     unget_token = true;
-    tmp_result = builtin_func(ptr_scanner, token);
+    tmp_result = builtin_func(ptr_scanner, token, NULL);
     if (tmp_result == SYNTAX_OK)
         return SYNTAX_OK;
 
@@ -754,7 +859,7 @@ int command_list(scannerT *ptr_scanner, tokenT token[]){
 /*
  * The optional continuation of a list of function return types
  */
-int return_type(scannerT *ptr_scanner, tokenT token[]){
+int return_type(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol){
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // , or )
 
     if (token[token_index].token_type == TOKEN_RIGHT_BRACKET){
@@ -769,11 +874,14 @@ int return_type(scannerT *ptr_scanner, tokenT token[]){
         }
     }
     else if (token[token_index].token_type == TOKEN_COMMA){
-        tmp_result = item(ptr_scanner, token);
-        if (tmp_result != SYNTAX_OK)
+        int item_type;
+        tmp_result = item(ptr_scanner, token, &item_type);
+        if (tmp_result != SYNTAX_OK) {
             return tmp_result;
+        }
+        st_add_function_return_type(ptr_curr_symbol, item_type);
 
-        return return_type(ptr_scanner, token);
+        return return_type(ptr_scanner, token, ptr_curr_symbol);
     }
     else {
         err_print(", or }", token[token_index].token_type);
@@ -784,7 +892,7 @@ int return_type(scannerT *ptr_scanner, tokenT token[]){
 /*
  * The beginning of a list of function return types
  */
-int return_type_list(scannerT *ptr_scanner, tokenT token[]){
+int return_type_list(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol){
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // ( or {
 
     if (token[token_index].token_type == TOKEN_LEFT_CURLY_BRACE){
@@ -810,18 +918,21 @@ int return_type_list(scannerT *ptr_scanner, tokenT token[]){
     }
     else {  // item received
         unget_token = true;
-        tmp_result = item(ptr_scanner, token);
-        if (tmp_result != SYNTAX_OK)
+        int item_type;
+        tmp_result = item(ptr_scanner, token, &item_type);
+        if (tmp_result != SYNTAX_OK) {
             return tmp_result;
+        }
+        st_add_function_return_type(ptr_curr_symbol, item_type);
 
-        return return_type(ptr_scanner, token);
+        return return_type(ptr_scanner, token, ptr_curr_symbol);
     }
 }
 
 /*
  * The optional continuation of a list of function parameters
  */
-int param(scannerT *ptr_scanner, tokenT token[]){
+int param(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol){
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // , or )
 
     if (token[token_index].token_type == TOKEN_RIGHT_BRACKET){
@@ -835,34 +946,44 @@ int param(scannerT *ptr_scanner, tokenT token[]){
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // function parameter (ID)
 
     if (token[token_index].token_type == TOKEN_IDENTIFIER){
-        tmp_result = item(ptr_scanner, token);
-        if (tmp_result != SYNTAX_OK)
+        int item_type;
+        tmp_result = item(ptr_scanner, token, &item_type);
+        if (tmp_result != SYNTAX_OK) {
             return tmp_result;
+        }
+        st_add_function_param(ptr_curr_symbol, item_type);
     }
 
-    return param(ptr_scanner, token);
+    return param(ptr_scanner, token, ptr_curr_symbol);
 }
 
 /*
  * The beginning of a list of function parameters
  */
-int param_list(scannerT *ptr_scanner, tokenT token[]){
+int param_list(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol){
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // function parameter (ID) or )
 
     if (token[token_index].token_type == TOKEN_RIGHT_BRACKET){
         return SYNTAX_OK;
     }
     else if (token[token_index].token_type == TOKEN_IDENTIFIER){
-        tmp_result = item(ptr_scanner, token);
-        if (tmp_result != SYNTAX_OK)
+        int item_type;
+        Symtable *ptr_curr_scope_sym_table = stack_top(&ptr_scanner->st_stack).symtable;
+        ST_Item *newParamSymbol = st_insert_symbol(ptr_curr_scope_sym_table, &token[token_index].attribute.string_val, false);
+
+        tmp_result = item(ptr_scanner, token, &item_type);
+        if (tmp_result != SYNTAX_OK) {
             return tmp_result;
+        }
+        st_add_function_param(ptr_curr_symbol, item_type);
+        newParamSymbol->type = item_type;
     }
     else {
         err_print("function parameter (ID) or )", token[token_index].token_type);
         return RC_SYN_ERR;
     }
 
-    return param(ptr_scanner, token);
+    return param(ptr_scanner, token, ptr_curr_symbol);
 }
 
 /*
@@ -876,6 +997,12 @@ int func(scannerT *ptr_scanner, tokenT token[]){
         return RC_SYN_ERR;
     }
 
+    // SEMANTIC: Add function to symtable
+    Symtable *ptr_curr_scope_sym_table = stack_top(&ptr_scanner->st_stack).symtable;
+    ST_Item *symbol = st_insert_symbol(ptr_curr_scope_sym_table, &token[token_index].attribute.string_val, true);
+    current_function_block_symbol = symbol;
+    // END SEMANTIC
+
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // left opening bracket
 
     if (token[token_index].token_type != TOKEN_LEFT_BRACKET){
@@ -883,11 +1010,11 @@ int func(scannerT *ptr_scanner, tokenT token[]){
         return RC_SYN_ERR;
     }
 
-    tmp_result = param_list(ptr_scanner, token);
+    tmp_result = param_list(ptr_scanner, token, symbol);
     if (tmp_result != SYNTAX_OK)
         return tmp_result;
 
-    tmp_result = return_type_list(ptr_scanner, token);
+    tmp_result = return_type_list(ptr_scanner, token, symbol);
     if (tmp_result != SYNTAX_OK)
         return tmp_result;
 
