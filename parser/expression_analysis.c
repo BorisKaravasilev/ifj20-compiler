@@ -157,10 +157,9 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                 {
                     switch_case = 3;
 
-                    //TODO semantic_data_type = data type of the identifier saved in ptr_last_token
-                    /*
+                    semantic_data_type = stack_search(&scanner->st_stack, &ptr_last_token->attribute.string_val)->type;
                     ///If semantic_data_type contains int
-                    if (semantic_data_type == EXPRESSION_INT)
+                    if (semantic_data_type == TYPE_INT)
                     {
                         ///If ptr_expr_data_and_type->token_type is nil or int
                         if ((ptr_expr_data_and_type->token_type == EXPRESSION_NO_TYPE) || (ptr_expr_data_and_type->token_type == EXPRESSION_INT))
@@ -174,7 +173,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                         }
                     }
                     ///If semantic_data_type contains float
-                    else if (semantic_data_type == EXPRESSION_FLOAT64)
+                    else if (semantic_data_type == TYPE_DECIMAL)
                     {
                         ///If expr_data_type is nil or int or float
                         if ((ptr_expr_data_and_type->token_type == EXPRESSION_NO_TYPE) || (ptr_expr_data_and_type->token_type == EXPRESSION_FLOAT64))
@@ -188,7 +187,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                         }
                     }
                     ///If semantic_data_type contains string
-                    else if (semantic_data_type == EXPRESSION_STRING)
+                    else if (semantic_data_type == TYPE_STRING)
                     {
                         ///If expr_data_type is nil or string
                         if ((ptr_expr_data_and_type->token_type == EXPRESSION_NO_TYPE) || (ptr_expr_data_and_type->token_type == EXPRESSION_STRING))
@@ -201,22 +200,11 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                             return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
                         }
                     }
-                    ///If semantic_data_type contains nil
-                    else if (semantic_data_type == EXPRESSION_NO_TYPE)
-                    {
-                        if ((ptr_expr_data_and_type->token_type != EXPRESSION_NO_TYPE) && (ptr_expr_data_and_type->token_type != EXPRESSION_INT) &&
-                                (ptr_expr_data_and_type->token_type != EXPRESSION_FLOAT64) && (ptr_expr_data_and_type->token_type != EXPRESSION_STRING))
-                        {
-                            token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
-                            return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
-                        }
-                    }
                     else
                     {
                         token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
                         return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
                     }
-                    */
                 }
                 else
                 {
@@ -296,10 +284,8 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                 {
                     switch_case = 3;
                     semantic_data_type = stack_search(&scanner->st_stack, &ptr_last_token->attribute.string_val)->type;
-                    //TODO semantic_data_type = data type of the identifier saved in ptr_last_token
-                    /*
                     ///If semantic_data_type contains int
-                    if (semantic_data_type == EXPRESSION_INT)
+                    if (semantic_data_type == TYPE_INT)
                     {
                         ///If expr_data_type is nil or int
                         if ((ptr_expr_data_and_type->token_type == EXPRESSION_NO_TYPE) || (ptr_expr_data_and_type->token_type == EXPRESSION_INT))
@@ -313,7 +299,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                         }
                     }
                     ///If semantic_data_type contains float
-                    else if (semantic_data_type == EXPRESSION_FLOAT64)
+                    else if (semantic_data_type == TYPE_DECIMAL)
                     {
                         ///If expr_data_type is nil or int or float
                         if ((ptr_expr_data_and_type->token_type == EXPRESSION_NO_TYPE) || (ptr_expr_data_and_type->token_type == EXPRESSION_FLOAT64))
@@ -326,22 +312,11 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                             return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
                         }
                     }
-                    ///If semantic_data_type contains nil
-                    else if (semantic_data_type == EXPRESSION_NO_TYPE)
-                    {
-                        if ((ptr_expr_data_and_type->token_type != EXPRESSION_NO_TYPE) && (ptr_expr_data_and_type->token_type != EXPRESSION_INT) &&
-                                (ptr_expr_data_and_type->token_type != EXPRESSION_FLOAT64) && (ptr_expr_data_and_type->token_type != EXPRESSION_STRING))
-                        {
-                            token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
-                            return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
-                        }
-                    }
                     else
                     {
                         token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
                         return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
                     }
-                    */
                 }
                 else
                 {
@@ -563,10 +538,9 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                 {
                     switch_case = 3;
 
-                    //TODO semantic_data_type = data type of the identifier saved in ptr_last_token
-                    /*
+                    semantic_data_type = stack_search(&scanner->st_stack, &ptr_last_token->attribute.string_val)->type;
                     ///If semantic_data_type contains int
-                    if (semantic_data_type == EXPRESSION_INT)
+                    if (semantic_data_type == TYPE_INT)
                     {
                         ///If expr_data_type is nil or int
                         if ((ptr_expr_data_and_type->token_type == EXPRESSION_NO_TYPE) || (ptr_expr_data_and_type->token_type == EXPRESSION_INT))
@@ -580,7 +554,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                         }
                     }
                     ///If semantic_data_type contains float
-                    else if (semantic_data_type == EXPRESSION_FLOAT64)
+                    else if (semantic_data_type == TYPE_DECIMAL)
                     {
                         ///If expr_data_type is nil or float
                         if ((ptr_expr_data_and_type->token_type == EXPRESSION_NO_TYPE) || (ptr_expr_data_and_type->token_type == EXPRESSION_FLOAT64))
@@ -598,7 +572,6 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                         token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
                         return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
                     }
-                    */
                 }
                 else
                 {
