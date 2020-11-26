@@ -15,6 +15,8 @@ bool was_expr = false, unget_token = false;
 assignmentT assignment_check_struct;
 ST_Item *current_function_block_symbol = NULL;
 
+late_check_stack semantic_late_check_stack;
+
 /*
     puts("-----------------------------------");
     for (int i = 0; i < TOKEN_ARRAY_LEN; i++)
@@ -70,8 +72,8 @@ int literal(scannerT *ptr_scanner, tokenT token[], int *item_type){ // TODO P is
 
         if (item_type != NULL) {    // TODO P semantic actions change or remove?
             switch(token[token_index].token_type) {
-                case TOKEN_KEYWORD_INT:
-                    *item_type = TOKEN_INTEGER_LITERAL;
+                case TOKEN_INTEGER_LITERAL:
+                    *item_type = TYPE_INT;
                     break;
                 case TOKEN_DECIMAL_LITERAL:
                 case TOKEN_EXPONENT_LITERAL:
@@ -577,7 +579,7 @@ int assign_nofunc_list(scannerT *ptr_scanner, tokenT token[]){
 /*
  * An individual assignment
  */
-int assign(scannerT *ptr_scanner, tokenT token[]){
+int assign(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic_type_check){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // id, item, built-in function or expression
     }
@@ -609,7 +611,12 @@ int assign(scannerT *ptr_scanner, tokenT token[]){
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL);
 
         if (token[token_index].token_type == TOKEN_LEFT_BRACKET) {
-            // TODO: add function call to late check struct
+            // TODO FIRST: add function call to late check struct
+            if (skip_sides_semantic_type_check != NULL) {
+                *skip_sides_semantic_type_check = true;
+            }
+            late_check_stack_push_method(&semantic_late_check_stack, &token[token_index-1].attribute.string_val);
+            late_check_stack_item_create_assignment_list(semantic_late_check_stack.top, assignment_check_struct.left_side_types_list_first);
             return id_list1(ptr_scanner, token);
         }
         else {
@@ -618,11 +625,10 @@ int assign(scannerT *ptr_scanner, tokenT token[]){
                 fprintf(stderr, "Error: Undefined variable \'%s\'", token[token_index-1].attribute.string_val.string);
                 return RC_SEMANTIC_IDENTIFIER_ERR;
             }
-            // TODO: add id on right side to assign struct
             int expr_result_type;
             int result = expr(ptr_scanner, token, true, &expr_result_type);
             was_expr = true;
-            assignment_add_expression(&assignment_check_struct, expr_result_type, NULL);
+            assignment_add_expression(&assignment_check_struct, expr_result_type, identifier);
             return result;
         }
     }
@@ -646,7 +652,7 @@ int assign_next(scannerT *ptr_scanner, tokenT token[]){
     }
 
     if (token[token_index].token_type == TOKEN_COMMA){
-        tmp_result = assign(ptr_scanner, token);
+        tmp_result = assign(ptr_scanner, token, NULL);
         if (tmp_result != SYNTAX_OK)
             return tmp_result;
 
@@ -662,7 +668,7 @@ int assign_next(scannerT *ptr_scanner, tokenT token[]){
  * The beginning of a list of assignments
  */
 int assign_list(scannerT *ptr_scanner, tokenT token[]){
-    tmp_result = assign(ptr_scanner, token);
+    tmp_result = assign(ptr_scanner, token, NULL);
     if (tmp_result != SYNTAX_OK)
         return tmp_result;
 
@@ -785,9 +791,12 @@ int id_command(scannerT *ptr_scanner, tokenT token[]){
                 unget_token = true;
                 was_expr = false;
             }
-            assignment_derive_id_type(&assignment_check_struct);
+            if (result == SYNTAX_OK) {
+                assignment_derive_id_type(&assignment_check_struct);
+            }
             return result;
         case TOKEN_EQUAL:
+            // TODO: Change to another non terminal because of cycle assign
             // SEMANTIC: Check if identifier exists in symtable
             // TODO: Proper check for "_" identifier
             if (string_compare_constant(&token[token_index-1].attribute.string_val, "_") != 0) {
@@ -799,8 +808,9 @@ int id_command(scannerT *ptr_scanner, tokenT token[]){
             assignment_struct_empty(&assignment_check_struct);
             assignment_add_identifier(&assignment_check_struct, token[token_index-1].token_type, symbol);
             // END SEMANTIC
-            result = assign(ptr_scanner, token);
-            if (result == SYNTAX_OK) {
+            bool skip_semantic_check = false;
+            result = assign(ptr_scanner, token, &skip_semantic_check);
+            if (result == SYNTAX_OK && !skip_semantic_check) {
                 return compare_left_right_params(assignment_check_struct.left_side_types_list_first, assignment_check_struct.right_side_types_list_first);
             }
             return result;
@@ -1212,6 +1222,8 @@ int program(scannerT *ptr_scanner, tokenT token[]){
  * Starting point of parser
  */
 int parse(scannerT *ptr_scanner, tokenT token[]){
+    late_check_stack_init(&semantic_late_check_stack);
+
     get_next_token(ptr_scanner, &token[token_index], OPTIONAL); // "package"
 
     if (token[token_index].token_type != TOKEN_KEYWORD_PACKAGE){

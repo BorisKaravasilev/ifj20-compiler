@@ -16,6 +16,7 @@
 #include "symtable.h"
 #include "stack.h"
 #include "return_codes.h"
+#include "semantic_functions.h"
 
 /**
  * @brief Structure of a stack element.
@@ -31,8 +32,10 @@ typedef struct method_param_struct {
  */
 typedef struct late_check_stackElem {
     stringT method_name;
+    int assignments_count;
     int parameters_count;
     int return_types_count;
+    method_param_structT *assignment_list_first;
     method_param_structT *parameters_list_first;
     method_param_structT *return_types_list_first;
     struct late_check_stackElem *next;
@@ -117,6 +120,16 @@ void late_check_stack_free(late_check_stack *s);
  * @param s Stack to be emptied.
  */
 late_check_stack_item* late_check_stack_search(late_check_stack *s, stringT *method_name);
+
+/**
+ * @brief Adds assign types on left side of assignment to the stack_item
+ * @param item pointer at late_check_stack item
+ * @param list pointer at left assignment list of params
+ */
+void late_check_stack_item_create_assignment_list(late_check_stack_item *item, assignment_paramT *list);
+
+
+void late_check_stack_item_add_assignment_param(late_check_stack_item *item, Data_type data_type);
 
 /**
  * @brief Creates function parameters and chains them in the stack_item

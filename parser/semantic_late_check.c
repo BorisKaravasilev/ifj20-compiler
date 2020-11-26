@@ -80,6 +80,7 @@ bool compare_param_lists(method_param_structT *late_check_param_list, st_functio
 }
 
 // TODO: Search if user function must have at least one return type
+// TODO P: Change return type to int
 void check_semantic_for_methods_call(late_check_stack *late_check_s, Symtable *global_symtable) {
     if (late_check_s != NULL && global_symtable != NULL) {
         while (late_check_s->top != NULL) {
@@ -149,6 +150,43 @@ late_check_stack_item* late_check_stack_search(late_check_stack *s, stringT *met
         current = s->top->next;
     }
     return NULL;
+}
+
+void late_check_stack_item_create_assignment_list(late_check_stack_item *item, assignment_paramT *list) {
+    if (item == NULL || list == NULL) {
+        return;
+    }
+
+    assignment_paramT *current = list;
+    while (current != NULL) {
+        late_check_stack_item_add_assignment_param(item, current->data_type);
+        current = current->next;
+    }
+}
+
+void late_check_stack_item_add_assignment_param(late_check_stack_item *item, Data_type data_type) {
+    if (item == NULL) {
+        return;
+    }
+
+    method_param_structT *new_parameter;
+    if ((new_parameter = (method_param_structT *) malloc(sizeof(method_param_structT))) == NULL) {
+        exit(SEMANTIC_LATE_CHECK_MALLOC_ERROR);
+    }
+    new_parameter->data_type = data_type;
+    new_parameter->next = NULL;
+    new_parameter->index = item->assignments_count++;
+
+    if (item->assignment_list_first == NULL) {
+        item->assignment_list_first = new_parameter;
+    } else {
+        method_param_structT *current = item->assignment_list_first;
+
+        while (current->next != NULL) {
+            current = current->next;
+        }
+        current->next = new_parameter;
+    }
 }
 
 void late_check_stack_item_add_parameter(late_check_stack_item *item, Data_type data_type) {
