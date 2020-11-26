@@ -230,7 +230,7 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
 
             return print(ptr_scanner, token);
 
-        case TOKEN_FUNCTION_INT2FLOAT: // TODO P review split int2float and chr
+        case TOKEN_FUNCTION_INT2FLOAT:
             if (built_in_func_type != NULL) {
                 *built_in_func_type = token[token_index].token_type;
             }
@@ -241,10 +241,13 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
                 return RC_SYN_ERR;
             }
 
-            get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // int
+            get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // int or id
 
-            if (token[token_index].token_type != TOKEN_INTEGER_LITERAL){
-                err_print("int", token[token_index].token_type);
+            if (token[token_index].token_type == TOKEN_IDENTIFIER){
+                // TODO P semantic action for id
+            }
+            else if (token[token_index].token_type != TOKEN_INTEGER_LITERAL){
+                err_print("int or id", token[token_index].token_type);
                 return RC_SYN_ERR;
             }
 
@@ -269,11 +272,14 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
                 return RC_SYN_ERR;
             }
 
-            get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // float
+            get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // float or id
 
-            if (token[token_index].token_type != TOKEN_DECIMAL_LITERAL ||
-                token[token_index].token_type != TOKEN_EXPONENT_LITERAL){
-                err_print("float", token[token_index].token_type);
+            if (token[token_index].token_type == TOKEN_IDENTIFIER){
+                // TODO P semantic action for id
+            }
+            else if (token[token_index].token_type != TOKEN_DECIMAL_LITERAL &&
+                     token[token_index].token_type != TOKEN_EXPONENT_LITERAL){
+                err_print("float or id", token[token_index].token_type);
                 return RC_SYN_ERR;
             }
 
@@ -298,10 +304,13 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
                 return RC_SYN_ERR;
             }
 
-            get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // string
+            get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // string or id
 
-            if (token[token_index].token_type != TOKEN_STRING_LITERAL){
-                err_print("string", token[token_index].token_type);
+            if (token[token_index].token_type == TOKEN_IDENTIFIER){
+                // TODO P semantic action for id
+            }
+            else if (token[token_index].token_type != TOKEN_STRING_LITERAL){
+                err_print("string or id", token[token_index].token_type);
                 return RC_SYN_ERR;
             }
 
@@ -326,10 +335,13 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
                 return RC_SYN_ERR;
             }
 
-            get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // string
+            get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // string or id
 
-            if (token[token_index].token_type != TOKEN_STRING_LITERAL){
-                err_print("string", token[token_index].token_type);
+            if (token[token_index].token_type == TOKEN_IDENTIFIER){
+                // TODO P semantic action for id
+            }
+            else if (token[token_index].token_type != TOKEN_STRING_LITERAL){
+                err_print("string or id", token[token_index].token_type);
                 return RC_SYN_ERR;
             }
 
@@ -340,10 +352,13 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
                 return RC_SYN_ERR;
             }
 
-            get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // int
+            get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // int or id
 
-            if (token[token_index].token_type != TOKEN_INTEGER_LITERAL){
-                err_print("int", token[token_index].token_type);
+            if (token[token_index].token_type == TOKEN_IDENTIFIER){
+                // TODO P semantic action for id
+            }
+            else if (token[token_index].token_type != TOKEN_INTEGER_LITERAL){
+                err_print("int or id", token[token_index].token_type);
                 return RC_SYN_ERR;
             }
 
@@ -354,10 +369,13 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
                 return RC_SYN_ERR;
             }
 
-            get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // int
+            get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // int or id
 
-            if (token[token_index].token_type != TOKEN_INTEGER_LITERAL){
-                err_print("int", token[token_index].token_type);
+            if (token[token_index].token_type == TOKEN_IDENTIFIER){
+                // TODO P semantic action for id
+            }
+            else if (token[token_index].token_type != TOKEN_INTEGER_LITERAL){
+                err_print("int or id", token[token_index].token_type);
                 return RC_SYN_ERR;
             }
 
@@ -382,10 +400,13 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
                 return RC_SYN_ERR;
             }
 
-            get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // string
+            get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // string or id
 
-            if (token[token_index].token_type != TOKEN_STRING_LITERAL){
-                err_print("string", token[token_index].token_type);
+            if (token[token_index].token_type == TOKEN_IDENTIFIER){
+                // TODO P semantic action for id
+            }
+            else if (token[token_index].token_type != TOKEN_STRING_LITERAL){
+                err_print("string or id", token[token_index].token_type);
                 return RC_SYN_ERR;
             }
 
@@ -396,10 +417,13 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
                 return RC_SYN_ERR;
             }
 
-            get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // int
+            get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // int or id
 
-            if (token[token_index].token_type != TOKEN_INTEGER_LITERAL){
-                err_print("int", token[token_index].token_type);
+            if (token[token_index].token_type == TOKEN_IDENTIFIER){
+                // TODO P semantic action for id
+            }
+            else if (token[token_index].token_type != TOKEN_INTEGER_LITERAL){
+                err_print("int or id", token[token_index].token_type);
                 return RC_SYN_ERR;
             }
 
@@ -413,7 +437,7 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
                 return RC_SYN_ERR;
             }
 
-        case TOKEN_FUNCTION_CHR: // TODO P review split int2float and chr
+        case TOKEN_FUNCTION_CHR:
             if (built_in_func_type != NULL) {
                 *built_in_func_type = token[token_index].token_type;
             }
@@ -424,10 +448,13 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
                 return RC_SYN_ERR;
             }
 
-            get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // int
+            get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // int or id
 
-            if (token[token_index].token_type != TOKEN_INTEGER_LITERAL){
-                err_print("int", token[token_index].token_type);
+            if (token[token_index].token_type == TOKEN_IDENTIFIER){
+                // TODO P semantic action for id
+            }
+            else if (token[token_index].token_type != TOKEN_INTEGER_LITERAL){
+                err_print("int or id", token[token_index].token_type);
                 return RC_SYN_ERR;
             }
 
