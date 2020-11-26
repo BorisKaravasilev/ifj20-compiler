@@ -55,19 +55,19 @@ void assignment_param_list_free(assignment_paramT *assignment_param) {
     }
 }
 
-void compare_left_right_params(assignment_paramT *left, assignment_paramT *right) {
+int compare_left_right_params(assignment_paramT *left, assignment_paramT *right) {
     assignment_paramT *l_current = left;
     assignment_paramT *r_current = right;
 
     while (l_current != NULL || r_current != NULL) {
         if (l_current == NULL || r_current == NULL) {
             // TODO: Maybe another semantic error dont know atm
-            exit(RC_SEMANTIC_VAR_TYPE_ERR);
+            return RC_SEMANTIC_VAR_TYPE_ERR;
         } else {
             if (l_current->data_type != r_current->data_type) {
                 // TODO: Maybe another semantic error dont know atm
                 if (l_current->data_type != TYPE_BLANK_VARIABLE) {
-                    exit(RC_SEMANTIC_VAR_TYPE_ERR);
+                    return RC_SEMANTIC_VAR_TYPE_ERR;
                 }
             }
         }
@@ -75,15 +75,13 @@ void compare_left_right_params(assignment_paramT *left, assignment_paramT *right
         l_current = l_current->next;
         r_current = r_current->next;
     }
+
+    return SEMANTIC_OK;
 }
 
-void assignment_derive_id_type(assignmentT *s) {
-    if (s == NULL) {
-        return;
-    }
-
+int assignment_derive_id_type(assignmentT *s) {
     if (s->expressions_count != s->identifiers_count) {
-        exit(RC_SEMANTIC_VAR_TYPE_ERR);
+        return RC_SEMANTIC_VAR_TYPE_ERR;
     }
 
     assignment_paramT *l_current = s->left_side_types_list_first;
@@ -106,6 +104,7 @@ void assignment_derive_id_type(assignmentT *s) {
         l_current = l_current->next;
         r_current = r_current->next;
     }
+    return SEMANTIC_OK;
 }
 
 void assignment_add_identifier(assignmentT *item, int token_type, ST_Item *st_item){

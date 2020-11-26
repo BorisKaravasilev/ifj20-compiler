@@ -71,12 +71,13 @@ int literal(scannerT *ptr_scanner, tokenT token[], int *item_type){ // TODO P is
         if (item_type != NULL) {    // TODO P semantic actions change or remove?
             switch(token[token_index].token_type) {
                 case TOKEN_KEYWORD_INT:
-                    *item_type = TYPE_INT;
+                    *item_type = TOKEN_INTEGER_LITERAL;
                     break;
-                case TOKEN_KEYWORD_FLOAT64:
+                case TOKEN_DECIMAL_LITERAL:
+                case TOKEN_EXPONENT_LITERAL:
                     *item_type = TYPE_DECIMAL;
                     break;
-                case TOKEN_KEYWORD_STRING:
+                case TOKEN_STRING_LITERAL:
                     *item_type = TYPE_STRING;
                     break;
                 default:
@@ -765,7 +766,7 @@ int id_list1(scannerT *ptr_scanner, tokenT token[]){
  */
 int id_command(scannerT *ptr_scanner, tokenT token[]){
     Symtable *ptr_curr_scope_sym_table = stack_top(&ptr_scanner->st_stack).symtable;
-    ST_Item *symbol;
+    ST_Item *symbol = NULL;
     int result;
 
     printf("Entering id_command, current token: %d\n", token[token_index].token_type); // TODO D rm
@@ -796,10 +797,12 @@ int id_command(scannerT *ptr_scanner, tokenT token[]){
                 }
             }
             assignment_struct_empty(&assignment_check_struct);
-            assignment_add_identifier(&assignment_check_struct, token[token_index-1].token_type, NULL);
+            assignment_add_identifier(&assignment_check_struct, token[token_index-1].token_type, symbol);
             // END SEMANTIC
             result = assign(ptr_scanner, token);
-            compare_left_right_params(assignment_check_struct.left_side_types_list_first, assignment_check_struct.right_side_types_list_first);
+            if (result == SYNTAX_OK) {
+                return compare_left_right_params(assignment_check_struct.left_side_types_list_first, assignment_check_struct.right_side_types_list_first);
+            }
             return result;
 
         case TOKEN_LEFT_BRACKET:

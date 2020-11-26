@@ -16,6 +16,7 @@
 #include "token_types.h"
 
 #define BUILT_IN_FUNCTIONS_COUNT 10
+#define SEMANTIC_OK 0
 
 /**
  * @brief Structure for a assignment structure.
@@ -74,13 +75,13 @@ void assignment_struct_free(assignmentT *s);
  * @brief Compares both sides of assignment.
  * @param s Assignment structure in which to compare left and right side param lists.
  */
-void compare_left_right_params(assignment_paramT *left, assignment_paramT *right);
+int compare_left_right_params(assignment_paramT *left, assignment_paramT *right);
 
 /**
  * @brief Derives id data type on left side from expression on righ side in the assignment structure.
  * @param s Assignment structure.
  */
-void assignment_derive_id_type(assignmentT *s);
+int assignment_derive_id_type(assignmentT *s);
 
 /**
  * @brief Dealloc assignment_param_struct list by freeing all of its elements.
