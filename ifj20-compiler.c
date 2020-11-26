@@ -12,6 +12,7 @@
 #include "scanner_functions.h"
 #include "parser.h"
 #include "debugging.h"
+#include "generator.h"
 
 int main(int argc, char** argv) {
     // For debugging purposes in CLion (input file or stdin)
