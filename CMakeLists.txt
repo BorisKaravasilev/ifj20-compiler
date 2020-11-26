@@ -4,6 +4,7 @@ project(ifj20_compiler)
 set(CMAKE_CXX_STANDARD 14)
 
 include_directories(general)
+include_directories(generator)
 include_directories(input_files)
 include_directories(parser)
 include_directories(scanner)
@@ -15,6 +16,8 @@ add_executable(ifj20_compiler
         general/string_functions.h
         general/utility_functions.c
         general/utility_functions.h
+        generator/generator.c
+        generator/generator.h
         parser/expression_analysis.c
         parser/expression_analysis.h
         parser/semantic_late_check.c
