@@ -727,7 +727,7 @@ int id_list2(scannerT *ptr_scanner, tokenT token[]){
  */
 int id_next1(scannerT *ptr_scanner, tokenT token[]){
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // ) or ,
-
+    ST_Item *identifier = NULL;
     switch (token[token_index].token_type){
         case TOKEN_RIGHT_BRACKET:
             return SYNTAX_OK;
@@ -739,6 +739,12 @@ int id_next1(scannerT *ptr_scanner, tokenT token[]){
                 err_print("id", token[token_index].token_type);
                 return RC_SYN_ERR;
             }
+
+            if ((identifier = stack_search(&ptr_scanner->st_stack, &token[token_index].attribute.string_val)) == NULL) {
+                fprintf(stderr, "Error: Undefined variable \'%s\'", token[token_index].attribute.string_val.string);
+                return RC_SEMANTIC_IDENTIFIER_ERR;
+            }
+            late_check_stack_item_add_parameter(semantic_late_check_stack.top, identifier->type);
 
             return id_next1(ptr_scanner, token);
 
@@ -753,12 +759,18 @@ int id_next1(scannerT *ptr_scanner, tokenT token[]){
  */
 int id_list1(scannerT *ptr_scanner, tokenT token[]){
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // id or )
+    ST_Item *identifier = NULL;
 
     switch (token[token_index].token_type){
         case TOKEN_RIGHT_BRACKET:
             return SYNTAX_OK;
 
         case TOKEN_IDENTIFIER:
+            if ((identifier = stack_search(&ptr_scanner->st_stack, &token[token_index].attribute.string_val)) == NULL) {
+                fprintf(stderr, "Error: Undefined variable \'%s\'", token[token_index].attribute.string_val.string);
+                return RC_SEMANTIC_IDENTIFIER_ERR;
+            }
+            late_check_stack_item_add_parameter(semantic_late_check_stack.top, identifier->type);
             return id_next1(ptr_scanner, token);
 
         default:
@@ -774,6 +786,7 @@ int id_command(scannerT *ptr_scanner, tokenT token[]){
     Symtable *ptr_curr_scope_sym_table = stack_top(&ptr_scanner->st_stack).symtable;
     ST_Item *symbol = NULL;
     int result;
+    bool skip_semantic_check = false;
 
     printf("Entering id_command, current token: %d\n", token[token_index].token_type); // TODO D rm
 
@@ -808,7 +821,7 @@ int id_command(scannerT *ptr_scanner, tokenT token[]){
             assignment_struct_empty(&assignment_check_struct);
             assignment_add_identifier(&assignment_check_struct, token[token_index-1].token_type, symbol);
             // END SEMANTIC
-            bool skip_semantic_check = false;
+
             result = assign(ptr_scanner, token, &skip_semantic_check);
             if (result == SYNTAX_OK && !skip_semantic_check) {
                 return compare_left_right_params(assignment_check_struct.left_side_types_list_first, assignment_check_struct.right_side_types_list_first);
@@ -817,6 +830,8 @@ int id_command(scannerT *ptr_scanner, tokenT token[]){
 
         case TOKEN_LEFT_BRACKET:
             // TODO: Begin function call late check by creating function in that structure
+            // TODO FIRST: add function call to late check struct
+            late_check_stack_push_method(&semantic_late_check_stack, &token[token_index-1].attribute.string_val);
             return id_list1(ptr_scanner, token);
 
         case TOKEN_COMMA:

@@ -201,6 +201,7 @@ void assignment_add_user_function(assignmentT *item, ST_Item *function) {
     }
 }
 
+// TODO: Do a propper check for passed builtin func parameters
 built_in_functionT get_built_in_function_by_key(int token_type) {
     for(int i = 0; i < BUILT_IN_FUNCTIONS_COUNT; i++) {
         if (token_type == built_in_functions[i].function_token_type) {

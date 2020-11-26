@@ -32,10 +32,8 @@ typedef struct method_param_struct {
  */
 typedef struct late_check_stackElem {
     stringT method_name;
-    int assignments_count;
     int parameters_count;
     int return_types_count;
-    method_param_structT *assignment_list_first;
     method_param_structT *parameters_list_first;
     method_param_structT *return_types_list_first;
     struct late_check_stackElem *next;
@@ -88,14 +86,15 @@ void late_check_stack_pop(late_check_stack *s);
  * @param late_check_param_list Late check parameters list
  * @param symtable_param_list Symtable parameters list
  */
-bool compare_param_lists(method_param_structT *late_check_param_list, st_function_data_param_structT *symtable_param_list);
+bool param_lists_match(method_param_structT *late_check_param_list, st_function_data_param_structT *symtable_param_list);
+bool return_lists_match(method_param_structT *late_check_param_list, st_function_data_param_structT *symtable_param_list);
 
 /**
  * @brief Executes function declaration semantic check for every function call in stack
  * @param late_check_s Late check stack with function call records
  * @param global_symtable Global symtable in which to search for function declaration
  */
-void check_semantic_for_methods_call(late_check_stack *late_check_s, Symtable *global_symtable);
+int check_semantic_for_methods_call(late_check_stack *late_check_s, Stack *st_stack);
 
 /**
  * @brief Frees late check stack item structure
@@ -127,9 +126,6 @@ late_check_stack_item* late_check_stack_search(late_check_stack *s, stringT *met
  * @param list pointer at left assignment list of params
  */
 void late_check_stack_item_create_assignment_list(late_check_stack_item *item, assignment_paramT *list);
-
-
-void late_check_stack_item_add_assignment_param(late_check_stack_item *item, Data_type data_type);
 
 /**
  * @brief Creates function parameters and chains them in the stack_item
