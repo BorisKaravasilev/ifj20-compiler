@@ -473,18 +473,20 @@ int expr(scannerT *ptr_scanner, tokenT token[], bool two_tokens, int *result_dat
     }
 
     // SEMANTIC
-    switch (expr_result_token.token_type) {
-        case EXPRESSION_INT:
-            *result_data_type = TYPE_INT;
-            break;
-        case EXPRESSION_FLOAT64:
-            *result_data_type = TYPE_DECIMAL;
-            break;
-        case EXPRESSION_STRING:
-            *result_data_type = TYPE_STRING;
-            break;
-        default:
-            break;
+    if (result_data_type != NULL) {
+        switch (expr_result_token.token_type) {
+            case EXPRESSION_INT:
+                *result_data_type = TYPE_INT;
+                break;
+            case EXPRESSION_FLOAT64:
+                *result_data_type = TYPE_DECIMAL;
+                break;
+            case EXPRESSION_STRING:
+                *result_data_type = TYPE_STRING;
+                break;
+            default:
+                break;
+        }
     }
     // SEMANTIC END
 
