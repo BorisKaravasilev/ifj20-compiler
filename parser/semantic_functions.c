@@ -7,7 +7,7 @@
  * @date 9. 11. 2020
  */
 
-#include "token_functions.h"
+#include "../scanner/token_functions.h"
 #include "semantic_functions.h"
 
 void assignment_struct_init(assignmentT *s) {
