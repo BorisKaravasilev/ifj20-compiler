@@ -20,32 +20,31 @@
 #include "string_functions.h"
 #include "token_functions.h"
 
+typedef struct token_list_itemT token_list_itemT;
+
 ///Structure for saving tokens
-typedef struct tTkn
+struct token_list_itemT
 {
     tokenT token;           //Token itself
-    struct tTkn *next;      //Pointer to the next instruction int the list
-}*tToken;
+    token_list_itemT *next;      //Pointer to the next instruction int the list
+};
 
 ///Structure list of tokens
 typedef struct
 {
-    tToken First;           //Pointer to the first token in the list
-}tListToken;
+    token_list_itemT *first;           //Pointer to the first token in the list
+}token_listT;
 
 /**
  * Heads of functions
  */
 ///Function for initialize list of tokens
-void list_token_initialize(tListToken *list_of_tokens);
-
-///Function that mallocs token structure
-tToken token_structure_init(tToken tkn, tokenT token_itself);
+void token_list_initialize(token_listT *list_of_tokens);
 
 ///Function for adding new token to the end of the list of tokens
-bool add_token_to_list(tListToken *list_of_tokens, int token);
+bool token_list_add_item(token_listT *list_of_tokens, tokenT *token_to_add);
 
 ///Function for disposing the whole list of tokens
-void dispose_list_of_tokens(tListToken *list_of_tokens);
+void token_list_free(token_listT *list_of_tokens);
 
 #endif //IFJ_PROJEKT_TOKEN_STRUCTURE_H

@@ -127,7 +127,7 @@ void expr_to_postfix (tListToken* in_expr, tListToken* out_list) {
     s_push(&stack, left_par_token); // pushnuti leve zavorky do stacku
 
     tToken p;
-    tToken item = in_expr->First;
+    tToken item = in_expr->first;
 
     while (item->token != TOKEN_EXPRESSION_END) {
         if (item->token == TOKEN_LEFT_BRACKET) {
@@ -167,7 +167,7 @@ void expr_to_postfix (tListToken* in_expr, tListToken* out_list) {
 }
 
 void infix_to_postfix (tListToken* inf_expr, tListToken* post_expr) {
-    tToken item = inf_expr->First;
+    tToken item = inf_expr->first;
     tListToken expr_list;
     list_token_initialize(&expr_list);
 

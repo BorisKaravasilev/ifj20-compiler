@@ -35,4 +35,6 @@ add_executable(ifj20_compiler
         scanner/token_functions.c
         scanner/token_functions.h
         scanner/token_types.h
+        scanner/token_linked_list.c
+        scanner/token_linked_list.h
         ifj20-compiler.c generator/generator.c generator/generator.h)
