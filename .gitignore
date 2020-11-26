@@ -4,3 +4,7 @@
 *.exe
 *.stackdump
 /cmake-*
+/ifj-testsuite/log
+/ifj-testsuite/outputs
+/ifj-testsuite/.vscode
+/ifj-testsuite/__pycache__

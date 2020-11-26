@@ -3,6 +3,7 @@ CFLAGS=-std=gnu99 -Wall -Wextra -pedantic
 LFLAGS=-lpthread
 BIN=ifj20-compiler
 SOURCE_FOLDERS = $(wildcard general/*.c) \
+                 $(wildcard generator/*.c) \
                  $(wildcard parser/*.c) \
                  $(wildcard scanner/*.c) \
                  $(wildcard *.c)
