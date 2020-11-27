@@ -299,7 +299,14 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
             }
 
             if (token[token_index].token_type == TOKEN_IDENTIFIER){
-                // TODO P semantic action for id
+                ST_Item *symbol;
+                if ((symbol = stack_search(&ptr_scanner->st_stack, &token[token_index].attribute.string_val)) == NULL) {
+                    fprintf(stderr, "Error: Undefined variable \'%s\'", token[token_index].attribute.string_val.string);
+                    return RC_SEMANTIC_IDENTIFIER_ERR;
+                } else if (symbol->type != TYPE_INT) {
+                    fprintf(stderr, "Error: Invalid parameter type supplied to \'%s\'", token[token_index].attribute.string_val.string);
+                    return RC_SEMANTIC_FUNC_PARAM_ERR;
+                }
             }
             else if (token[token_index].token_type != TOKEN_INTEGER_LITERAL){
                 err_print("int or id", token[token_index].token_type);
@@ -691,6 +698,7 @@ int expr(scannerT *ptr_scanner, tokenT token[], bool two_tokens, int *result_dat
 /*
  * An individual assignment (without function calls)
  */
+// TODO Possible change: add bool param to tell if to assign or not
 int assign_nofunc(scannerT *ptr_scanner, tokenT token[]){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // id, item or expression
@@ -798,6 +806,8 @@ int assign(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic_type
     if (tmp_result == SYNTAX_OK) {
         assignment_add_built_in_function(&assignment_check_struct, built_in_func_type_token);
         return SYNTAX_OK;
+    } else if (tmp_result != RC_SYN_ERR) {
+        return tmp_result;
     }
 
     if (token[token_index].token_type == TOKEN_IDENTIFIER){
@@ -1031,10 +1041,9 @@ int id_command(scannerT *ptr_scanner, tokenT token[]){
                 was_expr = false;
             }
             if (tmp_result == SYNTAX_OK) {
-                assignment_derive_id_type(&assignment_check_struct);
+                return assignment_derive_id_type(&assignment_check_struct);
             }
 
-            //assignment_struct_empty(&assignment_check_struct);
             return tmp_result;
         
         case TOKEN_EQUAL:
@@ -1078,12 +1087,12 @@ int id_command(scannerT *ptr_scanner, tokenT token[]){
             if (tmp_result != SYNTAX_OK)
                 return tmp_result;
 
-            result = assign_list(ptr_scanner, token, &proceed_semantic_check);
+            tmp_result = assign_list(ptr_scanner, token, &proceed_semantic_check);
             //TODO SEMANTIC: add skip param check
-            if (result == SYNTAX_OK && !proceed_semantic_check) {
+            if (tmp_result == SYNTAX_OK && !proceed_semantic_check) {
                 return compare_left_right_params(assignment_check_struct.left_side_types_list_first, assignment_check_struct.right_side_types_list_first);
             }
-            return result;
+            return tmp_result;
 
         default:
             err_print(":=, =, ( or ,", token[token_index].token_type);
@@ -1196,11 +1205,11 @@ int cycle_init(scannerT *ptr_scanner, tokenT token[]){
  */
 int command(scannerT *ptr_scanner, tokenT token[]){
     // probably shouldn't get token here, since parser already has it from cmd_list
+    assignment_struct_empty(&assignment_check_struct);
 
     switch (token[token_index].token_type){
         case TOKEN_IDENTIFIER:
             tmp_result = id_command(ptr_scanner, token);
-            assignment_struct_empty(&assignment_check_struct);
             return tmp_result;
 
         case TOKEN_KEYWORD_IF:
@@ -1585,5 +1594,9 @@ int parse(scannerT *ptr_scanner, tokenT token[]){
         return RC_SYN_ERR;
     }
 
-    return program(ptr_scanner, token);
+    tmp_result = program(ptr_scanner, token);
+    if (tmp_result == SYNTAX_OK) {
+        return check_semantic_for_methods_call(&semantic_late_check_stack, &ptr_scanner->st_stack);
+    }
+    return tmp_result;
 }
