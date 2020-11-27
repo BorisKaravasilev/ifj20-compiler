@@ -1,0 +1,70 @@
+// Programy 1, 2 a 3 ze zadani dohromady
+package main
+
+func factorial(n int) (int) {
+    dec_n := n - 1
+    if n < 2 {
+        return 1
+    } else {
+        tmp := 0
+        tmp = factorial(dec_n) // TODO: left right side assignment semantic check + with built in and user functions
+        return n * tmp // TODO: Check for returning types - should match function definition
+    }
+}
+
+func main() {
+    // Program 1
+	print("Zadejte cislo pro vypocet faktorialu: ")
+    a := 0
+    a, _ = inputi()
+    if a < 0 {
+        print("Faktorial nejde spocitat!\n")
+    } else {
+        vysl := 1
+        for ; a > 0; a = a - 1 {
+            vysl = vysl * a
+        }
+        print("Vysledek je ", vysl,"\n")
+    }
+
+
+    // Program 2
+    print("Zadejte cislo pro vypocet faktorialu: ")
+    b := 0
+    err := 0
+    b, err = inputi() // TODO: multiple id assignment
+    if err == 0 {
+        if b < 0 {
+            print("Faktorial nejde spocitat!", "\n")
+        } else {
+            vysl := 0
+            vysl = factorial(b) // TODO: integrate function call late check
+            print("Vysledek je ", vysl, "\n")
+        }
+    } else {
+        print("Chyba pri nacitani celeho cisla!\n")
+    }
+
+
+    // Program 3
+    s1 := "Toto je nejaky text"
+    s2 := s1 + ", ktery jeste trochu obohatime"
+    print(s1, "\n", s2)
+    s1len := 0
+    s1len = len(s1)
+    s1len = s1len - 4
+    s1, _ = substr(s2, s1len, 4)
+    s1len = s1len + 1
+    print("4 znaky od", s1len, ". znaku v \"", s2, "\":", s1, "\n")
+    print("Zadejte serazenou posloupnost vsech malych pismen a-h, ")
+    print("pricemz se pismena nesmeji v posloupnosti opakovat: ")
+    err2 := 0
+    s1, err2 = inputs()
+    if err2 != 1 {
+        for ;s1 != "abcdefgh"; {
+            print("\n", "Spatne zadana posloupnost, zkuste znovu: ")
+            s1, _ = inputs()
+        }
+    } else {
+    }
+}
