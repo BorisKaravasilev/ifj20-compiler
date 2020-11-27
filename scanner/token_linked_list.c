@@ -3,6 +3,7 @@
  * @brief   This is an implementation of a functions for work with tokens in the list of tokens
  * @author  Robin Stancl <xstanc09@stud.fit.vutbr.cz>
  * @author  Dominik Vecera <xvecer23@stud.fit.vutbr.cz>
+ * @author Boris Karavasilev <xkarav01@stud.fit.vutbr.cz>
  */
 
 #include <stdbool.h>
@@ -10,21 +11,21 @@
 #include "token_linked_list.h"
 #include "scanner_functions.h"
 
-void token_list_create_item(token_list_itemT *new_item, tokenT *token);
+void token_list_item_set_token(token_list_itemT *new_item, tokenT *token);
 
-///Function for initialize list of tokens
+/// Token list initialization
 void token_list_initialize(token_listT *list_of_tokens)
 {
     list_of_tokens->first = NULL;
 }
 
-///Function for adding new token to the end of the list of tokens
+/// Adds item to token linked list
 bool token_list_add_item(token_listT *list_of_tokens, tokenT *token_to_add)
 {
     // List is empty
     if (list_of_tokens->first == NULL) {
         if ((list_of_tokens->first = (token_list_itemT*) malloc(sizeof(token_list_itemT))) != NULL) {
-            token_list_create_item(list_of_tokens->first, token_to_add);
+            token_list_item_set_token(list_of_tokens->first, token_to_add);
         }
     } else {
         // Not empty
@@ -38,12 +39,14 @@ bool token_list_add_item(token_listT *list_of_tokens, tokenT *token_to_add)
         }
 
         if ((token_list_last_item->next = (token_list_itemT*) malloc(sizeof(token_list_itemT))) != NULL) {
-            token_list_create_item(token_list_last_item->next, token_to_add);
+            token_list_item_set_token(token_list_last_item->next, token_to_add);
         }
     }
 }
 
-void token_list_create_item(token_list_itemT *new_item, tokenT *token) {
+// Private function
+/// Copies token content into list item
+void token_list_item_set_token(token_list_itemT *new_item, tokenT *token) {
     // Allocate memory for new item
     if (new_item != NULL) {
         // Initialize and copy content
@@ -53,7 +56,7 @@ void token_list_create_item(token_list_itemT *new_item, tokenT *token) {
     }
 }
 
-///Function for disposing the whole list of tokens
+/// Function for disposing the whole list of tokens
 void token_list_free(token_listT *list_of_tokens)
 {
     token_list_itemT *list_item_to_free = list_of_tokens->first;

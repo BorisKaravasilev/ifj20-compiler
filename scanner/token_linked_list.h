@@ -22,29 +22,22 @@
 
 typedef struct token_list_itemT token_list_itemT;
 
-///Structure for saving tokens
+/// Structure list item
 struct token_list_itemT
 {
-    tokenT token;           //Token itself
-    token_list_itemT *next;      //Pointer to the next instruction int the list
+    tokenT token;               // Token itself
+    token_list_itemT *next;     // Pointer to the next item
 };
 
-///Structure list of tokens
+/// Structure list of tokens
 typedef struct
 {
-    token_list_itemT *first;           //Pointer to the first token in the list
+    token_list_itemT *first;    // Pointer to the first item in the list
 }token_listT;
 
-/**
- * Heads of functions
- */
-///Function for initialize list of tokens
+// Function prototypes
 void token_list_initialize(token_listT *list_of_tokens);
-
-///Function for adding new token to the end of the list of tokens
 bool token_list_add_item(token_listT *list_of_tokens, tokenT *token_to_add);
-
-///Function for disposing the whole list of tokens
 void token_list_free(token_listT *list_of_tokens);
 
 #endif //IFJ_PROJEKT_TOKEN_STRUCTURE_H

@@ -12,7 +12,7 @@
 #define PRODUCTION false
 
 // If detects Linux or Unix (Merlin), takes input from stdin
-#if __linux__ || __unix__
+#if __linux__
 #define MERLIN true
 #define PRINT_DEBUG_TO stderr  // in CLion stderr order is random
 #else
