@@ -4,10 +4,10 @@
  * @author  Dominik Vecera <xvecer23@stud.fit.vutbr.cz>
  * @author  Petr Vrtal <xvrtal01@stud.fit.vutbr.cz>
  * @author  Robin Stancl <xstanc09@stud.fit.vutbr.cz>
- */
+ *//*
+
 
 #include "infix2postfix.h"
-#include "orient_express.h"
 
 void s_init (tStack* s) {
     if (s != NULL) {
@@ -15,7 +15,7 @@ void s_init (tStack* s) {
 
         int i;
         for (i = 0; i < STACK_SIZE; i++) {
-            s->arr[i] = NULL;
+            token_init(&s->arr[i]);
         }
     }
 }
@@ -28,31 +28,32 @@ int s_full (const tStack* s) {
     return (s->top >= STACK_SIZE - 1) ? 1 : 0;
 }
 
-tToken s_top (const tStack* s) {
+tokenT *s_top (const tStack* s) {
     if (!s_empty(s)) {
-        return s->arr[s->top];
+        return &s->arr[s->top];
     }
     return NULL;
 }
 
-tToken s_pop (tStack* s) {
+// TODO: fix
+tokenT s_pop (tStack* s) {
     if (!s_empty(s)) {
-        tToken temp = s_top(s);
+        tokenT *temp = s_top(s);
         s->top--;
         return temp;
     }
     return NULL;
 }
 
-void s_push (tStack* s, tToken t) {
+void s_push (tStack* s, tokenT t) {
     if (!s_full(s)) {
         s->top++;
         s->arr[s->top] = t;
     }
 }
 
-bool is_operator (tToken t) {
-    switch(t->token) {
+bool is_operator (tokenT *t) {
+    switch(t->token_type) {
         case TOKEN_PLUS:
         case TOKEN_MINUS:
         case TOKEN_MULTIPLICATION:
@@ -70,8 +71,8 @@ bool is_operator (tToken t) {
     }
 }
 
-int priority (tToken t) {
-    switch(t->token) {
+int priority (tokenT *t) {
+    switch(t->token_type) {
         case TOKEN_MULTIPLICATION:
         case TOKEN_DIVISION:
             return 1;
@@ -93,8 +94,10 @@ int priority (tToken t) {
     }
 }
 
-int create_expr_list (tToken* start, tListToken* out_list, tToken last_token) {
-    tToken item = *start;
+*/
+/*
+int create_expr_list (tokenT* start, tListToken* out_list, tokenT last_token) {
+    tokenT item = *start;
     while (item->token != TOKEN_EXPRESSION_END) {
         if (item->token != TOKEN_EXPRESSION_BEGIN) {
             string_copy(&str, &item->token_string);
@@ -116,18 +119,21 @@ int create_expr_list (tToken* start, tListToken* out_list, tToken last_token) {
     add_token_to_list(out_list, item->token); // add back TOKEN_EXPR_END to the list for another loop
     return 0;
 }
+*//*
 
-void expr_to_postfix (tListToken* in_expr, tListToken* out_list) {
+
+void expr_to_postfix (token_listT* in_expr, token_listT* out_list) {
     tStack stack; // vytvoreni a inicializace stacku
     s_init(&stack);
 
-    tToken left_par_token; // vytvorneni tokenu pro "("
-    left_par_token = token_init(left_par_token, TOKEN_LEFT_BRACKET);
+    tokenT left_par_token; // vytvorneni tokenu pro "("
+    token_init(&left_par_token);
+    left_par_token.token_type = TOKEN_LEFT_BRACKET;
 
     s_push(&stack, left_par_token); // pushnuti leve zavorky do stacku
 
-    tToken p;
-    tToken item = in_expr->first;
+    tokenT p;
+    tokenT item = in_expr->first;
 
     while (item->token != TOKEN_EXPRESSION_END) {
         if (item->token == TOKEN_LEFT_BRACKET) {
@@ -166,8 +172,10 @@ void expr_to_postfix (tListToken* in_expr, tListToken* out_list) {
     add_token_to_list(out_list, TOKEN_EXPRESSION_END);
 }
 
+*/
+/*
 void infix_to_postfix (tListToken* inf_expr, tListToken* post_expr) {
-    tToken item = inf_expr->first;
+    tokenT item = inf_expr->first;
     tListToken expr_list;
     list_token_initialize(&expr_list);
 
@@ -177,7 +185,7 @@ void infix_to_postfix (tListToken* inf_expr, tListToken* post_expr) {
             string_copy(&str, &item->token_string);
             add_token_to_list(post_expr, item->token); // vlozime zpět TOKEN_EXPR_BEGIN
 
-            tToken last = token_init(last, TOKEN_PLUS);
+            tokenT last = token_init(last, TOKEN_PLUS);
             int res = create_expr_list(&item, &expr_list, last);
             if (res != 0) {
                 break;
@@ -192,4 +200,4 @@ void infix_to_postfix (tListToken* inf_expr, tListToken* post_expr) {
     }
 
     dispose_list_of_tokens(&expr_list);
-}
+}*/

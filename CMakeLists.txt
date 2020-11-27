@@ -26,6 +26,8 @@ add_executable(ifj20_compiler
         parser/semantic_functions.h
         parser/parser.c
         parser/parser.h
+        parser/infix2postfix.c
+        parser/infix2postfix.h
         scanner/finite_automata.c
         scanner/finite_automata.h
         scanner/scanner_functions.c
