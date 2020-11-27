@@ -117,6 +117,8 @@ void assignment_add_user_function(assignmentT *item, ST_Item *function);
  */
 void assignment_add_built_in_function(assignmentT *item, int function_token);
 
+int check_builtin_func_param_type_at_index(built_in_functionT *builtin_func, int index, Data_type type);
+
 static const built_in_functionT built_in_functions[BUILT_IN_FUNCTIONS_COUNT] = {
         {
                 .function_token_type = TOKEN_FUNCTION_INPUTS,

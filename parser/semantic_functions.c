@@ -107,9 +107,8 @@ int assignment_derive_id_type(assignmentT *s) {
     return SEMANTIC_OK;
 }
 
-void assignment_add_identifier(assignmentT *item, int token_type,
-                               ST_Item *st_item) {
-    if (item == NULL || st_item == NULL) {
+void assignment_add_identifier(assignmentT *item, int token_type, ST_Item *st_item){
+    if (item == NULL) {
         return;
     }
 
@@ -217,6 +216,23 @@ built_in_functionT get_built_in_function_by_key(int token_type) {
     }
 }
 
+Data_type get_data_type_from_char(char ch) {
+    switch (ch) {
+        case 'i':
+            return TYPE_INT;
+            break;
+        case 'f':
+            return TYPE_DECIMAL;
+            break;
+        case 's':
+            return TYPE_STRING;
+            break;
+        default:
+            return TYPE_ERROR;
+            break;
+    }
+}
+
 void assignment_add_built_in_function(assignmentT *item, int function_token) {
     if (item == NULL) {
         return;
@@ -224,21 +240,8 @@ void assignment_add_built_in_function(assignmentT *item, int function_token) {
 
     built_in_functionT function = get_built_in_function_by_key(function_token);
 
-    for (int i = 0; i < function.return_types_count; i++) {
-        Data_type return_type;
-        switch (function.return_types[i]) {
-            case 'i':
-                return_type = TYPE_INT;
-                break;
-            case 'f':
-                return_type = TYPE_DECIMAL;
-                break;
-            case 's':
-                return_type = TYPE_STRING;
-                break;
-            default:
-                break;
-        }
+    for(int i = 0; i < function.return_types_count; i++) {
+        Data_type return_type = get_data_type_from_char(function.return_types[i]);
 
         assignment_paramT *new_expr;
         if ((new_expr = (assignment_paramT *)malloc(
@@ -260,4 +263,10 @@ void assignment_add_built_in_function(assignmentT *item, int function_token) {
             current->next = new_expr;
         }
     }
+}
+
+// TODO: Complete
+int check_builtin_func_param_type_at_index(built_in_functionT *builtin_func, int index, Data_type type) {
+
+    return SEMANTIC_OK;
 }
