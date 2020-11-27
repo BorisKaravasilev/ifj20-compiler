@@ -2,5 +2,5 @@
 package main
 
 func main() {
-    print("Ahoj \n 2test \\ testik\t")
+    print("Ahoj \n 2test\" \\ testik\t")
 }

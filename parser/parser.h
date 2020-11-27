@@ -23,7 +23,7 @@
 
 void err_print(char *str, int token_type);
 
-int id(scannerT *ptr_scanner, tokenT token[]);
+int id(scannerT *ptr_scanner, tokenT token[], bool assign_allowed);
 int literal(scannerT *ptr_scanner, tokenT token[], int *item_type);
 int item(scannerT *ptr_scanner, tokenT token[], int *item_type);
 int print_next(scannerT *ptr_scanner, tokenT token[]);
@@ -31,8 +31,8 @@ int print(scannerT *ptr_scanner, tokenT token[]);
 int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type);
 int expr(scannerT *ptr_scanner, tokenT token[], bool two_tokens, int *result_data_type);
 int assign(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic_type_check);
-int assign_next(scannerT *ptr_scanner, tokenT token[]);
-int assign_list(scannerT *ptr_scanner, tokenT token[]);
+int assign_next(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic_type_check);
+int assign_list(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic_type_check);
 int assign_nofunc(scannerT *ptr_scanner, tokenT token[]);
 int assign_nofunc_next(scannerT *ptr_scanner, tokenT token[]);
 int assign_nofunc_list(scannerT *ptr_scanner, tokenT token[]);

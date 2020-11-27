@@ -166,7 +166,7 @@ void check_eol_after_token(scannerT *s, eol_flagE eol_flag) {
 
 void add_string_sym_to_token(tokenT *ptr_token, fa_stepT *step) {
     static bool is_string_start = true;
-    bool is_string_end = *step->curr_state != STATE_STRING;
+    bool is_string_end = *step->curr_state == TOKEN_STRING_LITERAL;
 
     if (is_string_start) {
         debug_scanner("curr_sym: ASCII(%d) => '%c' [STRING START]\n", *step->curr_sym, *step->curr_sym);
