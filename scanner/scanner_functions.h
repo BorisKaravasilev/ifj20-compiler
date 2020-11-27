@@ -22,7 +22,7 @@ typedef struct {
     file_positionT file_pos;// Position of last read character by scanner
     finite_automataT fa;    // Finite automaton
     Stack st_stack;         // Stack of symbol tables representing different scopes
-    bool required_eol_found;// Indicates if EOL required by EOL flag has been found in non-printable chars before token
+    bool required_eol_found;// Indicates if EOL required by EOL flag has been found in non-printable chars after token
     char curr_sym;          // Last read symbol from input file
     bool use_previous_sym;  // Use 'curr_sym' value from last reading before reading new symbol
 } scannerT;

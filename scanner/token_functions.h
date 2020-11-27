@@ -35,5 +35,6 @@ void debug_token(tokenT *ptr_token, int token_index);
 
 int keyword_check(tokenT *ptr_token);
 int function_word_check (tokenT *ptr_token);
+void copy_token(tokenT *t_dst, tokenT *t_src);
 
 #endif //IFJ20_COMPILER_TOKEN_FUNCTIONS_H

@@ -13,7 +13,7 @@
 #include <string.h>
 #include "symtable.h"
 #include "return_codes.h"
-#include "../scanner/token_types.h"
+#include "token_types.h"
 
 #define BUILT_IN_FUNCTIONS_COUNT 10
 

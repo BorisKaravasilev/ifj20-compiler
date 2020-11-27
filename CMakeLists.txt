@@ -26,6 +26,8 @@ add_executable(ifj20_compiler
         parser/semantic_functions.h
         parser/parser.c
         parser/parser.h
+        parser/infix2postfix.c
+        parser/infix2postfix.h
         scanner/finite_automata.c
         scanner/finite_automata.h
         scanner/scanner_functions.c
@@ -38,4 +40,6 @@ add_executable(ifj20_compiler
         scanner/token_functions.c
         scanner/token_functions.h
         scanner/token_types.h
+        scanner/token_linked_list.c
+        scanner/token_linked_list.h
         ifj20-compiler.c generator/generator.c generator/generator.h)

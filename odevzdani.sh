@@ -1,3 +1,5 @@
+# Parameters given to this script will be propagated to 'testsuite.py'
+
 LOGIN="xkarav01"
 TMP_COMPILER_FOLDER="tmp_testing_folder"
 
@@ -17,4 +19,4 @@ COMPILER_PATH=${COMPILER_BUILD_FOLDER}/ifj20-compiler
 
 # Run testsuite
 cd ./ifj-testsuite
-python2 testsuite.py --compiler ../${COMPILER_PATH}
+python2 testsuite.py --compiler ../${COMPILER_PATH} ${@}
