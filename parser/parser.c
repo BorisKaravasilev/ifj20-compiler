@@ -1078,12 +1078,12 @@ int id_command(scannerT *ptr_scanner, tokenT token[]){
             if (tmp_result != SYNTAX_OK)
                 return tmp_result;
 
-            result = assign_list(ptr_scanner, token, &proceed_semantic_check);
+            tmp_result = assign_list(ptr_scanner, token, &proceed_semantic_check);
             //TODO SEMANTIC: add skip param check
-            if (result == SYNTAX_OK && !proceed_semantic_check) {
+            if (tmp_result == SYNTAX_OK && !proceed_semantic_check) {
                 return compare_left_right_params(assignment_check_struct.left_side_types_list_first, assignment_check_struct.right_side_types_list_first);
             }
-            return result;
+            return tmp_result;
 
         default:
             err_print(":=, =, ( or ,", token[token_index].token_type);
