@@ -11,7 +11,7 @@
 // Turns off all debugging prints
 #define PRODUCTION false
 
-// If detects Linux or Unix (Merlin), takes input from stdin
+// Detects Linux (Merlin) -> takes input from stdin, prints debug to stderr
 #if __linux__
 #define MERLIN true
 #define PRINT_DEBUG_TO stderr  // in CLion stderr order is random
