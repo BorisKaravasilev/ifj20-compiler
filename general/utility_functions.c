@@ -34,6 +34,11 @@ void update_file_position(file_positionT *file_pos, char curr_sym) {
     }
 }
 
+// Prints general error message and current position in input file
+void print_error(file_positionT *file_pos, char *error_type_name) {
+    fprintf(stderr, "\n%s error detected [line: %d char: %d]\n", error_type_name, file_pos->line_number, file_pos->line_char_position);
+}
+
 // Prints lexical error message and current position in input file
 void print_lex_error(file_positionT *file_pos, char curr_sym) {
     if (curr_sym == '\r') {
@@ -46,7 +51,14 @@ void print_lex_error(file_positionT *file_pos, char curr_sym) {
     fprintf(stderr, "Lexical error detected [line: %d char: %d]\n", file_pos->line_number, file_pos->line_char_position);
 }
 
-// Prints lexical error message and current position in input file
-void print_syntax_error(file_positionT *file_pos) {
-    fprintf(stderr, "\nSyntax error detected [line: %d char: %d]\n", file_pos->line_number, file_pos->line_char_position);
+void print_error_message_by_code(int return_code, file_positionT *file_position) {
+    if (return_code == RC_SYN_ERR) {
+        print_error(file_position, "Syntax");
+    } else if (return_code >= 3 && return_code <= 7) {
+        print_error(file_position, "Semantic");
+    } else if (return_code == RC_ZERO_DIVISION_ERR) {
+        print_error(file_position, "Zero division");
+    } else if (return_code == RC_RUN_ERR) {
+        print_error(file_position, "Runtime");
+    }
 }

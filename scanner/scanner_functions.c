@@ -124,7 +124,7 @@ void update_eol_found_in_skip_sym(scannerT *s, eol_flagE eol_flag) {
     }
     if (eol_flag == FORBIDDEN) {
         if (s->curr_sym == EOL) {
-            print_syntax_error(&s->file_pos);
+            print_error(&s->file_pos, "Syntax");
             fprintf(stderr, "Unexpected end of line.\n");
             exit(RC_SYN_ERR); // Exit program with syntax error
         }
@@ -135,7 +135,7 @@ void update_eol_found_in_skip_sym(scannerT *s, eol_flagE eol_flag) {
 void check_required_eol_found(scannerT *s, eol_flagE eol_flag) {
     if (eol_flag == REQUIRED) {
         if (!s->required_eol_found) {
-            print_syntax_error(&s->file_pos);
+            print_error(&s->file_pos, "Syntax");
             fprintf(stderr, "Required end of line not found.\n");
             exit(RC_SYN_ERR); // Exit program with syntax error
         }
@@ -181,7 +181,7 @@ void add_string_sym_to_token(tokenT *ptr_token, fa_stepT *step) {
 }
 
 // Executes a transition of finite automaton, adds symbol to token and updates current state
-void fa_execute_step(scannerT *s, tokenT *ptr_token, fa_stepT *step, eol_flagE eol_flag) {
+void fa_execute_step(scannerT *s, tokenT *ptr_token, fa_stepT *step) {
     // Clears token if it contains comment
     bool end_of_comment = is_end_of_comment(ptr_token, *step->curr_state, *step->next_state);
 
@@ -230,7 +230,7 @@ bool scan_token(scannerT *s, tokenT *ptr_token, eol_flagE eol_flag) {
         // Can transition to next state
         if (next_state != ERROR_NO_NEXT_STATE) {
             // Update current state + add symbol to token
-            fa_execute_step(s, ptr_token, &fa_step, eol_flag);
+            fa_execute_step(s, ptr_token, &fa_step);
         } else {
             // Can't transition to next state
             s->use_previous_sym = true; // Ensures reading of last character that belongs to next token

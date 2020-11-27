@@ -8,6 +8,7 @@
  */
 
 #include "parser.h"
+#include "debugging.h"
 
 int token_index = 0, tmp_result = 0;
 bool was_expr = false, unget_token = false;
@@ -20,7 +21,7 @@ late_check_stack semantic_late_check_stack;
 /*
     puts("-----------------------------------");
     for (int i = 0; i < TOKEN_ARRAY_LEN; i++)
-        printf("%d: %d\n", i, token[i].token_type);
+        debug_parser("%d: %d\n", i, token[i].token_type);
     puts("-----------------------------------");
  */
 
@@ -491,13 +492,13 @@ int expr(scannerT *ptr_scanner, tokenT token[], bool two_tokens, int *result_dat
     puts("\nEntering expression analysis\n");   // TODO D remove
     if (two_tokens){
         tmp_result = expr_check(&token[token_index - 1], &token[token_index], &last_expr_token, &expr_result_token, ptr_scanner);
-        printf("\nExited expression analysis with %d.\n", tmp_result);   // TODO D remove
+        debug_parser("\nExited expression analysis with %d.\n", tmp_result);   // TODO D remove
         if (tmp_result != SYNTAX_OK)
             return tmp_result;
     }
     else {
         tmp_result = expr_check(NULL, &token[token_index], &last_expr_token, &expr_result_token, ptr_scanner);
-        printf("\nExited expression analysis with %d.\n", tmp_result);   // TODO D remove
+        debug_parser("\nExited expression analysis with %d.\n", tmp_result);   // TODO D remove
         if (tmp_result != SYNTAX_OK)
             return tmp_result;
     }
@@ -815,7 +816,7 @@ int id_command(scannerT *ptr_scanner, tokenT token[]){
     int result;
     bool skip_semantic_check = false;
 
-    printf("Entering id_command, current token: %d\n", token[token_index].token_type); // TODO D rm
+    debug_parser("Entering id_command, current token: %d\n", token[token_index].token_type); // TODO D rm
 
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // :=, =, ( or ,
 
@@ -960,7 +961,7 @@ int cycle_init(scannerT *ptr_scanner, tokenT token[]){
  */
 int command(scannerT *ptr_scanner, tokenT token[]){
     // probably shouldn't get token here, since parser already has it from cmd_list
-    printf("\n\nEntering command w/ token type %d.\n\n", token[token_index].token_type); // TODO D rm
+    debug_parser("\n\nEntering command w/ token type %d.\n\n", token[token_index].token_type); // TODO D rm
 
     switch (token[token_index].token_type){
         case TOKEN_IDENTIFIER:
@@ -1056,7 +1057,7 @@ int command_list(scannerT *ptr_scanner, tokenT token[]){
         unget_token = false;
     }
 
-    printf("\n\nEntering command_list w/ token type %d.\n\n", token[token_index].token_type); // TODO D rm
+    debug_parser("\n\nEntering command_list w/ token type %d.\n\n", token[token_index].token_type); // TODO D rm
 
     if (token[token_index].token_type == TOKEN_RIGHT_CURLY_BRACE){
         return SYNTAX_OK;

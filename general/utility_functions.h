@@ -16,7 +16,8 @@ typedef struct {
 
 FILE *get_input_file(bool enabled, char *file_name);
 void update_file_position(file_positionT *file_pos, char curr_sym);
+void print_error(file_positionT *file_pos, char *error_type_name);
 void print_lex_error(file_positionT *file_pos, char curr_sym);
-void print_syntax_error(file_positionT *file_pos);
+void print_error_message_by_code(int return_code, file_positionT *file_position);
 
 #endif //IFJ20_COMPILER_UTILITY_FUNCTIONS_H

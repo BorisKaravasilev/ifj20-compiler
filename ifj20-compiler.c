@@ -34,7 +34,10 @@ int main(int argc, char** argv) {
     int return_code = parse(&scanner, token);
 
     if (return_code != 0)
+    {
+        print_error_message_by_code(return_code, &scanner.file_pos);
         return return_code;
+    }
 
     // FREE ALL ALLOCATED MEMORY
     token_array_free(token, TOKEN_ARRAY_LEN);

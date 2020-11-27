@@ -1,5 +1,6 @@
-// Program 1: Vypocet faktorialu (iterativne)
+// Test escape in string
 package main
 
-ab cd
-fg h  + 12
+func main() {
+    print("Ahoj \n 2test \\ testik\t")
+}

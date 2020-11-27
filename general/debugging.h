@@ -42,7 +42,7 @@
 
 // Switches for debugging prints for separate parts (you can add more)
 #define DEBUG_SCANNER true && !PRODUCTION
-#define DEBUG_PARSER false && !PRODUCTION
+#define DEBUG_PARSER true && !PRODUCTION
 
 #define IS_INPUT_FROM_FILE true && !MERLIN  // Input from file or stdin
 
