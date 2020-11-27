@@ -434,6 +434,7 @@ void init_finite_automata(finite_automataT* fa) {
     fa->rules[SKIP_SYM_RULE_INDEX].transition_ranges[0].single_char = ' ';
     fa->rules[SKIP_SYM_RULE_INDEX].transition_ranges[1].single_char = '\r'; // For Windows EOL support
     fa->rules[SKIP_SYM_RULE_INDEX].transition_ranges[2].single_char = '\n';
+    fa->rules[SKIP_SYM_RULE_INDEX].transition_ranges[3].single_char = '\t';
     //TODO Maybe other white space characters?
 
 }
