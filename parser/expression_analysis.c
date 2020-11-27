@@ -8,6 +8,7 @@
 
 #include "expression_analysis.h"
 #include "token_types.h"
+#include "token_linked_list.h"
 
 ///The function for check if the token is an operator -,*,<,>,<=,>=
 int operator_check(tokenT *ptr_tok_num)
@@ -27,12 +28,10 @@ int operator_check(tokenT *ptr_tok_num)
 ///The parsing function for the expressions (detailed description can be found in the "expression_analysis.h")
 int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *ptr_last_token, tokenT *ptr_expr_data_and_type, scannerT *scanner)
 {
-    //TODO: Maybe change to dynamically allocated array in the future
-    tokenT tokens_of_expression[TOKEN_ARRAY_LEN];
-    token_array_init(tokens_of_expression, TOKEN_ARRAY_LEN);
+    token_listT token_list;
+    token_list_initialize(&token_list);
 
     switch_case = 0;
-    number_of_token = 0;
     number_of_brackets = 0;
 
     ptr_expr_data_and_type->token_type = EXPRESSION_NO_TYPE;
@@ -49,13 +48,8 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
         ///Now we change ptr_expr_data_and_type.token_type to identifier data type
         ptr_expr_data_and_type->token_type = ptr_identifier_token->token_type;
         ///Now we have to add this identifier token to the list of tokens
-        if (number_of_token > TOKEN_ARRAY_LEN)
-        {
-            token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
-            return RC_RUN_ERR;
-        }
-        tokens_of_expression[number_of_token] = *ptr_identifier_token;
-        number_of_token++;
+
+        token_list_add_item(&token_list, ptr_identifier_token);
     }
 
     ///Now let`s make a loop with always true condition where we will go through the expression itself
@@ -78,23 +72,17 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                     is_it_first_token_of_expression++;
                 }
                 ///We save the token to the structure of tokens
-                if (number_of_token > TOKEN_ARRAY_LEN)
-                {
-                    token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
-                    return RC_RUN_ERR;
-                }
-                tokens_of_expression[number_of_token] = *ptr_last_token;
-                number_of_token++;
+                token_list_add_item(&token_list, ptr_last_token);
 
                 ///What is first token?
                 if (ptr_last_token->token_type == RC_LEX_ERR)
                 {
-                    token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                    token_list_free(&token_list);
                     return RC_LEX_ERR;
                 }
                 else if (ptr_last_token->token_type == RC_RUN_ERR)
                 {
-                    token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                    token_list_free(&token_list);
                     return RC_RUN_ERR;
                 }
                 else if (ptr_last_token->token_type == TOKEN_LEFT_BRACKET)
@@ -112,7 +100,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                     }
                     else
                     {
-                        token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                        token_list_free(&token_list);
                         return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
                     }
                 }
@@ -130,7 +118,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                         }
                         else
                         {
-                            token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                            token_list_free(&token_list);
                             return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
                         }
                     }
@@ -143,13 +131,13 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                         }
                         else
                         {
-                            token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                            token_list_free(&token_list);
                             return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
                         }
                     }
                     else
                     {
-                        token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                        token_list_free(&token_list);
                         return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
                     }
                 }
@@ -168,7 +156,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                         }
                         else
                         {
-                            token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                            token_list_free(&token_list);
                             return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
                         }
                     }
@@ -182,7 +170,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                         }
                         else
                         {
-                            token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                            token_list_free(&token_list);
                             return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
                         }
                     }
@@ -196,19 +184,19 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                         }
                         else
                         {
-                            token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                            token_list_free(&token_list);
                             return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
                         }
                     }
                     else
                     {
-                        token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                        token_list_free(&token_list);
                         return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
                     }
                 }
                 else
                 {
-                    token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                    token_list_free(&token_list);
                     return RC_SYN_ERR;
                 }
             }
@@ -222,20 +210,20 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                 ///We save the token to the structure of tokens
                 if (number_of_token > TOKEN_ARRAY_LEN)
                 {
-                    token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                    token_list_free(&token_list);
                     return RC_RUN_ERR;
                 }
-                tokens_of_expression[number_of_token] = *ptr_last_token;
-                number_of_token++;
+                token_list_add_item(&token_list, ptr_last_token);
+
                 ///What is next token?
                 if (ptr_last_token->token_type == RC_LEX_ERR)
                 {
-                    token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                    token_list_free(&token_list);
                     return RC_LEX_ERR;
                 }
                 else if (ptr_last_token->token_type == RC_RUN_ERR)
                 {
-                    token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                    token_list_free(&token_list);
                     return RC_RUN_ERR;
                 }
                 else if (ptr_last_token->token_type == TOKEN_LEFT_BRACKET)
@@ -257,7 +245,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                         }
                         else
                         {
-                            token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                            token_list_free(&token_list);
                             return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
                         }
                     }
@@ -270,13 +258,13 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                         }
                         else
                         {
-                            token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                            token_list_free(&token_list);
                             return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
                         }
                     }
                     else
                     {
-                        token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                        token_list_free(&token_list);
                         return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
                     }
                 }
@@ -294,7 +282,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                         }
                         else
                         {
-                            token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                            token_list_free(&token_list);
                             return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
                         }
                     }
@@ -308,19 +296,19 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                         }
                         else
                         {
-                            token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                            token_list_free(&token_list);
                             return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
                         }
                     }
                     else
                     {
-                        token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                        token_list_free(&token_list);
                         return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
                     }
                 }
                 else
                 {
-                    token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                    token_list_free(&token_list);
                     return RC_SYN_ERR;
                 }
             }
@@ -334,25 +322,25 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                 ///We save the token to the structure of tokens
                 if (number_of_token > TOKEN_ARRAY_LEN)
                 {
-                    token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                    token_list_free(&token_list);
                     return RC_RUN_ERR;
                 }
-                tokens_of_expression[number_of_token] = *ptr_last_token;
-                number_of_token++;
+                token_list_add_item(&token_list, ptr_last_token);
+
                 ///What is the next token?
                 if (ptr_last_token->token_type == RC_LEX_ERR)
                 {
-                    token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                    token_list_free(&token_list);
                     return RC_LEX_ERR;
                 }
                 else if (ptr_last_token->token_type == RC_RUN_ERR)
                 {
-                    token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                    token_list_free(&token_list);
                     return RC_RUN_ERR;
                 }
                 else if (ptr_last_token->token_type == TOKEN_EOF)
                 {
-                    token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                    token_list_free(&token_list);
                     return RC_SYN_ERR;
                 }
                 else if (ptr_last_token->token_type == TOKEN_RIGHT_BRACKET)
@@ -367,7 +355,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                 else
                 {
                     //TODO Evaluate the expression and generate the code here
-                    token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                    token_list_free(&token_list);
                     return 0;
                 }
             }
@@ -384,11 +372,10 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                     ///We save the token to the structure of tokens
                     if (number_of_token > TOKEN_ARRAY_LEN)
                     {
-                        token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                        token_list_free(&token_list);
                         return RC_RUN_ERR;
                     }
-                    tokens_of_expression[number_of_token] = *ptr_last_token;
-                    number_of_token++;
+                    token_list_add_item(&token_list, ptr_last_token);
                 }
                 else
                 {
@@ -399,12 +386,12 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                 ///What is the first token?
                 if (ptr_last_token->token_type == RC_LEX_ERR)
                 {
-                    token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                    token_list_free(&token_list);
                     return RC_LEX_ERR;
                 }
                 else if (ptr_last_token->token_type == RC_RUN_ERR)
                 {
-                    token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                    token_list_free(&token_list);
                     return RC_RUN_ERR;
                 }
                 else if (ptr_last_token->token_type == TOKEN_RIGHT_BRACKET)
@@ -414,7 +401,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                 }
                 else if (ptr_last_token->token_type == TOKEN_EOF)
                 {
-                    token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                    token_list_free(&token_list);
                     return RC_SYN_ERR;
                 }
                 else if (operator_check(ptr_last_token))
@@ -426,7 +413,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                     }
                     else
                     {
-                        token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                        token_list_free(&token_list);
                         return RC_SYN_ERR;
                     }
                 }
@@ -443,14 +430,14 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                     }
                     else
                     {
-                        token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                        token_list_free(&token_list);
                         return RC_SYN_ERR;
                     }
                 }
                 else
                 {
                     //TODO Evaluate the expression and generate the code here
-                    token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                    token_list_free(&token_list);
                     return 0;
                 }
             }
@@ -464,20 +451,20 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                 ///We save the token to the structure of tokens
                 if (number_of_token > TOKEN_ARRAY_LEN)
                 {
-                    token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                    token_list_free(&token_list);
                     return RC_RUN_ERR;
                 }
-                tokens_of_expression[number_of_token] = *ptr_last_token;
-                number_of_token++;
+                token_list_add_item(&token_list, ptr_last_token);
+
                 ///What is the next token?
                 if (ptr_last_token->token_type == RC_LEX_ERR)
                 {
-                    token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                    token_list_free(&token_list);
                     return RC_LEX_ERR;
                 }
                 else if (ptr_last_token->token_type == RC_RUN_ERR)
                 {
-                    token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                    token_list_free(&token_list);
                     return RC_RUN_ERR;
                 }
                 else if (ptr_last_token->token_type == TOKEN_LEFT_BRACKET)
@@ -499,7 +486,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                         }
                         else
                         {
-                            token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                            token_list_free(&token_list);
                             return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
                         }
 
@@ -510,7 +497,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                             char first_symbol = string_first_character(&ptr_last_token->attribute.string_val);
                             if (first_symbol == '0')
                             {
-                                token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                                token_list_free(&token_list);
                                 return RC_ZERO_DIVISION_ERR;
                             }
                         }
@@ -524,13 +511,13 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                         }
                         else
                         {
-                            token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                            token_list_free(&token_list);
                             return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
                         }
                     }
                     else
                     {
-                        token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                        token_list_free(&token_list);
                         return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
                     }
                 }
@@ -549,7 +536,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                         }
                         else
                         {
-                            token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                            token_list_free(&token_list);
                             return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
                         }
                     }
@@ -563,19 +550,19 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                         }
                         else
                         {
-                            token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                            token_list_free(&token_list);
                             return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
                         }
                     }
                     else
                     {
-                        token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                        token_list_free(&token_list);
                         return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
                     }
                 }
                 else
                 {
-                    token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                    token_list_free(&token_list);
                     return RC_SYN_ERR;
                 }
             }
@@ -589,20 +576,20 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                 ///We save the token to the structure of tokens
                 if (number_of_token > TOKEN_ARRAY_LEN)
                 {
-                    token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                    token_list_free(&token_list);
                     return RC_RUN_ERR;
                 }
-                tokens_of_expression[number_of_token] = *ptr_last_token;
-                number_of_token++;
+                token_list_add_item(&token_list, ptr_last_token);
+
                 ///What is the first token?
                 if (ptr_last_token->token_type == RC_LEX_ERR)
                 {
-                    token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                    token_list_free(&token_list);
                     return RC_LEX_ERR;
                 }
                 else if (ptr_last_token->token_type == RC_RUN_ERR)
                 {
-                    token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                    token_list_free(&token_list);
                     return RC_RUN_ERR;
                 }
                 else if (operator_check(ptr_last_token))
@@ -614,7 +601,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                     }
                     else
                     {
-                        token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                        token_list_free(&token_list);
                         return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
                     }
                 }
@@ -631,7 +618,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                     }
                     else
                     {
-                        token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                        token_list_free(&token_list);
                         return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
                     }
                 }
@@ -641,12 +628,12 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                     if (number_of_brackets == 0)
                     {
                         //TODO Evaluate the expression and generate the code here
-                        token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                        token_list_free(&token_list);
                         return 0;
                     }
                     else
                     {
-                        token_array_free(tokens_of_expression, TOKEN_ARRAY_LEN);
+                        token_list_free(&token_list);
                         return RC_SYN_ERR;
                     }
                 }
