@@ -43,9 +43,7 @@ int operator_check(tokenT *ptr_tok_num);
 #define EXPRESSION_INT          40
 #define EXPRESSION_FLOAT64      41
 #define EXPRESSION_STRING       42
-#define EXPRESSION_BOOL_TRUE    43
-#define EXPRESSION_BOOL_FALSE   44
-#define EXPRESSION_NO_TYPE      45
+#define EXPRESSION_NO_TYPE      43
 
 /**
  * Definition of stack and variables

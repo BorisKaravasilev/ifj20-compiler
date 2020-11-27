@@ -79,22 +79,22 @@ int string_add_string(stringT *str, char* word) {
 }
 
 ///Function for copying the string
-int string_copy(stringT *first, stringT *second)
+int string_copy(stringT *dst, stringT *src)
 {
-    int new_length = second->length;
-    if (new_length >= first->alloc_size)
+    int new_length = src->length;
+    if (new_length >= dst->alloc_size)
     {
         ///If we do not have enough of memory, we must realloc
-        if ((first->string = (char*) realloc(first->string, new_length + 1)) == NULL)
+        if ((dst->string = (char*) realloc(dst->string, new_length + 1)) == NULL)
         {
             ///If memory allocation fail, it is an error
             return RC_RUN_ERR;
         }
-        first->alloc_size = new_length + 1;
+        dst->alloc_size = new_length + 1;
     }
-    ///Now we call strcmp function for the copying second string to the first one
-    strcpy(first->string, second->string);
-    first->length = new_length;
+    ///Now we call strcmp function for the copying src string to the dst one
+    strcpy(dst->string, src->string);
+    dst->length = new_length;
     return 0;
 }
 

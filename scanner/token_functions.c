@@ -132,3 +132,11 @@ void debug_token(tokenT *ptr_token, int token_index) {
     debug_scanner("[ %d --> Received token type: '%d', ", token_index, ptr_token->token_type);
     debug_scanner("attribute: '%s']\n", ptr_token->attribute.string_val.string);
 }
+
+// t_dst <- t_src
+void copy_token(tokenT *t_dst, tokenT *t_src) {
+    t_dst->token_type = t_src->token_type;
+    string_init(&t_dst->attribute.string_val);
+    string_copy(&t_dst->attribute.string_val, &t_src->attribute.string_val);
+    t_dst->attribute.symtable_item = t_src->attribute.symtable_item;
+}

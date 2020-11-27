@@ -39,7 +39,7 @@ int string_add_character(stringT *str, char character);
 ///Function can add whole word to character
 int string_add_string(stringT* str, char* word);
 ///Function for copying the string
-int string_copy(stringT *first, stringT *second);
+int string_copy(stringT *dst, stringT *src);
 ///Function for comparing two strings
 int string_compare(stringT *first, stringT *second);
 ///Function for comparing the string and the constant string

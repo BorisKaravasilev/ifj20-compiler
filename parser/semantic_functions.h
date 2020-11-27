@@ -14,7 +14,6 @@
 #include "symtable.h"
 #include "return_codes.h"
 #include "token_types.h"
-#include "token_functions.h"
 
 #define BUILT_IN_FUNCTIONS_COUNT 10
 #define SEMANTIC_OK 0

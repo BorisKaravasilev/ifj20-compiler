@@ -9,10 +9,12 @@
 
 #include "semantic_functions.h"
 
+#include "token_functions.h"
+
 void assignment_struct_init(assignmentT *s) {
-    if (s != NULL){
-        assignmentT *tmp = (assignmentT *) malloc(sizeof(assignmentT));
-        if (tmp != NULL){
+    if (s != NULL) {
+        assignmentT *tmp = (assignmentT *)malloc(sizeof(assignmentT));
+        if (tmp != NULL) {
             tmp->left_side_types_list_first = NULL;
             tmp->right_side_types_list_first = NULL;
         } else {
@@ -88,7 +90,6 @@ int assignment_derive_id_type(assignmentT *s) {
 
     while (l_current != NULL) {
         if (l_current->data_type == TYPE_NIL) {
-
             Data_type right_side_data_type;
             if (r_current->symbol != NULL) {
                 right_side_data_type = r_current->symbol->type;
@@ -106,13 +107,15 @@ int assignment_derive_id_type(assignmentT *s) {
     return SEMANTIC_OK;
 }
 
-void assignment_add_identifier(assignmentT *item, int token_type, ST_Item *st_item){
+void assignment_add_identifier(assignmentT *item, int token_type,
+                               ST_Item *st_item) {
     if (item == NULL || st_item == NULL) {
         return;
     }
 
     assignment_paramT *new_id;
-    if ((new_id = (assignment_paramT *) malloc(sizeof(assignment_paramT))) == NULL) {
+    if ((new_id = (assignment_paramT *)malloc(sizeof(assignment_paramT))) ==
+        NULL) {
         exit(RC_RUN_ERR);
     }
 
@@ -139,13 +142,15 @@ void assignment_add_identifier(assignmentT *item, int token_type, ST_Item *st_it
     }
 }
 
-void assignment_add_expression(assignmentT *item, Data_type type, ST_Item *symbol) {
+void assignment_add_expression(assignmentT *item, Data_type type,
+                               ST_Item *symbol) {
     if (item == NULL) {
         return;
     }
 
     assignment_paramT *new_expr;
-    if ((new_expr = (assignment_paramT *) malloc(sizeof(assignment_paramT))) == NULL) {
+    if ((new_expr = (assignment_paramT *)malloc(sizeof(assignment_paramT))) ==
+        NULL) {
         exit(RC_RUN_ERR);
     }
 
@@ -176,10 +181,12 @@ void assignment_add_user_function(assignmentT *item, ST_Item *function) {
         return;
     }
 
-    st_function_data_param_structT *current_function_return_type = function->function_data->return_types_list_first;
+    st_function_data_param_structT *current_function_return_type =
+        function->function_data->return_types_list_first;
     while (current_function_return_type != NULL) {
         assignment_paramT *new_expr;
-        if ((new_expr = (assignment_paramT *) malloc(sizeof(assignment_paramT))) == NULL) {
+        if ((new_expr = (assignment_paramT *)malloc(
+                 sizeof(assignment_paramT))) == NULL) {
             exit(RC_RUN_ERR);
         }
         new_expr->data_type = current_function_return_type->data_type;
@@ -203,7 +210,7 @@ void assignment_add_user_function(assignmentT *item, ST_Item *function) {
 
 // TODO: Do a propper check for passed builtin func parameters
 built_in_functionT get_built_in_function_by_key(int token_type) {
-    for(int i = 0; i < BUILT_IN_FUNCTIONS_COUNT; i++) {
+    for (int i = 0; i < BUILT_IN_FUNCTIONS_COUNT; i++) {
         if (token_type == built_in_functions[i].function_token_type) {
             return built_in_functions[i];
         }
@@ -217,7 +224,7 @@ void assignment_add_built_in_function(assignmentT *item, int function_token) {
 
     built_in_functionT function = get_built_in_function_by_key(function_token);
 
-    for(int i = 0; i < function.return_types_count; i++) {
+    for (int i = 0; i < function.return_types_count; i++) {
         Data_type return_type;
         switch (function.return_types[i]) {
             case 'i':
@@ -234,7 +241,8 @@ void assignment_add_built_in_function(assignmentT *item, int function_token) {
         }
 
         assignment_paramT *new_expr;
-        if ((new_expr = (assignment_paramT *) malloc(sizeof(assignment_paramT))) == NULL) {
+        if ((new_expr = (assignment_paramT *)malloc(
+                 sizeof(assignment_paramT))) == NULL) {
             exit(RC_RUN_ERR);
         }
         new_expr->data_type = return_type;

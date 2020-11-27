@@ -164,6 +164,22 @@ void check_eol_after_token(scannerT *s, eol_flagE eol_flag) {
     } while (skipped_symbol);
 }
 
+void add_string_sym_to_token(tokenT *ptr_token, fa_stepT *step) {
+    static bool is_string_start = true;
+    bool is_string_end = *step->curr_state != STATE_STRING;
+
+    if (is_string_start) {
+        debug_scanner("curr_sym: ASCII(%d) => '%c' [STRING START]\n", *step->curr_sym, *step->curr_sym);
+        is_string_start = false;
+    } else if (is_string_end) {
+        debug_scanner("curr_sym: ASCII(%d) => '%c' [STRING END]\n", *step->curr_sym, *step->curr_sym);
+        is_string_start = true;
+    } else {
+        debug_scanner("curr_sym: ASCII(%d) => '%c' [STRING]\n", *step->curr_sym, *step->curr_sym);
+        token_val_add_char(ptr_token, *step->curr_sym);
+    }
+}
+
 // Executes a transition of finite automaton, adds symbol to token and updates current state
 void fa_execute_step(scannerT *s, tokenT *ptr_token, fa_stepT *step, eol_flagE eol_flag) {
     // Clears token if it contains comment
@@ -178,8 +194,7 @@ void fa_execute_step(scannerT *s, tokenT *ptr_token, fa_stepT *step, eol_flagE e
 
     // Check if symbol should be added to token
     if (is_string_sym) {
-        debug_scanner("curr_sym: ASCII(%d) => '%c' [STRING]\n", *step->curr_sym, *step->curr_sym);
-        token_val_add_char(ptr_token, *step->curr_sym);
+        add_string_sym_to_token(ptr_token, step);
     } else if (is_attribute_sym) {
         debug_scanner("curr_sym: ASCII(%d) => '%c' \n", *step->curr_sym, *step->curr_sym);
         token_val_add_char(ptr_token, *step->curr_sym);

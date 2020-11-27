@@ -4,6 +4,7 @@ project(ifj20_compiler)
 set(CMAKE_CXX_STANDARD 14)
 
 include_directories(general)
+include_directories(generator)
 include_directories(input_files)
 include_directories(parser)
 include_directories(scanner)
@@ -15,6 +16,8 @@ add_executable(ifj20_compiler
         general/string_functions.h
         general/utility_functions.c
         general/utility_functions.h
+        generator/generator.c
+        generator/generator.h
         parser/expression_analysis.c
         parser/expression_analysis.h
         parser/semantic_late_check.c
@@ -23,6 +26,8 @@ add_executable(ifj20_compiler
         parser/semantic_functions.h
         parser/parser.c
         parser/parser.h
+        parser/infix2postfix.c
+        parser/infix2postfix.h
         scanner/finite_automata.c
         scanner/finite_automata.h
         scanner/scanner_functions.c
@@ -35,4 +40,6 @@ add_executable(ifj20_compiler
         scanner/token_functions.c
         scanner/token_functions.h
         scanner/token_types.h
+        scanner/token_linked_list.c
+        scanner/token_linked_list.h
         ifj20-compiler.c generator/generator.c generator/generator.h)
