@@ -489,16 +489,16 @@ int expr(scannerT *ptr_scanner, tokenT token[], bool two_tokens, int *result_dat
     token_init(&last_expr_token);
     token_init(&expr_result_token);
 
-    puts("\nEntering expression analysis\n");   // TODO D remove
+    debug_parser("\nEntering expression analysis%s.\n", "");
     if (two_tokens){
         tmp_result = expr_check(&token[token_index - 1], &token[token_index], &last_expr_token, &expr_result_token, ptr_scanner);
-        debug_parser("\nExited expression analysis with %d.\n", tmp_result);   // TODO D remove
+        debug_parser("\nExited expression analysis with %d.\n", tmp_result);
         if (tmp_result != SYNTAX_OK)
             return tmp_result;
     }
     else {
         tmp_result = expr_check(NULL, &token[token_index], &last_expr_token, &expr_result_token, ptr_scanner);
-        debug_parser("\nExited expression analysis with %d.\n", tmp_result);   // TODO D remove
+        debug_parser("\nExited expression analysis with %d.\n", tmp_result);
         if (tmp_result != SYNTAX_OK)
             return tmp_result;
     }
@@ -598,6 +598,10 @@ int assign_nofunc_next(scannerT *ptr_scanner, tokenT token[]){
  */
 int assign_nofunc_list(scannerT *ptr_scanner, tokenT token[]){
     tmp_result = assign_nofunc(ptr_scanner, token);
+    if (was_expr){
+        unget_token = true;
+        was_expr = false;
+    }
     if (tmp_result != SYNTAX_OK)
         return tmp_result;
 
@@ -961,7 +965,6 @@ int cycle_init(scannerT *ptr_scanner, tokenT token[]){
  */
 int command(scannerT *ptr_scanner, tokenT token[]){
     // probably shouldn't get token here, since parser already has it from cmd_list
-    debug_parser("\n\nEntering command w/ token type %d.\n\n", token[token_index].token_type); // TODO D rm
 
     switch (token[token_index].token_type){
         case TOKEN_IDENTIFIER:
@@ -1056,8 +1059,6 @@ int command_list(scannerT *ptr_scanner, tokenT token[]){
     else {
         unget_token = false;
     }
-
-    debug_parser("\n\nEntering command_list w/ token type %d.\n\n", token[token_index].token_type); // TODO D rm
 
     if (token[token_index].token_type == TOKEN_RIGHT_CURLY_BRACE){
         return SYNTAX_OK;
