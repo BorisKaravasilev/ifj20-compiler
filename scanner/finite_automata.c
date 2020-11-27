@@ -269,7 +269,9 @@ void init_finite_automata(finite_automataT* fa) {
     fa->rules[30].transition_ranges[0].from = 32;
     fa->rules[30].transition_ranges[0].to = 33; // excluding ASCII 34 => '"'
     fa->rules[30].transition_ranges[1].from = 35;
-    fa->rules[30].transition_ranges[1].to = 127;
+    fa->rules[30].transition_ranges[1].to = 91; // excluding ASCII 34 => '\'
+    fa->rules[30].transition_ranges[2].from = 93;
+    fa->rules[30].transition_ranges[2].to = 127;
     //TODO ASCII > 31
 
     // --- Rule #31
