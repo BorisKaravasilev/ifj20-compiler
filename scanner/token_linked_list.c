@@ -30,7 +30,7 @@ bool token_list_add_item(token_listT *list_of_tokens, tokenT *token_to_add)
     } else {
         // Not empty
 
-        token_list_itemT *token_list_last_item = NULL;
+        token_list_itemT *token_list_last_item = list_of_tokens->first;
         token_list_itemT *current_item = list_of_tokens->first;
 
         while(current_item->next != NULL) {
