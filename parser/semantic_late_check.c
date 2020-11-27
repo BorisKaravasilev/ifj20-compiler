@@ -59,7 +59,7 @@ void late_check_stack_pop(late_check_stack *s){
     }
 }
 
-bool compare_param_lists(method_param_structT *late_check_param_list, st_function_data_param_structT *symtable_param_list) {
+bool param_lists_match(method_param_structT *late_check_param_list, st_function_data_param_structT *symtable_param_list) {
     method_param_structT *lc_current = late_check_param_list;
     st_function_data_param_structT *st_current = symtable_param_list;
 
@@ -79,26 +79,52 @@ bool compare_param_lists(method_param_structT *late_check_param_list, st_functio
     return true;
 }
 
+bool return_lists_match(method_param_structT *late_check_param_list, st_function_data_param_structT *symtable_param_list) {
+    method_param_structT *lc_current = late_check_param_list;
+    st_function_data_param_structT *st_current = symtable_param_list;
+
+    if (lc_current == NULL) {
+        return true;
+    } else {
+        while (lc_current != NULL || st_current != NULL) {
+            if (lc_current == NULL || st_current == NULL) {
+                return false;
+            } else {
+                if (lc_current->data_type != st_current->data_type) {
+                    return false;
+                }
+            }
+
+            lc_current = lc_current->next;
+            st_current = st_current->next;
+        }
+    }
+
+    return true;
+}
+
 // TODO: Search if user function must have at least one return type
-void check_semantic_for_methods_call(late_check_stack *late_check_s, Symtable *global_symtable) {
-    if (late_check_s != NULL && global_symtable != NULL) {
+// TODO P: Change return type to int
+int check_semantic_for_methods_call(late_check_stack *late_check_s, Stack *st_stack) {
+    if (late_check_s != NULL && st_stack != NULL) {
         while (late_check_s->top != NULL) {
             // Find method in symbol table
-            ST_Item *symbol = st_search(global_symtable, &late_check_s->top->method_name);
+            ST_Item *symbol = stack_search(st_stack, &late_check_s->top->method_name);
             if (symbol == NULL || !st_item_is_function(symbol)) {
                 fprintf(stderr, "Error: Calling undefined function \'%s\'", late_check_s->top->method_name.string);
-                exit(RC_SEMANTIC_IDENTIFIER_ERR);
+                return RC_SEMANTIC_IDENTIFIER_ERR;
             }
-            if (compare_param_lists(late_check_s->top->parameters_list_first, symbol->function_data->parameters_list_first) == false) {
+            if (param_lists_match(late_check_s->top->parameters_list_first, symbol->function_data->parameters_list_first) == false) {
                 fprintf(stderr, "Error: Invalid parameters supplied to function \'%s\'", symbol->key.string);
-                exit(RC_SEMANTIC_FUNC_PARAM_ERR);
-            } else if (compare_param_lists(late_check_s->top->return_types_list_first, symbol->function_data->return_types_list_first) == false) {
+                return RC_SEMANTIC_FUNC_PARAM_ERR;
+            } else if (return_lists_match(late_check_s->top->return_types_list_first, symbol->function_data->return_types_list_first) == false) {
                 fprintf(stderr, "Error: Invalid return types for function \'%s\'", symbol->key.string);
-                exit(RC_SEMANTIC_FUNC_PARAM_ERR);
+                return RC_SEMANTIC_FUNC_PARAM_ERR;
             }
 
             late_check_stack_pop(late_check_s);
         }
+        return SEMANTIC_OK;
     }
 }
 
@@ -149,6 +175,43 @@ late_check_stack_item* late_check_stack_search(late_check_stack *s, stringT *met
         current = s->top->next;
     }
     return NULL;
+}
+
+void late_check_stack_item_create_assignment_list(late_check_stack_item *item, assignment_paramT *list) {
+    if (item == NULL || list == NULL) {
+        return;
+    }
+
+    assignment_paramT *current = list;
+    while (current != NULL) {
+        late_check_stack_item_add_return_type(item, current->data_type);
+        current = current->next;
+    }
+}
+
+void late_check_stack_item_add_assignment_param(late_check_stack_item *item, Data_type data_type) {
+    if (item == NULL) {
+        return;
+    }
+
+    method_param_structT *new_parameter;
+    if ((new_parameter = (method_param_structT *) malloc(sizeof(method_param_structT))) == NULL) {
+        exit(SEMANTIC_LATE_CHECK_MALLOC_ERROR);
+    }
+    new_parameter->data_type = data_type;
+    new_parameter->next = NULL;
+    new_parameter->index = item->return_types_count++;
+
+    if (item->return_types_list_first == NULL) {
+        item->return_types_list_first = new_parameter;
+    } else {
+        method_param_structT *current = item->return_types_list_first;
+
+        while (current->next != NULL) {
+            current = current->next;
+        }
+        current->next = new_parameter;
+    }
 }
 
 void late_check_stack_item_add_parameter(late_check_stack_item *item, Data_type data_type) {

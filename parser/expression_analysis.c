@@ -48,7 +48,6 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
         ///Now we change ptr_expr_data_and_type.token_type to identifier data type
         ptr_expr_data_and_type->token_type = ptr_identifier_token->token_type;
         ///Now we have to add this identifier token to the list of tokens
-
         token_list_add_item(&token_list, ptr_identifier_token);
     }
 

@@ -16,6 +16,7 @@
 #include "symtable.h"
 #include "stack.h"
 #include "return_codes.h"
+#include "semantic_functions.h"
 
 /**
  * @brief Structure of a stack element.
@@ -85,14 +86,15 @@ void late_check_stack_pop(late_check_stack *s);
  * @param late_check_param_list Late check parameters list
  * @param symtable_param_list Symtable parameters list
  */
-bool compare_param_lists(method_param_structT *late_check_param_list, st_function_data_param_structT *symtable_param_list);
+bool param_lists_match(method_param_structT *late_check_param_list, st_function_data_param_structT *symtable_param_list);
+bool return_lists_match(method_param_structT *late_check_param_list, st_function_data_param_structT *symtable_param_list);
 
 /**
  * @brief Executes function declaration semantic check for every function call in stack
  * @param late_check_s Late check stack with function call records
  * @param global_symtable Global symtable in which to search for function declaration
  */
-void check_semantic_for_methods_call(late_check_stack *late_check_s, Symtable *global_symtable);
+int check_semantic_for_methods_call(late_check_stack *late_check_s, Stack *st_stack);
 
 /**
  * @brief Frees late check stack item structure
@@ -117,6 +119,13 @@ void late_check_stack_free(late_check_stack *s);
  * @param s Stack to be emptied.
  */
 late_check_stack_item* late_check_stack_search(late_check_stack *s, stringT *method_name);
+
+/**
+ * @brief Adds assign types on left side of assignment to the stack_item
+ * @param item pointer at late_check_stack item
+ * @param list pointer at left assignment list of params
+ */
+void late_check_stack_item_create_assignment_list(late_check_stack_item *item, assignment_paramT *list);
 
 /**
  * @brief Creates function parameters and chains them in the stack_item
