@@ -922,6 +922,7 @@ int assign(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic_type
                 return RC_SEMANTIC_IDENTIFIER_ERR;
             }
             int expr_result_type;
+            unget_token = true;
             tmp_result = expr(ptr_scanner, token, true, &expr_result_type);
             was_expr = true;
             assignment_add_expression(&assignment_check_struct, expr_result_type, identifier);
