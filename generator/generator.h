@@ -10,6 +10,18 @@
 #ifndef IFJ20_COMPILER_GENERATOR_H
 #define IFJ20_COMPILER_GENERATOR_H
 
+// Code blocks generation
+void gen_file_start();
+void gen_file_end();
+void gen_enter_function_scope();
+void gen_leave_function_scope();
+
+// Built-in functions
+void gen_def_inputs();
+void gen_def_inputi();
+void gen_def_inputf();
+void gen_def_print(int number_of_parameters);
+
 // Prace s ramci, volani funkci
 void gen_move(char *var, char *symb);
 void gen_createframe();

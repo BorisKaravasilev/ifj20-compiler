@@ -10,6 +10,128 @@
 #include "generator.h"
 #include <stdio.h>
 
+// IFJcode20 converted to C string by:
+// https://tomeko.net/online_tools/cpp_text_escape.php?lang=en
+
+void gen_file_start() {
+    printf(".IFJcode20\n");
+    gen_jump("$$main");
+
+    printf("\n# ----------------------------------- main()\n");
+    gen_label("$$main");
+}
+
+void gen_file_end() {
+    gen_exit("int@0");
+}
+
+void gen_enter_function_scope() {
+    gen_createframe();
+    gen_pushframe();
+}
+
+void gen_leave_function_scope() {
+    gen_popframe();
+}
+
+void gen_def_inputs() {
+    printf(
+            "# ----------------------------------- inputs()\n"
+           "LABEL $inputs\n"
+           "PUSHFRAME\n"
+           "\n"
+           "# init return values\n"
+           "DEFVAR LF@retval1\n"
+           "MOVE LF@retval1 nil@nil\n"
+           "DEFVAR LF@retval2\n"
+           "MOVE LF@retval2 nil@nil\n"
+           "\n"
+           "# function body\n"
+           "READ LF@retval1 string\n"
+           "JUMPIFNEQ $inputs$else LF@retval1 nil@nil # if (retval1 == nil) retval2 = 1;\n"
+           "# error\n"
+           "MOVE LF@retval2 int@1\n"
+           "JUMP $inputs$endif\n"
+           "\n"
+           "LABEL $inputs$else # else { retval2 = 0 }\n"
+           "# ok\n"
+           "MOVE LF@retval2 int@0\n"
+           "LABEL $inputs$endif\n"
+           "\n"
+           "POPFRAME\n"
+           "RETURN\n");
+}
+
+void gen_def_inputi() {
+    printf("# ----------------------------------- inputi()\n"
+           "LABEL $inputi\n"
+           "PUSHFRAME\n"
+           "\n"
+           "# init return values\n"
+           "DEFVAR LF@retval1\n"
+           "MOVE LF@retval1 nil@nil\n"
+           "DEFVAR LF@retval2\n"
+           "MOVE LF@retval2 nil@nil\n"
+           "\n"
+           "# function body\n"
+           "READ LF@retval1 int\n"
+           "JUMPIFNEQ $inputi$else LF@retval1 nil@nil # if (retval1 == nil) retval2 = 1;\n"
+           "# error\n"
+           "MOVE LF@retval2 int@1\n"
+           "JUMP $inputi$endif\n"
+           "\n"
+           "LABEL $inputi$else # else { retval2 = 0 }\n"
+           "# ok\n"
+           "MOVE LF@retval2 int@0\n"
+           "LABEL $inputi$endif\n"
+           "\n"
+           "POPFRAME\n"
+           "RETURN\n");
+}
+
+void gen_def_inputf() {
+    printf("# ----------------------------------- inputf()\n"
+           "LABEL $inputf\n"
+           "PUSHFRAME\n"
+           "\n"
+           "# init return values\n"
+           "DEFVAR LF@retval1\n"
+           "MOVE LF@retval1 nil@nil\n"
+           "DEFVAR LF@retval2\n"
+           "MOVE LF@retval2 nil@nil\n"
+           "\n"
+           "# function body\n"
+           "READ LF@retval1 float\n"
+           "JUMPIFNEQ $inputf$else LF@retval1 nil@nil # if (retval1 == nil) retval2 = 1;\n"
+           "# error\n"
+           "MOVE LF@retval2 int@1\n"
+           "JUMP $inputf$endif\n"
+           "\n"
+           "LABEL $inputf$else # else { retval2 = 0 }\n"
+           "# ok\n"
+           "MOVE LF@retval2 int@0\n"
+           "LABEL $inputf$endif\n"
+           "\n"
+           "POPFRAME\n"
+           "RETURN\n"
+           "");
+}
+
+void gen_def_print(int number_of_parameters) {
+    printf("# ----------------------------------- print()\n"
+           "LABEL $print\n"
+           "PUSHFRAME\n"
+           "\n");
+
+    for (int i = 0; i < number_of_parameters; ++i) {
+        printf("WRITE LF@param%d\n", i + 1);
+    }
+
+    printf("\n"
+           "POPFRAME\n"
+           "RETURN");
+}
+
 // ---------------------------------------------------| Prace s ramci, volani funkci
 void gen_move(char *var, char *symb) {
     printf("MOVE %s %s\n", var, symb);
