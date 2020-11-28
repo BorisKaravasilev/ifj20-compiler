@@ -63,12 +63,12 @@ int compare_left_right_params(assignment_paramT *left, assignment_paramT *right)
     while (l_current != NULL || r_current != NULL) {
         if (l_current == NULL || r_current == NULL) {
             // TODO: Maybe another semantic error dont know atm
-            return RC_SEMANTIC_VAR_TYPE_ERR;
+            return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
         } else {
             if (l_current->data_type != r_current->data_type) {
                 // TODO: Maybe another semantic error dont know atm
                 if (l_current->data_type != TYPE_BLANK_VARIABLE) {
-                    return RC_SEMANTIC_VAR_TYPE_ERR;
+                    return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
                 }
             }
         }
