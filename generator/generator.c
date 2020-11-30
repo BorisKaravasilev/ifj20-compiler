@@ -61,12 +61,21 @@ void gen_assign_token_to_var(char *var_name, tokenT *token) {
         case TOKEN_DECIMAL_LITERAL:
             assigned_data_type = "float@";
             break;
+        case TOKEN_IDENTIFIER:
+
+            break;
         default:
             break;
     }
 
     string_add_string(&str_to_assign, assigned_data_type);
-    string_add_string(&str_to_assign, token->attribute.string_val.string);
+    if (token->token_type == TOKEN_EXPONENT_LITERAL || token->token_type == TOKEN_DECIMAL_LITERAL) {
+        char str_hex_float[1000];
+        sprintf(str_hex_float, "%a", strtof(token->attribute.string_val.string, NULL));
+        string_add_string(&str_to_assign, str_hex_float);
+    } else {
+        string_add_string(&str_to_assign, token->attribute.string_val.string);
+    }
 
     string_add_string(&str_var_with_frame, "LF@");
     string_add_string(&str_var_with_frame, var_name);
@@ -123,19 +132,18 @@ void gen_print(tokenT *token_to_print) {
 }
 
 void gen_call_input(int func_token_type, tokenT *token_array, int tok_index) {
-    // a, _ = inputs()
     gen_createframe();
 
     if (func_token_type == TOKEN_FUNCTION_INPUTS){
         gen_call("$inputs"); // inputs()
     } else if (func_token_type == TOKEN_FUNCTION_INPUTF) {
-        gen_call("$inputf"); // inputs()
+        gen_call("$inputf"); // inputf()
     } else if (func_token_type == TOKEN_FUNCTION_INPUTI) {
-        gen_call("$inputi"); // inputs()
+        gen_call("$inputi"); // inputi()
     }
 
-    tokenT first_var = token_array[tok_index - 4]; // a
-    tokenT second_var = token_array[tok_index - 2]; // _
+    tokenT first_var = token_array[tok_index - 6];
+    tokenT second_var = token_array[tok_index - 4];
 
     if (first_var.token_type != TOKEN_UNDERSCORE) {
         gen_move_to_lf(first_var.attribute.string_val.string, RETURN_VALUE_1);
@@ -229,11 +237,27 @@ void gen_def_inputf() {
            "");
 }
 
-void gen_def_builtin_functions() {
-    printf("\n\n# Function definitions\n\n");
-    gen_def_inputs();
-    gen_def_inputi();
-    gen_def_inputf();
+void gen_def_builtin_functions(const bool builtin_func_used[]) {
+    printf("\n\n# Built-in function definitions (if any are used)\n\n");
+
+    if (builtin_func_used[0] == true) // generate inputs
+        gen_def_inputs();
+    if (builtin_func_used[1] == true) // generate inputi
+        gen_def_inputi();
+    if (builtin_func_used[2] == true) // generate inputf
+        gen_def_inputf();
+    if (builtin_func_used[3] == true) // generate int2float
+        ;
+    if (builtin_func_used[4] == true) // generate float2int
+        ;
+    if (builtin_func_used[5] == true) // generate len
+        ;
+    if (builtin_func_used[6] == true) // generate substr
+        ;
+    if (builtin_func_used[7] == true) // generate ord
+        ;
+    if (builtin_func_used[8] == true) // generate chr
+        ;
 }
 
 // ---------------------------------------------------| Prace s ramci, volani funkci
@@ -367,7 +391,7 @@ void gen_or(char *var, char *symb1, char *symb2) {
 }
 
 void gen_not(char *var, char *symb) {
-    printf("NOT %s %s %s\n", var, symb);
+    printf("NOT %s %s\n", var, symb);
 }
 
 void gen_ands() {
@@ -382,16 +406,28 @@ void gen_nots() {
     printf("NOTS\n");
 }
 
-void gen_int2float(char *var, char *symb) {
-    printf("INT2FLOAT %s %s %s\n", var, symb);
+void gen_int2float(char *var, tokenT *symb_token) {
+    if (symb_token->token_type == TOKEN_IDENTIFIER) {
+        printf("INT2FLOAT LF@%s LF@%s\n", var, symb_token->attribute.string_val.string);
+
+    } else {
+        printf("INT2FLOAT LF@%s int@%s\n", var, symb_token->attribute.string_val.string);
+    }
 }
 
-void gen_float2int(char *var, char *symb) {
-    printf("FLOAT2INT %s %s %s\n", var, symb);
+void gen_float2int(char *var, tokenT *symb_token) {
+    if (symb_token->token_type == TOKEN_IDENTIFIER) {
+        printf("FLOAT2INT LF@%s LF@%s\n", var, symb_token->attribute.string_val.string);
+
+    } else {
+        char str_hex_float[1000];
+        sprintf(str_hex_float, "%a", strtof(symb_token->attribute.string_val.string, NULL));
+        printf("FLOAT2INT LF@%s float@%s\n", var, str_hex_float);
+    }
 }
 
 void gen_int2char(char *var, char *symb) {
-    printf("INT2CHAR %s %s %s\n", var, symb);
+    printf("INT2CHAR %s %s\n", var, symb);
 }
 
 void gen_stri2int(char *var, char *symb1, char *symb2) {
@@ -427,8 +463,13 @@ void gen_concat(char *var, char *symb1, char *symb2) {
     printf("CONCAT %s %s %s\n", var, symb1, symb2);
 }
 
-void gen_strlen(char *var, char *symb) {
-    printf("STRLEN %s %s\n", var, symb);
+void gen_strlen(char *var, tokenT *symb_token) {
+    if (symb_token->token_type == TOKEN_IDENTIFIER) {
+        printf("STRLEN LF@%s LF@%s\n", var, symb_token->attribute.string_val.string);
+    } else {
+        printf("STRLEN LF@%s string@%s\n", var, symb_token->attribute.string_val.string);
+
+    }
 }
 
 void gen_getchar(char *var, char *symb1, char *symb2) {
