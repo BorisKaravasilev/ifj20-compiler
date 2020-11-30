@@ -142,8 +142,8 @@ void gen_call_input(int func_token_type, tokenT *token_array, int tok_index) {
         gen_call("$inputi"); // inputi()
     }
 
-    tokenT first_var = token_array[tok_index - 4];
-    tokenT second_var = token_array[tok_index - 2];
+    tokenT first_var = token_array[tok_index - 6];
+    tokenT second_var = token_array[tok_index - 4];
 
     if (first_var.token_type != TOKEN_UNDERSCORE) {
         gen_move_to_lf(first_var.attribute.string_val.string, RETURN_VALUE_1);
@@ -463,8 +463,13 @@ void gen_concat(char *var, char *symb1, char *symb2) {
     printf("CONCAT %s %s %s\n", var, symb1, symb2);
 }
 
-void gen_strlen(char *var, char *symb) {
-    printf("STRLEN %s %s\n", var, symb);
+void gen_strlen(char *var, tokenT *symb_token) {
+    if (symb_token->token_type == TOKEN_IDENTIFIER) {
+        printf("STRLEN LF@%s LF@%s\n", var, symb_token->attribute.string_val.string);
+    } else {
+        printf("STRLEN LF@%s string@%s\n", var, symb_token->attribute.string_val.string);
+
+    }
 }
 
 void gen_getchar(char *var, char *symb1, char *symb2) {

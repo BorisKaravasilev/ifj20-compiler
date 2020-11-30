@@ -2,6 +2,7 @@
 package main
 
 func main() {
+/*
 	a := ""
 	b := 0
 	a, b = inputs()
@@ -19,4 +20,9 @@ func main() {
 
     b = float2int(c)
     b = float2int(7.7)
+*/
+    a := "cau"
+    b := 0
+    b = len(a)
+    print(b)
 }

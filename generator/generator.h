@@ -93,7 +93,7 @@ void gen_stri2ints();
 void gen_read(char *var, char *type);
 void gen_write(char *symb);
 void gen_concat(char *var, char *symb1, char *symb2);
-void gen_strlen(char *var, char *symb);
+void gen_strlen(char *var, tokenT *symb_token);
 void gen_getchar(char *var, char *symb1, char *symb2);
 void gen_setchar(char *var, char *symb1, char *symb2);
 

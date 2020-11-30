@@ -280,7 +280,7 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
             if (token[token_index].token_type == TOKEN_RIGHT_BRACKET){
                 // GENERATE
                 if (token[token_index - 3].token_type == TOKEN_EQUAL) {
-                    gen_call_input(token[token_index].token_type, token, token_index);
+                    gen_call_input(token[token_index - 2].token_type, token, token_index);
                 }
 
                 return SYNTAX_OK;
@@ -492,6 +492,12 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
             }
 
             if (token[token_index].token_type == TOKEN_RIGHT_BRACKET){
+                // GENERATE len(s string) (int)
+                if (token[token_index - 4].token_type == TOKEN_EQUAL){
+                    char *var_to_assing_to = token[token_index - 5].attribute.string_val.string;
+                    gen_strlen(var_to_assing_to, &token[token_index - 1]);
+                }
+
                 return SYNTAX_OK;
             }
             else if (token[token_index].token_type == TOKEN_COMMA){
