@@ -716,6 +716,9 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
             }
 
             if (token[token_index].token_type == TOKEN_RIGHT_BRACKET){
+                // GENERATE ord()
+                // TODO gen_def_ord()
+                // TODO gen_call_ord()
                 return SYNTAX_OK;
             }
             else if (token[token_index].token_type == TOKEN_COMMA){
