@@ -9,19 +9,26 @@
 
 #include "generator.h"
 #include <stdio.h>
+#include "string_functions.h"
+#include "symtable.h"
+#include "token_types.h"
 
 // IFJcode20 converted to C string by:
 // https://tomeko.net/online_tools/cpp_text_escape.php?lang=en
 
-void gen_file_start() {
+void gen_enter_main() {
     printf(".IFJcode20\n");
     gen_jump("$$main");
 
     printf("\n# ----------------------------------- main()\n");
     gen_label("$$main");
+    // Create local frame for the scope of main()
+    gen_createframe();
+    gen_pushframe();
+    printf("\n");
 }
 
-void gen_file_end() {
+void gen_exit_main() {
     gen_exit("int@0");
 }
 
@@ -34,9 +41,114 @@ void gen_leave_function_scope() {
     gen_popframe();
 }
 
+void gen_assign_token_to_var(char *var_name, tokenT *token) {
+    stringT str_to_assign;
+    stringT str_var_with_frame;
+
+    string_init(&str_to_assign);
+    string_init(&str_var_with_frame);
+
+    char *assigned_data_type;
+
+    switch (token->token_type) {
+        case TOKEN_STRING_LITERAL:
+            assigned_data_type = "string@";
+            break;
+        case TOKEN_INTEGER_LITERAL:
+            assigned_data_type = "int@";
+            break;
+        case TOKEN_EXPONENT_LITERAL:
+        case TOKEN_DECIMAL_LITERAL:
+            assigned_data_type = "float@";
+            break;
+        default:
+            break;
+    }
+
+    string_add_string(&str_to_assign, assigned_data_type);
+    string_add_string(&str_to_assign, token->attribute.string_val.string);
+
+    string_add_string(&str_var_with_frame, "LF@");
+    string_add_string(&str_var_with_frame, var_name);
+    gen_move(str_var_with_frame.string, str_to_assign.string);
+}
+
+void gen_print(tokenT *token_to_print) {
+    stringT var_or_symb;
+    string_init(&var_or_symb);
+
+    char *tok_attr_str = token_to_print->attribute.string_val.string;
+
+    switch (token_to_print->token_type) {
+        case TOKEN_IDENTIFIER:
+            string_add_string(&var_or_symb, "LF@");
+            string_add_string(&var_or_symb, tok_attr_str);
+            break;
+        case TOKEN_INTEGER_LITERAL:
+            string_add_string(&var_or_symb, "int@");
+            string_add_string(&var_or_symb, tok_attr_str);
+            break;
+        case TOKEN_STRING_LITERAL:
+            string_add_string(&var_or_symb, "string@");
+
+            for (int i = 0; tok_attr_str[i] != '\0'; i++) {
+                if ((tok_attr_str[i] >= 0 && tok_attr_str[i] <= 32) || tok_attr_str[i] == 35 || tok_attr_str[i] == 92) {
+                    if (tok_attr_str[i] < 10){
+                        string_add_string(&var_or_symb, "\\00");
+                        char str_digit[2];
+                        sprintf(str_digit, "%d", tok_attr_str[i]);
+                        string_add_string(&var_or_symb, str_digit);
+                    } else {
+                        string_add_string(&var_or_symb, "\\0");
+                        char str_two_digits[3];
+                        sprintf(str_two_digits, "%d", tok_attr_str[i]);
+                        string_add_string(&var_or_symb, str_two_digits);
+                    }
+                } else {
+                    string_add_character(&var_or_symb, tok_attr_str[i]);
+                }
+            }
+
+            break;
+        case TOKEN_DECIMAL_LITERAL:
+        case TOKEN_EXPONENT_LITERAL:
+            string_add_string(&var_or_symb, "float@");
+            char float_str[1000];
+            sprintf(float_str, "%a", strtof(tok_attr_str,NULL));
+            string_add_string(&var_or_symb, float_str);
+            break;
+    }
+
+    gen_write(var_or_symb.string);
+}
+
+void gen_call_input(int func_token_type, tokenT *token_array, int tok_index) {
+    // a, _ = inputs()
+    gen_createframe();
+
+    if (func_token_type == TOKEN_FUNCTION_INPUTS){
+        gen_call("$inputs"); // inputs()
+    } else if (func_token_type == TOKEN_FUNCTION_INPUTF) {
+        gen_call("$inputf"); // inputs()
+    } else if (func_token_type == TOKEN_FUNCTION_INPUTI) {
+        gen_call("$inputi"); // inputs()
+    }
+
+    tokenT first_var = token_array[tok_index - 4]; // a
+    tokenT second_var = token_array[tok_index - 2]; // _
+
+    if (first_var.token_type != TOKEN_UNDERSCORE) {
+        gen_move_to_lf(first_var.attribute.string_val.string, RETURN_VALUE_1);
+    }
+
+    if (second_var.token_type != TOKEN_UNDERSCORE) {
+        gen_move_to_lf(second_var.attribute.string_val.string, RETURN_VALUE_2);
+    }
+}
+
 void gen_def_inputs() {
     printf(
-            "# ----------------------------------- inputs()\n"
+            "\n# ----------------------------------- inputs()\n"
            "LABEL $inputs\n"
            "PUSHFRAME\n"
            "\n"
@@ -63,7 +175,7 @@ void gen_def_inputs() {
 }
 
 void gen_def_inputi() {
-    printf("# ----------------------------------- inputi()\n"
+    printf("\n# ----------------------------------- inputi()\n"
            "LABEL $inputi\n"
            "PUSHFRAME\n"
            "\n"
@@ -90,7 +202,7 @@ void gen_def_inputi() {
 }
 
 void gen_def_inputf() {
-    printf("# ----------------------------------- inputf()\n"
+    printf("\n# ----------------------------------- inputf()\n"
            "LABEL $inputf\n"
            "PUSHFRAME\n"
            "\n"
@@ -117,24 +229,24 @@ void gen_def_inputf() {
            "");
 }
 
-void gen_def_print(int number_of_parameters) {
-    printf("# ----------------------------------- print()\n"
-           "LABEL $print\n"
-           "PUSHFRAME\n"
-           "\n");
-
-    for (int i = 0; i < number_of_parameters; ++i) {
-        printf("WRITE LF@param%d\n", i + 1);
-    }
-
-    printf("\n"
-           "POPFRAME\n"
-           "RETURN");
+void gen_def_builtin_functions() {
+    printf("\n\n# Function definitions\n\n");
+    gen_def_inputs();
+    gen_def_inputi();
+    gen_def_inputf();
 }
 
 // ---------------------------------------------------| Prace s ramci, volani funkci
 void gen_move(char *var, char *symb) {
     printf("MOVE %s %s\n", var, symb);
+}
+
+void gen_move_to_lf(char *var, char *symb) {
+    printf("MOVE LF@%s %s\n", var, symb);
+}
+
+void gen_move_to_tf(char *var, char *symb) {
+    printf("MOVE TF@%s %s\n", var, symb);
 }
 
 void gen_createframe() {
@@ -150,6 +262,14 @@ void gen_popframe() {
 
 void gen_defvar(char *var) {
     printf("DEFVAR %s\n", var);
+}
+
+void gen_defvar_lf(char *var) {
+    printf("DEFVAR LF@%s\n", var);
+}
+
+void gen_defvar_tf(char *var) {
+    printf("DEFVAR TF@%s\n", var);
 }
 
 void gen_call(char *label) {
@@ -350,7 +470,7 @@ void gen_jumpifneqs(char *label) {
 }
 
 void gen_exit(char *symb) {
-    printf("EXIT %s\n", symb);
+    printf("\nEXIT %s\n", symb);
 }
 
 // ---------------------------------------------------| Ladici instrukce
