@@ -9,6 +9,7 @@
 
 #include "parser.h"
 #include "debugging.h"
+#include "generator.h"
 
 int token_index = 0, tmp_result = 0;
 bool was_expr = false, unget_token = false;
@@ -83,6 +84,11 @@ int literal(scannerT *ptr_scanner, tokenT token[], int *item_type){
         token[token_index].token_type == TOKEN_DECIMAL_LITERAL ||
         token[token_index].token_type == TOKEN_EXPONENT_LITERAL ||
         token[token_index].token_type == TOKEN_STRING_LITERAL) {
+
+        // GENERATE
+        if (token[token_index-1].token_type == TOKEN_COLON_EQUAL){
+            gen_assign_token_to_var(token[token_index-2].attribute.string_val.string, &token[token_index]);
+        }
 
         if (item_type != NULL) {    // TODO P semantic actions change or remove?
             switch(token[token_index].token_type) {
@@ -166,6 +172,9 @@ int print_next(scannerT *ptr_scanner, tokenT token[]){
             }
 
             if (token[token_index].token_type == TOKEN_IDENTIFIER){
+                // GENERATE
+                gen_print(&token[token_index]);
+
                 return print_next(ptr_scanner, token);
             }
             else {
@@ -173,6 +182,9 @@ int print_next(scannerT *ptr_scanner, tokenT token[]){
                 tmp_result = literal(ptr_scanner, token, NULL); // TODO P item_type? & check if only specific types can be in print
                 if (tmp_result != SYNTAX_OK)
                     return tmp_result;
+
+                // GENERATE
+                gen_print(&token[token_index]);
 
                 return print_next(ptr_scanner, token);
             }
@@ -199,6 +211,9 @@ int print(scannerT *ptr_scanner, tokenT token[]){
             return SYNTAX_OK;
 
         case TOKEN_IDENTIFIER:
+            // GENERATE
+            gen_print(&token[token_index]);
+
             return print_next(ptr_scanner, token);
 
         default:
@@ -206,6 +221,9 @@ int print(scannerT *ptr_scanner, tokenT token[]){
             tmp_result = literal(ptr_scanner, token, NULL);
             if (tmp_result != SYNTAX_OK)
                 return tmp_result;
+
+            // GENERATE
+            gen_print(&token[token_index]);
 
             return print_next(ptr_scanner, token);
     }
@@ -227,6 +245,11 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
         case TOKEN_FUNCTION_INPUTS:
         case TOKEN_FUNCTION_INPUTI:
         case TOKEN_FUNCTION_INPUTF:
+            // GENERATE
+            if (token[token_index - 1].token_type == TOKEN_EQUAL) {
+                gen_call_input(token[token_index].token_type, token, token_index);
+            }
+
             if (built_in_func_type != NULL) {
                 *built_in_func_type = token[token_index].token_type;
             }
@@ -1123,6 +1146,10 @@ int id_command(scannerT *ptr_scanner, tokenT token[]){
             symbol = st_insert_symbol(ptr_curr_scope_sym_table, &token[token_index-1].attribute.string_val, false);
             assignment_add_identifier(&assignment_check_struct, token[token_index-1].token_type, symbol);
             // END SEMANTIC
+
+            // GENERATE
+            gen_defvar_lf(token[token_index-1].attribute.string_val.string);
+
             tmp_result = assign_nofunc(ptr_scanner, token);
             if (was_expr){
                 unget_token = true;
@@ -1680,6 +1707,8 @@ int parse(scannerT *ptr_scanner, tokenT token[]){
     }
 
     get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // "main"
+    // GENERATE
+    gen_enter_main();
 
     if (token[token_index].token_type != TOKEN_IDENTIFIER ||
     !string_compare_constant(&token[token_index].attribute.string_val, "main\n")){ // TODO remove newline
@@ -1689,6 +1718,10 @@ int parse(scannerT *ptr_scanner, tokenT token[]){
 
     tmp_result = program(ptr_scanner, token);
     if (tmp_result == SYNTAX_OK) {
+        // GENERATE
+        gen_exit_main();
+        gen_def_builtin_functions();
+
         return check_semantic_for_methods_call(&semantic_late_check_stack, &ptr_scanner->st_stack);
     }
     return tmp_result;

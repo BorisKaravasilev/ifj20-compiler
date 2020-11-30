@@ -10,12 +10,38 @@
 #ifndef IFJ20_COMPILER_GENERATOR_H
 #define IFJ20_COMPILER_GENERATOR_H
 
+#include "token_functions.h"
+
+#define RETURN_VALUE_1 "TF@retval1"
+#define RETURN_VALUE_2 "TF@retval2"
+
+// Code blocks generation
+void gen_enter_main();
+void gen_exit_main();
+void gen_enter_function_scope();
+void gen_leave_function_scope();
+
+// Utility functions
+void gen_assign_token_to_var(char *var, tokenT *token);
+void gen_print(tokenT *token_to_print);
+
+// Built-in functions
+void gen_call_input(int func_token_type, tokenT *token_array, int tok_index);
+void gen_def_builtin_functions();
+void gen_def_inputs();
+void gen_def_inputi();
+void gen_def_inputf();
+
 // Prace s ramci, volani funkci
 void gen_move(char *var, char *symb);
+void gen_move_to_lf(char *var, char *symb);
+void gen_move_to_tf(char *var, char *symb);
 void gen_createframe();
 void gen_pushframe();
 void gen_popframe();
 void gen_defvar(char *var);
+void gen_defvar_lf(char *var);
+void gen_defvar_tf(char *var);
 void gen_call(char *label);
 void gen_return();
 
