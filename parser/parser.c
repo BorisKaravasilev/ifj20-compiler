@@ -1397,11 +1397,16 @@ int command(scannerT *ptr_scanner, tokenT token[]){
  * The list of commands inside a function, cycle, or block
  */
 int command_list(scannerT *ptr_scanner, tokenT token[]){
-    if (!unget_token) {
-        get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // command or }
+    if (!was_expr){
+        if (!unget_token) {
+            get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // command or }
+        }
+        else {
+            unget_token = false;
+        }
     }
     else {
-        unget_token = false;
+        was_expr = false;
     }
 
     if (token[token_index].token_type == TOKEN_RIGHT_CURLY_BRACE){

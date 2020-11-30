@@ -54,7 +54,6 @@ void late_check_stack_pop(late_check_stack *s){
         tmp = s->top;
         s->top = s->top->next;
         late_check_stack_item_free(tmp);
-        free(tmp);
         s->size--;
     }
 }
