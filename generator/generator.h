@@ -27,7 +27,7 @@ void gen_print(tokenT *token_to_print);
 
 // Built-in functions
 void gen_call_input(int func_token_type, tokenT *token_array, int tok_index);
-void gen_def_builtin_functions();
+void gen_def_builtin_functions(const bool builtin_func_used[]);
 void gen_def_inputs();
 void gen_def_inputi();
 void gen_def_inputf();

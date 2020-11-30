@@ -14,6 +14,10 @@
 int token_index = 0, tmp_result = 0;
 bool was_expr = false, unget_token = false;
 
+/* store information whether to generate individual built-in function definitions
+   order is the same as in token_types.h, but print is excluded */
+bool builtin_func_used[9] = { false };
+
 assignmentT assignment_check_struct;
 ST_Item *current_function_block_symbol = NULL;
 
@@ -57,7 +61,7 @@ int id(scannerT *ptr_scanner, tokenT token[], bool assign_allowed){
         if (assign_allowed) {
             ST_Item *symbol;
             if ((symbol = stack_search(&ptr_scanner->st_stack, &token[token_index].attribute.string_val)) == NULL) {
-                fprintf(stderr, "Error: Undefined variable \'%s\'", token[token_index].attribute.string_val.string);
+                fprintf(stderr, "Error: Undefined variable \'%s\'\n", token[token_index].attribute.string_val.string);
                 return RC_SEMANTIC_IDENTIFIER_ERR;
             }
             assignment_add_identifier(&assignment_check_struct, token[token_index].token_type, symbol);
@@ -245,6 +249,9 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
         case TOKEN_FUNCTION_INPUTS:
         case TOKEN_FUNCTION_INPUTI:
         case TOKEN_FUNCTION_INPUTF:
+            // store information about a specific used function to generate its code
+            builtin_func_used[token[token_index].token_type - TOKEN_FUNCTION_INPUTS] = true;
+
             // GENERATE
             if (token[token_index - 1].token_type == TOKEN_EQUAL) {
                 gen_call_input(token[token_index].token_type, token, token_index);
@@ -280,7 +287,7 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
                 token[token_index].token_type == TOKEN_DECIMAL_LITERAL ||
                 token[token_index].token_type == TOKEN_EXPONENT_LITERAL)
             {
-                fprintf(stderr, "Error: Invalid parameter count supplied to function \'%s\'", "input_()");
+                fprintf(stderr, "Error: Invalid parameter count supplied to input function\n");
                 return RC_SEMANTIC_FUNC_PARAM_ERR;
             }
             else {
@@ -307,6 +314,7 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
             return print(ptr_scanner, token);
 
         case TOKEN_FUNCTION_INT2FLOAT:
+            builtin_func_used[3] = true;
             if (built_in_func_type != NULL) {
                 *built_in_func_type = token[token_index].token_type;
             }
@@ -332,10 +340,10 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
             if (token[token_index].token_type == TOKEN_IDENTIFIER){
                 ST_Item *symbol;
                 if ((symbol = stack_search(&ptr_scanner->st_stack, &token[token_index].attribute.string_val)) == NULL) {
-                    fprintf(stderr, "Error: Undefined variable \'%s\'", token[token_index].attribute.string_val.string);
+                    fprintf(stderr, "Error: Undefined variable \'%s\'\n", token[token_index].attribute.string_val.string);
                     return RC_SEMANTIC_IDENTIFIER_ERR;
                 } else if (symbol->type != TYPE_INT) {
-                    fprintf(stderr, "Error: Invalid parameter type supplied to function \'%s\'", "int2float()");
+                    fprintf(stderr, "Error: Invalid parameter type supplied to function \'%s\'\n", "int2float()");
                     return RC_SEMANTIC_FUNC_PARAM_ERR;
                 }
             }
@@ -355,7 +363,7 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
                 return SYNTAX_OK;
             }
             else if (token[token_index].token_type == TOKEN_COMMA){
-                fprintf(stderr, "Error: Invalid parameter count supplied to function \'%s\'", "int2float()");
+                fprintf(stderr, "Error: Invalid parameter count supplied to function \'%s\'\n", "int2float()");
                 return RC_SEMANTIC_FUNC_PARAM_ERR;
             }
             else {
@@ -364,6 +372,7 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
             }
 
         case TOKEN_FUNCTION_FLOAT2INT:
+            builtin_func_used[4] = true;
             if (built_in_func_type != NULL) {
                 *built_in_func_type = token[token_index].token_type;
             }
@@ -389,10 +398,10 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
             if (token[token_index].token_type == TOKEN_IDENTIFIER){
                 ST_Item *symbol;
                 if ((symbol = stack_search(&ptr_scanner->st_stack, &token[token_index].attribute.string_val)) == NULL) {
-                    fprintf(stderr, "Error: Undefined variable \'%s\'", token[token_index].attribute.string_val.string);
+                    fprintf(stderr, "Error: Undefined variable \'%s\'\n", token[token_index].attribute.string_val.string);
                     return RC_SEMANTIC_IDENTIFIER_ERR;
                 } else if (symbol->type != TYPE_DECIMAL) {
-                    fprintf(stderr, "Error: Invalid parameter type supplied to function \'%s\'", "float2int()");
+                    fprintf(stderr, "Error: Invalid parameter type supplied to function \'%s\'\n", "float2int()");
                     return RC_SEMANTIC_FUNC_PARAM_ERR;
                 }
             }
@@ -413,7 +422,7 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
                 return SYNTAX_OK;
             }
             else if (token[token_index].token_type == TOKEN_COMMA){
-                fprintf(stderr, "Error: Invalid parameter count supplied to function \'%s\'", "float2int()");
+                fprintf(stderr, "Error: Invalid parameter count supplied to function \'%s\'\n", "float2int()");
                 return RC_SEMANTIC_FUNC_PARAM_ERR;
             }
             else {
@@ -422,6 +431,7 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
             }
 
         case TOKEN_FUNCTION_LEN:
+            builtin_func_used[5] = true;
             if (built_in_func_type != NULL) {
                 *built_in_func_type = token[token_index].token_type;
             }
@@ -447,10 +457,10 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
             if (token[token_index].token_type == TOKEN_IDENTIFIER){
                 ST_Item *symbol;
                 if ((symbol = stack_search(&ptr_scanner->st_stack, &token[token_index].attribute.string_val)) == NULL) {
-                    fprintf(stderr, "Error: Undefined variable \'%s\'", token[token_index].attribute.string_val.string);
+                    fprintf(stderr, "Error: Undefined variable \'%s\'\n", token[token_index].attribute.string_val.string);
                     return RC_SEMANTIC_IDENTIFIER_ERR;
                 } else if (symbol->type != TYPE_STRING) {
-                    fprintf(stderr, "Error: Invalid parameter type supplied to function \'%s\'", "len()");
+                    fprintf(stderr, "Error: Invalid parameter type supplied to function \'%s\'\n", "len()");
                     return RC_SEMANTIC_FUNC_PARAM_ERR;
                 }
             }
@@ -470,7 +480,7 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
                 return SYNTAX_OK;
             }
             else if (token[token_index].token_type == TOKEN_COMMA){
-                fprintf(stderr, "Error: Invalid parameter count supplied to function \'%s\'", "len()");
+                fprintf(stderr, "Error: Invalid parameter count supplied to function \'%s\'\n", "len()");
                 return RC_SEMANTIC_FUNC_PARAM_ERR;
             }
             else {
@@ -479,6 +489,7 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
             }
 
         case TOKEN_FUNCTION_SUBSTR:
+            builtin_func_used[6] = true;
             if (built_in_func_type != NULL) {
                 *built_in_func_type = token[token_index].token_type;
             }
@@ -504,10 +515,10 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
             if (token[token_index].token_type == TOKEN_IDENTIFIER){
                 ST_Item *symbol;
                 if ((symbol = stack_search(&ptr_scanner->st_stack, &token[token_index].attribute.string_val)) == NULL) {
-                    fprintf(stderr, "Error: Undefined variable \'%s\'", token[token_index].attribute.string_val.string);
+                    fprintf(stderr, "Error: Undefined variable \'%s\'\n", token[token_index].attribute.string_val.string);
                     return RC_SEMANTIC_IDENTIFIER_ERR;
                 } else if (symbol->type != TYPE_STRING) {
-                    fprintf(stderr, "Error: Invalid parameter type supplied to function \'%s\'", "substr()");
+                    fprintf(stderr, "Error: Invalid parameter type supplied to function \'%s\'\n", "substr()");
                     return RC_SEMANTIC_FUNC_PARAM_ERR;
                 }
             }
@@ -538,10 +549,10 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
             if (token[token_index].token_type == TOKEN_IDENTIFIER){
                 ST_Item *symbol;
                 if ((symbol = stack_search(&ptr_scanner->st_stack, &token[token_index].attribute.string_val)) == NULL) {
-                    fprintf(stderr, "Error: Undefined variable \'%s\'", token[token_index].attribute.string_val.string);
+                    fprintf(stderr, "Error: Undefined variable \'%s\'\n", token[token_index].attribute.string_val.string);
                     return RC_SEMANTIC_IDENTIFIER_ERR;
                 } else if (symbol->type != TYPE_INT) {
-                    fprintf(stderr, "Error: Invalid parameter type supplied to function \'%s\'", "substr()");
+                    fprintf(stderr, "Error: Invalid parameter type supplied to function \'%s\'\n", "substr()");
                     return RC_SEMANTIC_FUNC_PARAM_ERR;
                 }
             }
@@ -572,10 +583,10 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
             if (token[token_index].token_type == TOKEN_IDENTIFIER){
                 ST_Item *symbol;
                 if ((symbol = stack_search(&ptr_scanner->st_stack, &token[token_index].attribute.string_val)) == NULL) {
-                    fprintf(stderr, "Error: Undefined variable \'%s\'", token[token_index].attribute.string_val.string);
+                    fprintf(stderr, "Error: Undefined variable \'%s\'\n", token[token_index].attribute.string_val.string);
                     return RC_SEMANTIC_IDENTIFIER_ERR;
                 } else if (symbol->type != TYPE_INT) {
-                    fprintf(stderr, "Error: Invalid parameter type supplied to function \'%s\'", "substr()");
+                    fprintf(stderr, "Error: Invalid parameter type supplied to function \'%s\'\n", "substr()");
                     return RC_SEMANTIC_FUNC_PARAM_ERR;
                 }
             }
@@ -595,7 +606,7 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
                 return SYNTAX_OK;
             }
             else if (token[token_index].token_type == TOKEN_COMMA){
-                fprintf(stderr, "Error: Invalid parameter count supplied to function \'%s\'", "substr()");
+                fprintf(stderr, "Error: Invalid parameter count supplied to function \'%s\'\n", "substr()");
                 return RC_SEMANTIC_FUNC_PARAM_ERR;
             }
             else {
@@ -604,6 +615,7 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
             }
 
         case TOKEN_FUNCTION_ORD:
+            builtin_func_used[7] = true;
             if (built_in_func_type != NULL) {
                 *built_in_func_type = token[token_index].token_type;
             }
@@ -629,10 +641,10 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
             if (token[token_index].token_type == TOKEN_IDENTIFIER){
                 ST_Item *symbol;
                 if ((symbol = stack_search(&ptr_scanner->st_stack, &token[token_index].attribute.string_val)) == NULL) {
-                    fprintf(stderr, "Error: Undefined variable \'%s\'", token[token_index].attribute.string_val.string);
+                    fprintf(stderr, "Error: Undefined variable \'%s\'\n", token[token_index].attribute.string_val.string);
                     return RC_SEMANTIC_IDENTIFIER_ERR;
                 } else if (symbol->type != TYPE_STRING) {
-                    fprintf(stderr, "Error: Invalid parameter type supplied to function \'%s\'", "ord()");
+                    fprintf(stderr, "Error: Invalid parameter type supplied to function \'%s\'\n", "ord()");
                     return RC_SEMANTIC_FUNC_PARAM_ERR;
                 }
             }
@@ -663,10 +675,10 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
             if (token[token_index].token_type == TOKEN_IDENTIFIER){
                 ST_Item *symbol;
                 if ((symbol = stack_search(&ptr_scanner->st_stack, &token[token_index].attribute.string_val)) == NULL) {
-                    fprintf(stderr, "Error: Undefined variable \'%s\'", token[token_index].attribute.string_val.string);
+                    fprintf(stderr, "Error: Undefined variable \'%s\'\n", token[token_index].attribute.string_val.string);
                     return RC_SEMANTIC_IDENTIFIER_ERR;
                 } else if (symbol->type != TYPE_INT) {
-                    fprintf(stderr, "Error: Invalid parameter type supplied to function \'%s\'", "ord()");
+                    fprintf(stderr, "Error: Invalid parameter type supplied to function \'%s\'\n", "ord()");
                     return RC_SEMANTIC_FUNC_PARAM_ERR;
                 }
             }
@@ -686,7 +698,7 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
                 return SYNTAX_OK;
             }
             else if (token[token_index].token_type == TOKEN_COMMA){
-                fprintf(stderr, "Error: Invalid parameter count supplied to function \'%s\'", "ord()");
+                fprintf(stderr, "Error: Invalid parameter count supplied to function \'%s\'\n", "ord()");
                 return RC_SEMANTIC_FUNC_PARAM_ERR;
             }
             else {
@@ -695,6 +707,7 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
             }
 
         case TOKEN_FUNCTION_CHR:
+            builtin_func_used[8] = true;
             if (built_in_func_type != NULL) {
                 *built_in_func_type = token[token_index].token_type;
             }
@@ -720,10 +733,10 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
             if (token[token_index].token_type == TOKEN_IDENTIFIER){
                 ST_Item *symbol;
                 if ((symbol = stack_search(&ptr_scanner->st_stack, &token[token_index].attribute.string_val)) == NULL) {
-                    fprintf(stderr, "Error: Undefined variable \'%s\'", token[token_index].attribute.string_val.string);
+                    fprintf(stderr, "Error: Undefined variable \'%s\'\n", token[token_index].attribute.string_val.string);
                     return RC_SEMANTIC_IDENTIFIER_ERR;
                 } else if (symbol->type != TYPE_INT) {
-                    fprintf(stderr, "Error: Invalid parameter type supplied to function \'%s\'", "chr()");
+                    fprintf(stderr, "Error: Invalid parameter type supplied to function \'%s\'\n", "chr()");
                     return RC_SEMANTIC_FUNC_PARAM_ERR;
                 }
             }
@@ -742,7 +755,7 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
             if (token[token_index].token_type == TOKEN_RIGHT_BRACKET){
                 return SYNTAX_OK;
             } else if (token[token_index].token_type == TOKEN_COMMA){
-                fprintf(stderr, "Error: Invalid parameter count supplied to function \'%s\'", "chr()");
+                fprintf(stderr, "Error: Invalid parameter count supplied to function \'%s\'\n", "chr()");
                 return RC_SEMANTIC_FUNC_PARAM_ERR;
             }
             else {
@@ -831,7 +844,7 @@ int assign_nofunc(scannerT *ptr_scanner, tokenT token[]){
     if (token[token_index].token_type == TOKEN_IDENTIFIER){
         ST_Item *identifier;
         if ((identifier = stack_search(&ptr_scanner->st_stack, &token[token_index].attribute.string_val)) == NULL) {
-            fprintf(stderr, "Error: Undefined variable \'%s\'", token[token_index].attribute.string_val.string);
+            fprintf(stderr, "Error: Undefined variable \'%s\'\n", token[token_index].attribute.string_val.string);
             return RC_SEMANTIC_IDENTIFIER_ERR;
         }
         // TODO: add id on right side to assign struct
@@ -941,7 +954,7 @@ int assign(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic_type
         else {
             ST_Item *identifier;
             if ((identifier = stack_search(&ptr_scanner->st_stack, &token[token_index-1].attribute.string_val)) == NULL) {
-                fprintf(stderr, "Error: Undefined variable \'%s\'", token[token_index-1].attribute.string_val.string);
+                fprintf(stderr, "Error: Undefined variable \'%s\'\n", token[token_index-1].attribute.string_val.string);
                 return RC_SEMANTIC_IDENTIFIER_ERR;
             }
             int expr_result_type;
@@ -1081,7 +1094,7 @@ int id_next1(scannerT *ptr_scanner, tokenT token[]){
             }
 
             if ((identifier = stack_search(&ptr_scanner->st_stack, &token[token_index].attribute.string_val)) == NULL) {
-                fprintf(stderr, "Error: Undefined variable \'%s\'", token[token_index].attribute.string_val.string);
+                fprintf(stderr, "Error: Undefined variable \'%s\'\n", token[token_index].attribute.string_val.string);
                 return RC_SEMANTIC_IDENTIFIER_ERR;
             }
             late_check_stack_item_add_parameter(semantic_late_check_stack.top, identifier->type);
@@ -1112,7 +1125,7 @@ int id_list1(scannerT *ptr_scanner, tokenT token[]){
 
         case TOKEN_IDENTIFIER:
             if ((identifier = stack_search(&ptr_scanner->st_stack, &token[token_index].attribute.string_val)) == NULL) {
-                fprintf(stderr, "Error: Undefined variable \'%s\'", token[token_index].attribute.string_val.string);
+                fprintf(stderr, "Error: Undefined variable \'%s\'\n", token[token_index].attribute.string_val.string);
                 return RC_SEMANTIC_IDENTIFIER_ERR;
             }
             late_check_stack_item_add_parameter(semantic_late_check_stack.top, identifier->type);
@@ -1167,7 +1180,7 @@ int id_command(scannerT *ptr_scanner, tokenT token[]){
             // TODO: Proper check for "_" identifier
             if (string_compare_constant(&token[token_index-1].attribute.string_val, "_") != 0) {
                 if ((symbol = stack_search(&ptr_scanner->st_stack, &token[token_index-1].attribute.string_val)) == NULL) {
-                    fprintf(stderr, "Error: Undefined variable \'%s\'", token[token_index-1].attribute.string_val.string);
+                    fprintf(stderr, "Error: Undefined variable \'%s\'\n", token[token_index-1].attribute.string_val.string);
                     return RC_SEMANTIC_IDENTIFIER_ERR;
                 }
             }
@@ -1191,7 +1204,7 @@ int id_command(scannerT *ptr_scanner, tokenT token[]){
             // SEMANTIC
             if (string_compare_constant(&token[token_index-1].attribute.string_val, "_") != 0) {
                 if ((symbol = stack_search(&ptr_scanner->st_stack, &token[token_index-1].attribute.string_val)) == NULL) {
-                    fprintf(stderr, "Error: Undefined variable \'%s\'", token[token_index-1].attribute.string_val.string);
+                    fprintf(stderr, "Error: Undefined variable \'%s\'\n", token[token_index-1].attribute.string_val.string);
                     return RC_SEMANTIC_IDENTIFIER_ERR;
                 }
             }
@@ -1720,7 +1733,7 @@ int parse(scannerT *ptr_scanner, tokenT token[]){
     if (tmp_result == SYNTAX_OK) {
         // GENERATE
         gen_exit_main();
-        gen_def_builtin_functions();
+        gen_def_builtin_functions(builtin_func_used);
 
         return check_semantic_for_methods_call(&semantic_late_check_stack, &ptr_scanner->st_stack);
     }

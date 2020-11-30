@@ -123,19 +123,18 @@ void gen_print(tokenT *token_to_print) {
 }
 
 void gen_call_input(int func_token_type, tokenT *token_array, int tok_index) {
-    // a, _ = inputs()
     gen_createframe();
 
     if (func_token_type == TOKEN_FUNCTION_INPUTS){
         gen_call("$inputs"); // inputs()
     } else if (func_token_type == TOKEN_FUNCTION_INPUTF) {
-        gen_call("$inputf"); // inputs()
+        gen_call("$inputf"); // inputf()
     } else if (func_token_type == TOKEN_FUNCTION_INPUTI) {
-        gen_call("$inputi"); // inputs()
+        gen_call("$inputi"); // inputi()
     }
 
-    tokenT first_var = token_array[tok_index - 4]; // a
-    tokenT second_var = token_array[tok_index - 2]; // _
+    tokenT first_var = token_array[tok_index - 4];
+    tokenT second_var = token_array[tok_index - 2];
 
     if (first_var.token_type != TOKEN_UNDERSCORE) {
         gen_move_to_lf(first_var.attribute.string_val.string, RETURN_VALUE_1);
@@ -229,11 +228,27 @@ void gen_def_inputf() {
            "");
 }
 
-void gen_def_builtin_functions() {
-    printf("\n\n# Function definitions\n\n");
-    gen_def_inputs();
-    gen_def_inputi();
-    gen_def_inputf();
+void gen_def_builtin_functions(const bool builtin_func_used[]) {
+    printf("\n\n# Built-in function definitions (if any are used)\n\n");
+
+    if (builtin_func_used[0] == true) // generate inputs
+        gen_def_inputs();
+    if (builtin_func_used[1] == true) // generate inputi
+        gen_def_inputi();
+    if (builtin_func_used[2] == true) // generate inputf
+        gen_def_inputf();
+    if (builtin_func_used[3] == true) // generate int2float
+        ;
+    if (builtin_func_used[4] == true) // generate float2int
+        ;
+    if (builtin_func_used[5] == true) // generate len
+        ;
+    if (builtin_func_used[6] == true) // generate substr
+        ;
+    if (builtin_func_used[7] == true) // generate ord
+        ;
+    if (builtin_func_used[8] == true) // generate chr
+        ;
 }
 
 // ---------------------------------------------------| Prace s ramci, volani funkci
@@ -367,7 +382,7 @@ void gen_or(char *var, char *symb1, char *symb2) {
 }
 
 void gen_not(char *var, char *symb) {
-    printf("NOT %s %s %s\n", var, symb);
+    printf("NOT %s %s\n", var, symb);
 }
 
 void gen_ands() {
@@ -383,15 +398,15 @@ void gen_nots() {
 }
 
 void gen_int2float(char *var, char *symb) {
-    printf("INT2FLOAT %s %s %s\n", var, symb);
+    printf("INT2FLOAT %s %s\n", var, symb);
 }
 
 void gen_float2int(char *var, char *symb) {
-    printf("FLOAT2INT %s %s %s\n", var, symb);
+    printf("FLOAT2INT %s %s\n", var, symb);
 }
 
 void gen_int2char(char *var, char *symb) {
-    printf("INT2CHAR %s %s %s\n", var, symb);
+    printf("INT2CHAR %s %s\n", var, symb);
 }
 
 void gen_stri2int(char *var, char *symb1, char *symb2) {
