@@ -1,0 +1,149 @@
+.IFJcode20
+JUMP $$main
+
+# ----------------------------------- main()
+LABEL $$main # main body
+CREATEFRAME
+PUSHFRAME
+
+# # Call print(param1, param2, param3)
+# CREATEFRAME
+# DEFVAR TF@param1
+# MOVE TF@param1 int@123
+# DEFVAR TF@param2
+# MOVE TF@param2 string@ahoj
+# DEFVAR TF@param3
+# MOVE TF@param3 float@0x1.0d9999999999ap+6
+# CALL $print3
+
+# # Call inputi()
+# CREATEFRAME
+# CALL $inputi
+# WRITE TF@retval1
+# WRITE TF@retval2
+
+# # Call inputs()
+# CREATEFRAME
+# CALL $inputs
+# WRITE TF@retval1
+# WRITE TF@retval2
+
+# # Call inputf()
+# CREATEFRAME
+# CALL $inputf
+# WRITE TF@retval1
+# WRITE TF@retval2
+
+# # a := ""
+# DEFVAR LF@a
+# MOVE LF@a string@
+
+# a, _ = inputs()
+CREATEFRAME
+CALL $inputs
+MOVE LF@a TF@retval1
+
+# print(a)
+CREATEFRAME
+DEFVAR TF@param1
+MOVE TF@param1 LF@a
+CALL $print1
+
+EXIT int@0 # exit main
+
+# Function definitions
+
+# ----------------------------------- print(param1)
+LABEL $print1
+PUSHFRAME
+
+WRITE LF@param1
+
+POPFRAME
+RETURN
+
+# ----------------------------------- print(param1, param2, param3)
+LABEL $print3
+PUSHFRAME
+
+WRITE LF@param1
+WRITE LF@param2
+WRITE LF@param3
+
+POPFRAME
+RETURN
+
+# ----------------------------------- inputs()
+LABEL $inputs
+PUSHFRAME
+
+# init return values
+DEFVAR LF@retval1
+MOVE LF@retval1 nil@nil
+DEFVAR LF@retval2
+MOVE LF@retval2 nil@nil
+
+# function body
+READ LF@retval1 string
+JUMPIFNEQ $inputs$else LF@retval1 nil@nil # if (retval1 == nil) retval2 = 1;
+# error
+MOVE LF@retval2 int@1
+JUMP $inputs$endif
+
+LABEL $inputs$else # else { retval2 = 0 }
+# ok
+MOVE LF@retval2 int@0
+LABEL $inputs$endif
+
+POPFRAME
+RETURN
+
+# ----------------------------------- inputi()
+LABEL $inputi
+PUSHFRAME
+
+# init return values
+DEFVAR LF@retval1
+MOVE LF@retval1 nil@nil
+DEFVAR LF@retval2
+MOVE LF@retval2 nil@nil
+
+# function body
+READ LF@retval1 int
+JUMPIFNEQ $inputi$else LF@retval1 nil@nil # if (retval1 == nil) retval2 = 1;
+# error
+MOVE LF@retval2 int@1
+JUMP $inputi$endif
+
+LABEL $inputi$else # else { retval2 = 0 }
+# ok
+MOVE LF@retval2 int@0
+LABEL $inputi$endif
+
+POPFRAME
+RETURN
+
+# ----------------------------------- inputf()
+LABEL $inputf
+PUSHFRAME
+
+# init return values
+DEFVAR LF@retval1
+MOVE LF@retval1 nil@nil
+DEFVAR LF@retval2
+MOVE LF@retval2 nil@nil
+
+# function body
+READ LF@retval1 float
+JUMPIFNEQ $inputf$else LF@retval1 nil@nil # if (retval1 == nil) retval2 = 1;
+# error
+MOVE LF@retval2 int@1
+JUMP $inputf$endif
+
+LABEL $inputf$else # else { retval2 = 0 }
+# ok
+MOVE LF@retval2 int@0
+LABEL $inputf$endif
+
+POPFRAME
+RETURN
