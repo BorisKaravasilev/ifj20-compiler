@@ -79,8 +79,8 @@ void gen_ands();
 void gen_ors();
 void gen_nots();
 
-void gen_int2float(char *var, char *symb);
-void gen_float2int(char *var, char *symb);
+void gen_int2float(char *var, tokenT *symb_token);
+void gen_float2int(char *var, tokenT *symb_token);
 void gen_int2char(char *var, char *symb);
 void gen_stri2int(char *var, char *symb1, char *symb2);
 

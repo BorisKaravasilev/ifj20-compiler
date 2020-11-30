@@ -90,9 +90,12 @@ int literal(scannerT *ptr_scanner, tokenT token[], int *item_type){
         token[token_index].token_type == TOKEN_STRING_LITERAL) {
 
         // GENERATE
-        if (token[token_index-1].token_type == TOKEN_COLON_EQUAL){
+        int previous_token_type = token[token_index-1].token_type;
+
+        if (previous_token_type == TOKEN_COLON_EQUAL || previous_token_type == TOKEN_EQUAL){
             gen_assign_token_to_var(token[token_index-2].attribute.string_val.string, &token[token_index]);
         }
+        // END GENERATE
 
         if (item_type != NULL) {    // TODO P semantic actions change or remove?
             switch(token[token_index].token_type) {
@@ -252,11 +255,6 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
             // store information about a specific used function to generate its code
             builtin_func_used[token[token_index].token_type - TOKEN_FUNCTION_INPUTS] = true;
 
-            // GENERATE
-            if (token[token_index - 1].token_type == TOKEN_EQUAL) {
-                gen_call_input(token[token_index].token_type, token, token_index);
-            }
-
             if (built_in_func_type != NULL) {
                 *built_in_func_type = token[token_index].token_type;
             }
@@ -280,6 +278,11 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
             }
 
             if (token[token_index].token_type == TOKEN_RIGHT_BRACKET){
+                // GENERATE
+                if (token[token_index - 3].token_type == TOKEN_EQUAL) {
+                    gen_call_input(token[token_index].token_type, token, token_index);
+                }
+
                 return SYNTAX_OK;
             } else if (token[token_index].token_type == TOKEN_IDENTIFIER ||
                 token[token_index].token_type == TOKEN_INTEGER_LITERAL ||
@@ -360,6 +363,12 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
             }
 
             if (token[token_index].token_type == TOKEN_RIGHT_BRACKET){
+                // GENERATE int2float()
+                if (token[token_index - 4].token_type == TOKEN_EQUAL){
+                    char *var_to_assing_to = token[token_index - 5].attribute.string_val.string;
+                    gen_int2float(var_to_assing_to, &token[token_index - 1]);
+                }
+
                 return SYNTAX_OK;
             }
             else if (token[token_index].token_type == TOKEN_COMMA){
@@ -419,6 +428,12 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
             }
 
             if (token[token_index].token_type == TOKEN_RIGHT_BRACKET){
+                // GENERATE float2int()
+                if (token[token_index - 4].token_type == TOKEN_EQUAL){
+                    char *var_to_assing_to = token[token_index - 5].attribute.string_val.string;
+                    gen_float2int(var_to_assing_to, &token[token_index - 1]);
+                }
+
                 return SYNTAX_OK;
             }
             else if (token[token_index].token_type == TOKEN_COMMA){
@@ -854,6 +869,9 @@ int assign_nofunc(scannerT *ptr_scanner, tokenT token[]){
         was_expr = true;
         assignment_add_expression(&assignment_check_struct, expr_result_type, NULL);
         return tmp_result;*/
+
+        // GENERATE
+
     }
 
     int expr_result_type;

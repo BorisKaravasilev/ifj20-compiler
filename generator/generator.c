@@ -61,12 +61,21 @@ void gen_assign_token_to_var(char *var_name, tokenT *token) {
         case TOKEN_DECIMAL_LITERAL:
             assigned_data_type = "float@";
             break;
+        case TOKEN_IDENTIFIER:
+
+            break;
         default:
             break;
     }
 
     string_add_string(&str_to_assign, assigned_data_type);
-    string_add_string(&str_to_assign, token->attribute.string_val.string);
+    if (token->token_type == TOKEN_EXPONENT_LITERAL || token->token_type == TOKEN_DECIMAL_LITERAL) {
+        char str_hex_float[1000];
+        sprintf(str_hex_float, "%a", strtof(token->attribute.string_val.string, NULL));
+        string_add_string(&str_to_assign, str_hex_float);
+    } else {
+        string_add_string(&str_to_assign, token->attribute.string_val.string);
+    }
 
     string_add_string(&str_var_with_frame, "LF@");
     string_add_string(&str_var_with_frame, var_name);
@@ -397,12 +406,24 @@ void gen_nots() {
     printf("NOTS\n");
 }
 
-void gen_int2float(char *var, char *symb) {
-    printf("INT2FLOAT %s %s\n", var, symb);
+void gen_int2float(char *var, tokenT *symb_token) {
+    if (symb_token->token_type == TOKEN_IDENTIFIER) {
+        printf("INT2FLOAT LF@%s LF@%s\n", var, symb_token->attribute.string_val.string);
+
+    } else {
+        printf("INT2FLOAT LF@%s int@%s\n", var, symb_token->attribute.string_val.string);
+    }
 }
 
-void gen_float2int(char *var, char *symb) {
-    printf("FLOAT2INT %s %s\n", var, symb);
+void gen_float2int(char *var, tokenT *symb_token) {
+    if (symb_token->token_type == TOKEN_IDENTIFIER) {
+        printf("FLOAT2INT LF@%s LF@%s\n", var, symb_token->attribute.string_val.string);
+
+    } else {
+        char str_hex_float[1000];
+        sprintf(str_hex_float, "%a", strtof(symb_token->attribute.string_val.string, NULL));
+        printf("FLOAT2INT LF@%s float@%s\n", var, str_hex_float);
+    }
 }
 
 void gen_int2char(char *var, char *symb) {
