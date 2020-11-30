@@ -38,16 +38,21 @@ PUSHFRAME
 # DEFVAR LF@a
 # MOVE LF@a string@
 
-# a, _ = inputs()
-CREATEFRAME
-CALL $inputs
-MOVE LF@a TF@retval1
+# # a, _ = inputs()
+# CREATEFRAME
+# CALL $inputs
+# MOVE LF@a TF@retval1
 
-# print(a)
-CREATEFRAME
-DEFVAR TF@param1
-MOVE TF@param1 LF@a
-CALL $print1
+# # print(a)
+# CREATEFRAME
+# DEFVAR TF@param1
+# MOVE TF@param1 LF@a
+# CALL $print1
+
+# Call int2float()
+DEFVAR LF@floata
+INT2FLOAT LF@floata int@2
+WRITE LF@floata
 
 EXIT int@0 # exit main
 

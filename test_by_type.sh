@@ -23,16 +23,16 @@ cd ./ifj-testsuite
 echo
 echo "LEXICAL"
 echo "--------------"
-python2 testsuite.py --compiler ../${COMPILER_PATH} -mc -s tests/lex --log-file lex_log.txt | grep "PASSED:\|FAILED:"
+python2 testsuite.py --compiler ../${COMPILER_PATH} -s tests/lex --log-file lex_log.txt | grep "PASSED:\|FAILED:"
 echo
 echo "SEMANTIC"
 echo "--------------"
-python2 testsuite.py --compiler ../${COMPILER_PATH} -mc -s tests/sem --log-file sem_log.txt | grep "PASSED:\|FAILED:"
+python2 testsuite.py --compiler ../${COMPILER_PATH} -s tests/sem --log-file sem_log.txt | grep "PASSED:\|FAILED:"
 echo
 echo "SYNTAX"
 echo "--------------"
-python2 testsuite.py --compiler ../${COMPILER_PATH} -mc -s tests/syn --log-file syn_log.txt | grep "PASSED:\|FAILED:"
+python2 testsuite.py --compiler ../${COMPILER_PATH} -s tests/syn --log-file syn_log.txt | grep "PASSED:\|FAILED:"
 echo
 echo "EXECUTION"
 echo "--------------"
-python2 testsuite.py --compiler ../${COMPILER_PATH} -mc -s tests/exe --log-file exe_log.txt | grep "PASSED:\|FAILED:"
+python2 testsuite.py --compiler ../${COMPILER_PATH} -s tests/exe --log-file exe_log.txt | grep "PASSED:\|FAILED:"
