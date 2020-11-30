@@ -27,7 +27,7 @@ void gen_print(tokenT *token_to_print);
 
 // Built-in functions
 void gen_call_input(int func_token_type, tokenT *token_array, int tok_index);
-void gen_def_builtin_functions();
+void gen_def_builtin_functions(const bool builtin_func_used[]);
 void gen_def_inputs();
 void gen_def_inputi();
 void gen_def_inputf();
@@ -79,8 +79,8 @@ void gen_ands();
 void gen_ors();
 void gen_nots();
 
-void gen_int2float(char *var, char *symb);
-void gen_float2int(char *var, char *symb);
+void gen_int2float(char *var, tokenT *symb_token);
+void gen_float2int(char *var, tokenT *symb_token);
 void gen_int2char(char *var, char *symb);
 void gen_stri2int(char *var, char *symb1, char *symb2);
 
@@ -93,7 +93,7 @@ void gen_stri2ints();
 void gen_read(char *var, char *type);
 void gen_write(char *symb);
 void gen_concat(char *var, char *symb1, char *symb2);
-void gen_strlen(char *var, char *symb);
+void gen_strlen(char *var, tokenT *symb_token);
 void gen_getchar(char *var, char *symb1, char *symb2);
 void gen_setchar(char *var, char *symb1, char *symb2);
 
