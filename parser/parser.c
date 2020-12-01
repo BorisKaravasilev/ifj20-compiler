@@ -16,7 +16,7 @@ bool was_expr = false, unget_token = false;
 
 /* store information whether to generate individual built-in function definitions
    order is the same as in token_types.h, but print is excluded */
-bool builtin_func_used[9] = { false };
+bool builtin_func_used[6] = { false };
 
 assignmentT assignment_check_struct;
 ST_Item *current_function_block_symbol = NULL;
@@ -283,12 +283,12 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
                 }
 
                 return SYNTAX_OK;
-            } else if (token[token_index].token_type == TOKEN_IDENTIFIER ||
+            }
+            else if (token[token_index].token_type == TOKEN_IDENTIFIER ||
                 token[token_index].token_type == TOKEN_INTEGER_LITERAL ||
                 token[token_index].token_type == TOKEN_STRING_LITERAL ||
                 token[token_index].token_type == TOKEN_DECIMAL_LITERAL ||
-                token[token_index].token_type == TOKEN_EXPONENT_LITERAL)
-            {
+                token[token_index].token_type == TOKEN_EXPONENT_LITERAL) {
                 fprintf(stderr, "Error: Invalid parameter count supplied to input function\n");
                 return RC_SEMANTIC_FUNC_PARAM_ERR;
             }
@@ -316,7 +316,6 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
             return print(ptr_scanner, token);
 
         case TOKEN_FUNCTION_INT2FLOAT:
-            builtin_func_used[3] = true;
             if (built_in_func_type != NULL) {
                 *built_in_func_type = token[token_index].token_type;
             }
@@ -364,8 +363,8 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
             if (token[token_index].token_type == TOKEN_RIGHT_BRACKET){
                 // GENERATE int2float()
                 if (token[token_index - 4].token_type == TOKEN_EQUAL){
-                    char *var_to_assing_to = token[token_index - 5].attribute.string_val.string;
-                    gen_int2float(var_to_assing_to, &token[token_index - 1]);
+                    char *var_to_assign_to = token[token_index - 5].attribute.string_val.string;
+                    gen_int2float(var_to_assign_to, &token[token_index - 1]);
                 }
 
                 return SYNTAX_OK;
@@ -380,7 +379,6 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
             }
 
         case TOKEN_FUNCTION_FLOAT2INT:
-            builtin_func_used[4] = true;
             if (built_in_func_type != NULL) {
                 *built_in_func_type = token[token_index].token_type;
             }
@@ -429,8 +427,8 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
             if (token[token_index].token_type == TOKEN_RIGHT_BRACKET){
                 // GENERATE float2int()
                 if (token[token_index - 4].token_type == TOKEN_EQUAL){
-                    char *var_to_assing_to = token[token_index - 5].attribute.string_val.string;
-                    gen_float2int(var_to_assing_to, &token[token_index - 1]);
+                    char *var_to_assign_to = token[token_index - 5].attribute.string_val.string;
+                    gen_float2int(var_to_assign_to, &token[token_index - 1]);
                 }
 
                 return SYNTAX_OK;
@@ -445,7 +443,6 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
             }
 
         case TOKEN_FUNCTION_LEN:
-            builtin_func_used[5] = true;
             if (built_in_func_type != NULL) {
                 *built_in_func_type = token[token_index].token_type;
             }
@@ -493,8 +490,8 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
             if (token[token_index].token_type == TOKEN_RIGHT_BRACKET){
                 // GENERATE len(s string) (int)
                 if (token[token_index - 4].token_type == TOKEN_EQUAL){
-                    char *var_to_assing_to = token[token_index - 5].attribute.string_val.string;
-                    gen_strlen(var_to_assing_to, &token[token_index - 1]);
+                    char *var_to_assign_to = token[token_index - 5].attribute.string_val.string;
+                    gen_strlen(var_to_assign_to, &token[token_index - 1]);
                 }
 
                 return SYNTAX_OK;
@@ -509,7 +506,7 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
             }
 
         case TOKEN_FUNCTION_SUBSTR:
-            builtin_func_used[6] = true;
+            builtin_func_used[3] = true;
             if (built_in_func_type != NULL) {
                 *built_in_func_type = token[token_index].token_type;
             }
@@ -623,6 +620,11 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
             }
 
             if (token[token_index].token_type == TOKEN_RIGHT_BRACKET){
+                // GENERATE substr()
+                if (token[token_index - 8].token_type == TOKEN_EQUAL) {
+                    gen_call_substr(token, token_index);
+                }
+
                 return SYNTAX_OK;
             }
             else if (token[token_index].token_type == TOKEN_COMMA){
@@ -635,7 +637,7 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
             }
 
         case TOKEN_FUNCTION_ORD:
-            builtin_func_used[7] = true;
+            builtin_func_used[4] = true;
             if (built_in_func_type != NULL) {
                 *built_in_func_type = token[token_index].token_type;
             }
@@ -716,8 +718,10 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
 
             if (token[token_index].token_type == TOKEN_RIGHT_BRACKET){
                 // GENERATE ord()
-                // TODO gen_def_ord()
-                // TODO gen_call_ord()
+                if (token[token_index - 6].token_type == TOKEN_EQUAL) {
+                    gen_call_ord(token, token_index);
+                }
+
                 return SYNTAX_OK;
             }
             else if (token[token_index].token_type == TOKEN_COMMA){
@@ -730,7 +734,7 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
             }
 
         case TOKEN_FUNCTION_CHR:
-            builtin_func_used[8] = true;
+            builtin_func_used[5] = true;
             if (built_in_func_type != NULL) {
                 *built_in_func_type = token[token_index].token_type;
             }
@@ -776,6 +780,10 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
             }
 
             if (token[token_index].token_type == TOKEN_RIGHT_BRACKET){
+                // GENERATE chr()
+                if (token[token_index - 4].token_type == TOKEN_EQUAL) {
+                    gen_call_chr(token, token_index);
+                }
                 return SYNTAX_OK;
             } else if (token[token_index].token_type == TOKEN_COMMA){
                 fprintf(stderr, "Error: Invalid parameter count supplied to function \'%s\'\n", "chr()");
@@ -1766,11 +1774,15 @@ int parse(scannerT *ptr_scanner, tokenT token[]){
 
     tmp_result = program(ptr_scanner, token);
     if (tmp_result == SYNTAX_OK) {
-        // GENERATE
-        gen_exit_main();
-        gen_def_builtin_functions(builtin_func_used);
+        tmp_result = check_semantic_for_methods_call(&semantic_late_check_stack, &ptr_scanner->st_stack);
 
-        return check_semantic_for_methods_call(&semantic_late_check_stack, &ptr_scanner->st_stack);
+        if (tmp_result != SYNTAX_OK)
+            return tmp_result;
+        else {
+            // GENERATE
+            gen_exit_main();
+            gen_def_builtin_functions(builtin_func_used);
+        }
     }
     return tmp_result;
 }
