@@ -285,10 +285,10 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
                 return SYNTAX_OK;
             }
             else if (token[token_index].token_type == TOKEN_IDENTIFIER ||
-                token[token_index].token_type == TOKEN_INTEGER_LITERAL ||
-                token[token_index].token_type == TOKEN_STRING_LITERAL ||
-                token[token_index].token_type == TOKEN_DECIMAL_LITERAL ||
-                token[token_index].token_type == TOKEN_EXPONENT_LITERAL) {
+                    token[token_index].token_type == TOKEN_INTEGER_LITERAL ||
+                    token[token_index].token_type == TOKEN_STRING_LITERAL ||
+                    token[token_index].token_type == TOKEN_DECIMAL_LITERAL ||
+                    token[token_index].token_type == TOKEN_EXPONENT_LITERAL) {
                 fprintf(stderr, "Error: Invalid parameter count supplied to input function\n");
                 return RC_SEMANTIC_FUNC_PARAM_ERR;
             }
@@ -865,9 +865,25 @@ int assign_nofunc(scannerT *ptr_scanner, tokenT token[]){
 
     int item_type;
     tmp_result = literal(ptr_scanner, token, &item_type);
-    if (tmp_result == SYNTAX_OK) {
-        assignment_add_expression(&assignment_check_struct, item_type, NULL);
-        return SYNTAX_OK;
+    if (tmp_result == SYNTAX_OK){ // literal was found
+        get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // operator or extra token
+        if (operator_check(&token[token_index]) || token[token_index].token_type == TOKEN_PLUS ||
+            token[token_index].token_type == TOKEN_DIVISION || token[token_index].token_type == TOKEN_DOUBLE_EQUAL ||
+            token[token_index].token_type == TOKEN_NOT_EQUAL){
+            // operator, call expression analysis
+            int expr_result_type;
+            unget_token = true;
+            tmp_result = expr(ptr_scanner, token, true, &expr_result_type);
+            was_expr = true;
+            assignment_add_expression(&assignment_check_struct, expr_result_type, NULL);
+            return tmp_result;
+        }
+        else {
+            // extra token was read
+            unget_token = true;
+            assignment_add_expression(&assignment_check_struct, item_type, NULL);
+            return SYNTAX_OK;
+        }
     }
 
     unget_token = true;
@@ -944,9 +960,25 @@ int assign(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic_type
 
     int item_type;
     tmp_result = literal(ptr_scanner, token, &item_type);
-    if (tmp_result == SYNTAX_OK) {
-        assignment_add_expression(&assignment_check_struct, item_type, NULL);
-        return SYNTAX_OK;
+    if (tmp_result == SYNTAX_OK){ // literal was found
+        get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // operator or extra token
+        if (operator_check(&token[token_index]) || token[token_index].token_type == TOKEN_PLUS ||
+            token[token_index].token_type == TOKEN_DIVISION || token[token_index].token_type == TOKEN_DOUBLE_EQUAL ||
+            token[token_index].token_type == TOKEN_NOT_EQUAL){
+            // operator, call expression analysis
+            int expr_result_type;
+            unget_token = true;
+            tmp_result = expr(ptr_scanner, token, true, &expr_result_type);
+            was_expr = true;
+            assignment_add_expression(&assignment_check_struct, expr_result_type, NULL);
+            return tmp_result;
+        }
+        else {
+            // extra token was read
+            unget_token = true;
+            assignment_add_expression(&assignment_check_struct, item_type, NULL);
+            return SYNTAX_OK;
+        }
     }
 
     unget_token = true;
@@ -1103,21 +1135,30 @@ int id_next1(scannerT *ptr_scanner, tokenT token[]){
         unget_token = false;
     }
     ST_Item *identifier = NULL;
+    int item_type;
+
     switch (token[token_index].token_type){
         case TOKEN_RIGHT_BRACKET:
             return SYNTAX_OK;
 
         case TOKEN_COMMA:
             if (!unget_token) {
-                get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); //  id
+                get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); //  id or literal
             }
             else {
                 unget_token = false;
             }
 
             if (token[token_index].token_type != TOKEN_IDENTIFIER){
-                err_print("id", token[token_index].token_type);
-                return RC_SYN_ERR;
+                unget_token = true;
+                tmp_result = literal(ptr_scanner, token, &item_type);
+                if (tmp_result == SYNTAX_OK){
+                    return id_next1(ptr_scanner, token);
+                }
+                else {
+                    err_print("id or literal", token[token_index].token_type);
+                    return RC_SYN_ERR;
+                }
             }
 
             if ((identifier = stack_search(&ptr_scanner->st_stack, &token[token_index].attribute.string_val)) == NULL) {
@@ -1139,12 +1180,13 @@ int id_next1(scannerT *ptr_scanner, tokenT token[]){
  */
 int id_list1(scannerT *ptr_scanner, tokenT token[]){
     if (!unget_token) {
-        get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // id or )
+        get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // id, literal or )
     }
     else {
         unget_token = false;
     }
     ST_Item *identifier = NULL;
+    int item_type;
 
     switch (token[token_index].token_type){
         case TOKEN_RIGHT_BRACKET:
@@ -1159,8 +1201,15 @@ int id_list1(scannerT *ptr_scanner, tokenT token[]){
             return id_next1(ptr_scanner, token);
 
         default:
-            err_print("id or )", token[token_index].token_type);
-            return RC_SYN_ERR;
+            unget_token = true;
+            tmp_result = literal(ptr_scanner, token, &item_type);
+            if (tmp_result == SYNTAX_OK){
+                return id_next1(ptr_scanner, token);
+            }
+            else {
+                err_print("id, literal or )", token[token_index].token_type);
+                return RC_SYN_ERR;
+            }
     }
 }
 
@@ -1363,7 +1412,6 @@ int cycle_init(scannerT *ptr_scanner, tokenT token[]){
  * An individual command inside a function, cycle, or block
  */
 int command(scannerT *ptr_scanner, tokenT token[]){
-    // probably shouldn't get token here, since parser already has it from cmd_list
     assignment_struct_empty(&assignment_check_struct);
 
     switch (token[token_index].token_type){
@@ -1679,7 +1727,7 @@ int param_list(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol){
  */
 int func(scannerT *ptr_scanner, tokenT token[]){
     if (!unget_token) {
-        get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // function name (ID)
+        get_next_token(ptr_scanner, &token[++token_index], FORBIDDEN); // function name (ID)
     }
     else {
         unget_token = false;
