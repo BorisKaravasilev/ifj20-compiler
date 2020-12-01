@@ -2,10 +2,10 @@
 package main
 
 func main() {
-/*
-	a := ""
+
+	/*a := ""
 	b := 0
-	a, b = inputs()
+	a, _ = inputs()
 	print(a)
 	print("ahoj svete	tab#\n\\
 	")
@@ -20,9 +20,25 @@ func main() {
 
     b = float2int(c)
     b = float2int(7.7)
-*/
-    a := "cau"
-    b := 0
+
+    a = "cau"
     b = len(a)
-    print(b)
+    print(b)*/
+
+    err := 0   // for error flag
+    s := "Hello World!"
+    pos := 6
+    s, err = substr(s, pos, pos)
+    print(s, " ", err, "
+") // should be "World!"
+
+    ord_val := 0
+    pos = 1
+    ord_val, err = ord(s, pos)
+    print(ord_val, " ", err, "
+")  // should be 111 - ASCII o
+
+    s, err = chr(69)
+    print(s, " ", err, "
+")    // should be 'E'
 }
