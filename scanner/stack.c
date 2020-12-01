@@ -25,11 +25,11 @@ stack_item stack_top(Stack *s){
     return *(s->top);
 }
 
-bool stack_push(Stack *s, Symtable *symtable){
+bool stack_push(Stack *s){
     if (s != NULL){
         stack_item *tmp = (stack_item *) malloc(sizeof(stack_item));
         if (tmp != NULL){
-            tmp->symtable = symtable;
+            tmp->symtable = st_init();
             tmp->next = s->top;
 
             s->top = tmp;
