@@ -44,7 +44,7 @@ bool token_list_add_item(token_listT *list_of_tokens, tokenT *token_to_add)
         token_list_itemT *current_item = list_of_tokens->first;
 
         while(current_item->next != NULL) {
-            token_list_last_item = current_item;
+            token_list_last_item = current_item->next;
             current_item = current_item->next;
         }
 

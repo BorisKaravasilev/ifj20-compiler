@@ -360,7 +360,6 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                     token_list_free(&token_list);
                     return RC_RUN_ERR;
                 }
-                token_list_add_item(&token_list, ptr_last_token);
 
                 ///What is the next token?
                 if (ptr_last_token->token_type == RC_LEX_ERR)
@@ -380,11 +379,13 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                 }
                 else if (ptr_last_token->token_type == TOKEN_RIGHT_BRACKET)
                 {
+                    token_list_add_item(&token_list, ptr_last_token);
                     switch_case = 5;
                     number_of_brackets--;
                 }
                 else if (ptr_last_token->token_type == TOKEN_PLUS)
                 {
+                    token_list_add_item(&token_list, ptr_last_token);
                     switch_case = 0;
                 }
                 else
@@ -415,14 +416,13 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                         token_list_free(&token_list);
                         return RC_RUN_ERR;
                     }
-                    token_list_add_item(&token_list, ptr_last_token);
                 }
                 else
                 {
                     ptr_last_token = ptr_start_token;
                     is_it_first_token_of_expression++;
-                    ///If this identifier is the first token of the whole expression, its already saved in the array of tokens
                 }
+
                 ///What is the first token?
                 if (ptr_last_token->token_type == RC_LEX_ERR)
                 {
@@ -436,6 +436,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                 }
                 else if (ptr_last_token->token_type == TOKEN_RIGHT_BRACKET)
                 {
+                    token_list_add_item(&token_list, ptr_last_token);
                     switch_case = 5;
                     number_of_brackets--;
                 }
@@ -449,6 +450,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                     ///We have to check if the expr_data_type is not a string
                     if ((ptr_expr_data_and_type->token_type == EXPRESSION_NO_TYPE) || (ptr_expr_data_and_type->token_type == EXPRESSION_INT) || (ptr_expr_data_and_type->token_type == EXPRESSION_FLOAT64))
                     {
+                        token_list_add_item(&token_list, ptr_last_token);
                         switch_case = 1;
                     }
                     else
@@ -459,6 +461,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                 }
                 else if ((ptr_last_token->token_type == TOKEN_PLUS) || (ptr_last_token->token_type == TOKEN_DOUBLE_EQUAL) || (ptr_last_token->token_type == TOKEN_NOT_EQUAL))
                 {
+                    token_list_add_item(&token_list, ptr_last_token);
                     switch_case = 0;
                 }
                 else if (ptr_last_token->token_type == TOKEN_DIVISION)
@@ -466,6 +469,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                     ///We have to check if the expr_data_type is a number
                     if ((ptr_expr_data_and_type->token_type == EXPRESSION_INT) || (ptr_expr_data_and_type->token_type == EXPRESSION_FLOAT64))
                     {
+                        token_list_add_item(&token_list, ptr_last_token);
                         switch_case = 4;
                     }
                     else
@@ -629,7 +633,6 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                     token_list_free(&token_list);
                     return RC_RUN_ERR;
                 }
-                token_list_add_item(&token_list, ptr_last_token);
 
                 ///What is the first token?
                 if (ptr_last_token->token_type == RC_LEX_ERR)
@@ -647,6 +650,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                     ///We have to check if the expr_data_type is not a string
                     if ((ptr_expr_data_and_type->token_type == EXPRESSION_NO_TYPE) || (ptr_expr_data_and_type->token_type == EXPRESSION_INT) || (ptr_expr_data_and_type->token_type == EXPRESSION_FLOAT64))
                     {
+                        token_list_add_item(&token_list, ptr_last_token);
                         switch_case = 1;
                     }
                     else
@@ -657,6 +661,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                 }
                 else if ((ptr_last_token->token_type == TOKEN_PLUS) || (ptr_last_token->token_type == TOKEN_DOUBLE_EQUAL) || (ptr_last_token->token_type == TOKEN_NOT_EQUAL))
                 {
+                    token_list_add_item(&token_list, ptr_last_token);
                     switch_case = 0;
                 }
                 else if (ptr_last_token->token_type == TOKEN_DIVISION)
@@ -664,6 +669,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                     ///We have to check if the expr_data_type is not a string
                     if ((ptr_expr_data_and_type->token_type == EXPRESSION_NO_TYPE) || (ptr_expr_data_and_type->token_type == EXPRESSION_INT) || (ptr_expr_data_and_type->token_type == EXPRESSION_FLOAT64))
                     {
+                        token_list_add_item(&token_list, ptr_last_token);
                         switch_case = 4;
                     }
                     else
