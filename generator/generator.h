@@ -24,13 +24,20 @@ void gen_leave_function_scope();
 // Utility functions
 void gen_assign_token_to_var(char *var, tokenT *token);
 void gen_print(tokenT *token_to_print);
+void gen_escape_string(char *orig, stringT *escaped);
 
 // Built-in functions
 void gen_call_input(int func_token_type, tokenT *token_array, int tok_index);
+void gen_call_ord(tokenT *token_array, int tok_index);
+void gen_call_chr(tokenT *token_array, int tok_index);
+void gen_call_substr(tokenT *token_array, int tok_index);
 void gen_def_builtin_functions(const bool builtin_func_used[]);
 void gen_def_inputs();
 void gen_def_inputi();
 void gen_def_inputf();
+void gen_def_substr();
+void gen_def_ord();
+void gen_def_chr();
 
 // Prace s ramci, volani funkci
 void gen_move(char *var, char *symb);
