@@ -46,32 +46,36 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
     if (ptr_identifier_token != NULL)
     {
         switch_case = 3;
-        ///Now we change ptr_expr_data_and_type.token_type to identifier data type
-        semantic_symtable_symbol = stack_search(&scanner->st_stack, &ptr_identifier_token->attribute.string_val);
-        if (semantic_symtable_symbol == NULL)
+        ///Now we must decide if the token is identifier
+        if (ptr_identifier_token->token_type == TOKEN_IDENTIFIER)
         {
-            token_list_free(&token_list);
-            return RC_SEMANTIC_IDENTIFIER_ERR;
-        }
-        ///If semantic_data_type contains int
-        if (semantic_symtable_symbol->type == TYPE_INT)
-        {
-            ptr_expr_data_and_type->token_type = EXPRESSION_INT;
-        }
-        ///If semantic_data_type contains float
-        else if (semantic_symtable_symbol->type == TYPE_DECIMAL)
-        {
-            ptr_expr_data_and_type->token_type = EXPRESSION_FLOAT64;
-        }
-        ///If semantic_data_type contains string
-        else if (semantic_symtable_symbol->type == TYPE_STRING)
-        {
-            ptr_expr_data_and_type->token_type = EXPRESSION_STRING;
-        }
-        else
-        {
-            token_list_free(&token_list);
-            return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
+            ///Now we change ptr_expr_data_and_type.token_type to identifier data type
+            semantic_symtable_symbol = stack_search(&scanner->st_stack, &ptr_identifier_token->attribute.string_val);
+            if (semantic_symtable_symbol == NULL)
+            {
+                token_list_free(&token_list);
+                return RC_SEMANTIC_IDENTIFIER_ERR;
+            }
+            ///If semantic_data_type contains int
+            if (semantic_symtable_symbol->type == TYPE_INT)
+            {
+                ptr_expr_data_and_type->token_type = EXPRESSION_INT;
+            }
+                ///If semantic_data_type contains float
+            else if (semantic_symtable_symbol->type == TYPE_DECIMAL)
+            {
+                ptr_expr_data_and_type->token_type = EXPRESSION_FLOAT64;
+            }
+                ///If semantic_data_type contains string
+            else if (semantic_symtable_symbol->type == TYPE_STRING)
+            {
+                ptr_expr_data_and_type->token_type = EXPRESSION_STRING;
+            }
+            else
+            {
+                token_list_free(&token_list);
+                return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
+            }
         }
         ///Now we have to add this identifier token to the list of tokens
         token_list_add_item(&token_list, ptr_identifier_token);
