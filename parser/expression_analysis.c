@@ -77,6 +77,11 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                 return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
             }
         }
+        else if (ptr_identifier_token->token_type == TOKEN_STRING_LITERAL)
+        {
+            ///If the first token is string literal, next switch case must be case 2 (after string)
+            switch_case = 2;
+        }
         ///Now we have to add this identifier token to the list of tokens
         token_list_add_item(&token_list, ptr_identifier_token);
     }
