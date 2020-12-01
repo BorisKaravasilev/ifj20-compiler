@@ -170,7 +170,7 @@ int print_next(scannerT *ptr_scanner, tokenT token[]){
             }
             else {
                 unget_token = true;
-                tmp_result = literal(ptr_scanner, token, NULL); // TODO P item_type? & check if only specific types can be in print
+                tmp_result = literal(ptr_scanner, token, NULL);
                 if (tmp_result != SYNTAX_OK)
                     return tmp_result;
 
@@ -222,7 +222,6 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
         unget_token = false;
     }
 
-    // TODO SEMANTIC: Check if builtin func params are correct
     switch (token[token_index].token_type) {
         case TOKEN_FUNCTION_INPUTS:
         case TOKEN_FUNCTION_INPUTI:
@@ -811,13 +810,6 @@ int assign_nofunc(scannerT *ptr_scanner, tokenT token[]){
             fprintf(stderr, "Error: Undefined variable \'%s\'", token[token_index].attribute.string_val.string);
             return RC_SEMANTIC_IDENTIFIER_ERR;
         }
-        // TODO: add id on right side to assign struct
-        // TODO P can this be removed, since it's the same as the following code, or do you need to add something here?
-        /*int expr_result_type;
-        tmp_result = expr(ptr_scanner, token, false, &expr_result_type);
-        was_expr = true;
-        assignment_add_expression(&assignment_check_struct, expr_result_type, NULL);
-        return tmp_result;*/
     }
 
     int expr_result_type;
@@ -907,7 +899,7 @@ int assign(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic_type
         }
 
         if (token[token_index].token_type == TOKEN_LEFT_BRACKET) {
-            // TODO FIRST: add function call to late check struct
+            // TODO SEMANTIC: improve late check struct to check left assignment types with func return types
             if (skip_sides_semantic_type_check != NULL) {
                 *skip_sides_semantic_type_check = true;
             }
@@ -1153,13 +1145,10 @@ int id_command(scannerT *ptr_scanner, tokenT token[]){
             return tmp_result;
 
         case TOKEN_LEFT_BRACKET:
-            // TODO: Begin function call late check by creating function in that structure
-            // TODO FIRST: add function call to late check struct
             late_check_stack_push_method(&semantic_late_check_stack, &token[token_index-1].attribute.string_val);
             return id_list1(ptr_scanner, token);
 
         case TOKEN_COMMA:
-            // TODO SEMANTIC: multiple left side ids assignment
             // SEMANTIC
             if (string_compare_constant(&token[token_index-1].attribute.string_val, "_") != 0) {
                 if ((symbol = stack_search(&ptr_scanner->st_stack, &token[token_index-1].attribute.string_val)) == NULL) {
@@ -1175,7 +1164,6 @@ int id_command(scannerT *ptr_scanner, tokenT token[]){
                 return tmp_result;
 
             tmp_result = assign_list(ptr_scanner, token, &proceed_semantic_check);
-            //TODO SEMANTIC: add skip param check
             if (tmp_result == SYNTAX_OK && !proceed_semantic_check) {
                 return compare_left_right_params(assignment_check_struct.left_side_types_list_first, assignment_check_struct.right_side_types_list_first);
             }
@@ -1199,10 +1187,12 @@ int cycle_assign(scannerT *ptr_scanner, tokenT token[]){
     }
 
     if (token[token_index].token_type == TOKEN_LEFT_CURLY_BRACE){
+        stack_push(&ptr_scanner->st_stack);
         return SYNTAX_OK;
     }
     else {
         unget_token = true; // id or _ is already loaded
+        // TODO SEMANTIC: Check id assignment in cycle semantic
         tmp_result = id(ptr_scanner, token, false);
         if (tmp_result == SYNTAX_OK){
             if (!unget_token) {
@@ -1226,6 +1216,7 @@ int cycle_assign(scannerT *ptr_scanner, tokenT token[]){
                 return RC_SYN_ERR;
             }
 
+            stack_push(&ptr_scanner->st_stack);
             return SYNTAX_OK;
         }
         else {
@@ -1250,6 +1241,8 @@ int cycle_init(scannerT *ptr_scanner, tokenT token[]){
         return SYNTAX_OK;
     }
     else if (token[token_index].token_type == TOKEN_IDENTIFIER){
+        ST_Item *symbol = st_insert_symbol(stack_top(&ptr_scanner->st_stack).symtable, &token[token_index].attribute.string_val, false);
+        assignment_add_identifier(&assignment_check_struct, token[token_index-1].token_type, symbol);
         if (!unget_token) {
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // :=
         }
@@ -1263,8 +1256,11 @@ int cycle_init(scannerT *ptr_scanner, tokenT token[]){
         }
 
         tmp_result = assign_nofunc(ptr_scanner, token);
-        if (tmp_result != SYNTAX_OK)
+        if (tmp_result != SYNTAX_OK) {
             return tmp_result;
+        } else {
+            assignment_derive_id_type(&assignment_check_struct);
+        }
 
         if (!unget_token) {
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // ;
@@ -1308,6 +1304,7 @@ int command(scannerT *ptr_scanner, tokenT token[]){
                 err_print("{", token[token_index].token_type);
                 return RC_SYN_ERR;
             }
+            stack_push(&ptr_scanner->st_stack);
 
             tmp_result = command_list(ptr_scanner, token);
             if (tmp_result != SYNTAX_OK)
@@ -1336,10 +1333,12 @@ int command(scannerT *ptr_scanner, tokenT token[]){
                 err_print("{", token[token_index].token_type);
                 return RC_SYN_ERR;
             }
+            stack_push(&ptr_scanner->st_stack);
 
             return command_list(ptr_scanner, token);
 
         case TOKEN_KEYWORD_FOR:
+            stack_push(&ptr_scanner->st_stack);
             tmp_result = cycle_init(ptr_scanner, token);
             if (tmp_result != SYNTAX_OK)
                 return tmp_result;
@@ -1357,7 +1356,11 @@ int command(scannerT *ptr_scanner, tokenT token[]){
             if (tmp_result != SYNTAX_OK)
                 return tmp_result;
 
-            return command_list(ptr_scanner, token);
+            tmp_result = command_list(ptr_scanner, token);
+            if (tmp_result == SYNTAX_OK) {
+                stack_pop(&ptr_scanner->st_stack);
+            }
+            return tmp_result;
 
         case TOKEN_KEYWORD_RETURN:
             // a function can return zero or more values
@@ -1370,6 +1373,7 @@ int command(scannerT *ptr_scanner, tokenT token[]){
 
             unget_token = true;
             if (token[token_index].token_type == TOKEN_RIGHT_CURLY_BRACE){
+                stack_pop(&ptr_scanner->st_stack);
                 return SYNTAX_OK;
             }
             else {
@@ -1404,6 +1408,7 @@ int command_list(scannerT *ptr_scanner, tokenT token[]){
     }
 
     if (token[token_index].token_type == TOKEN_RIGHT_CURLY_BRACE){
+        stack_pop(&ptr_scanner->st_stack);
         return SYNTAX_OK;
     }
     else {
@@ -1435,6 +1440,7 @@ int return_type(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol)
         }
 
         if (token[token_index].token_type == TOKEN_LEFT_CURLY_BRACE){
+            stack_push(&ptr_scanner->st_stack);
             return SYNTAX_OK;
         }
         else {
@@ -1470,6 +1476,7 @@ int return_type_list(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_sy
     }
 
     if (token[token_index].token_type == TOKEN_LEFT_CURLY_BRACE){
+        stack_push(&ptr_scanner->st_stack);
         return SYNTAX_OK;
     }
     else if (token[token_index].token_type != TOKEN_LEFT_BRACKET){
@@ -1493,6 +1500,7 @@ int return_type_list(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_sy
         }
 
         if (token[token_index].token_type == TOKEN_LEFT_CURLY_BRACE){
+            stack_push(&ptr_scanner->st_stack);
             return SYNTAX_OK;
         }
         else {
