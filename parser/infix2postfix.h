@@ -5,11 +5,11 @@
  * @author  Petr Vrtal <xvrtal01@stud.fit.vutbr.cz>
  * @author  Robin Stancl <xstanc09@stud.fit.vutbr.cz>
 
- *//*
+ */
 
 
-#ifndef IFJ_PROJEKT_INFIX2POSTFIX_H
-#define IFJ_PROJEKT_INFIX2POSTFIX_H
+#ifndef IFJ20_COMPILER_PARSER_H_INFIX2POSTFIX_H
+#define IFJ20_COMPILER_PARSER_H_INFIX2POSTFIX_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,29 +19,19 @@
 #include "token_functions.h"
 #include "token_linked_list.h"
 
-#define STACK_SIZE 100
-
 typedef struct {
-    tokenT arr[STACK_SIZE];                */
-/* array for values *//*
-
-    int top;                                */
-/* index of element on top of stack *//*
-
+    struct token_list_itemT *top;
+    int size;
 } tStack;
 
 void s_init ( tStack* s );
-int s_empty ( const tStack* s );
-int s_full ( const tStack* s );
-tokenT *s_top (const tStack* s);
-tokenT s_pop ( tStack* s );
-void s_push ( tStack* s, tokenT t );
+bool s_empty ( const tStack* s );
+token_list_itemT *s_pop ( tStack* s );
+void s_push ( tStack* s, token_list_itemT *new );
 
-bool is_operator ( tokenT *t );
-int priority ( tokenT *t );
+bool is_operator ( token_list_itemT *t );
+int priority ( token_list_itemT *t );
 int create_expr_list ( tokenT* start, token_listT* out_list, tokenT last_token );
-void expr_to_postfix ( token_listT* in_expr, token_listT* out_list );
-void infix_to_postfix ( token_listT* inf_expr, token_listT* post_expr );
+void infix_to_postfix ( token_listT* in_expr, token_listT* out_list );
 
-#endif //IFJ_PROJEKT_INFIX2POSTFIX_H
-*/
+#endif // IFJ20_COMPILER_PARSER_H_INFIX2POSTFIX_H

@@ -9,6 +9,7 @@
 #include "expression_analysis.h"
 #include "token_types.h"
 #include "token_linked_list.h"
+#include "infix2postfix.h"
 
 ///The function for check if the token is an operator -,*,<,>,<=,>=
 int operator_check(tokenT *ptr_tok_num)
@@ -46,7 +47,6 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
     {
         switch_case = 3;
         ///Now we change ptr_expr_data_and_type.token_type to identifier data type
-        //TODO
         semantic_symtable_symbol = stack_search(&scanner->st_stack, &ptr_identifier_token->attribute.string_val);
         if (semantic_symtable_symbol == NULL)
         {
@@ -390,7 +390,12 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                 else
                 {
                     //TODO Evaluate the expression and generate the code here
+                    token_listT token_postfix;
+                    token_list_initialize(&token_postfix);
+                    infix_to_postfix(&token_list, &token_postfix);
+
                     token_list_free(&token_list);
+                    token_list_free(&token_postfix);
                     return 0;
                 }
             }
@@ -472,7 +477,12 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                 else
                 {
                     //TODO Evaluate the expression and generate the code here
+                    token_listT token_postfix;
+                    token_list_initialize(&token_postfix);
+                    infix_to_postfix(&token_list, &token_postfix);
+
                     token_list_free(&token_list);
+                    token_list_free(&token_postfix);
                     return 0;
                 }
             }
@@ -668,7 +678,12 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                     if (number_of_brackets == 0)
                     {
                         //TODO Evaluate the expression and generate the code here
+                        token_listT token_postfix;
+                        token_list_initialize(&token_postfix);
+                        infix_to_postfix(&token_list, &token_postfix);
+
                         token_list_free(&token_list);
+                        token_list_free(&token_postfix);
                         return 0;
                     }
                     else
