@@ -67,10 +67,9 @@ Data_type st_get_type (Stack* stack, stringT* key);
 /**
  * @brief Push a token to the token stack.
  * @param s Stack to be pushed to.
- * @param token The token to be pushed to the stack.
  * @return Truth value based on success of push operation.
  */
-bool stack_push(Stack *s, Symtable *symtable);
+bool stack_push(Stack *s);
 
 /**
  * @brief Pop a token from the stack.

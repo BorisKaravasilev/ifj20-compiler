@@ -25,11 +25,11 @@ int main(int argc, char** argv) {
     tokenT token[TOKEN_ARRAY_LEN];
     token_array_init(token, TOKEN_ARRAY_LEN);
 
-    // Top level symbol table
-    Symtable *global_scope_symtable = st_init();
-
     stack_init(&scanner.st_stack);
-    stack_push(&scanner.st_stack, global_scope_symtable);
+    stack_push(&scanner.st_stack);
+
+    // Top level symbol table
+    Symtable *global_scope_symtable = stack_top(&scanner.st_stack).symtable;
 
     int return_code = parse(&scanner, token);
 
@@ -37,6 +37,15 @@ int main(int argc, char** argv) {
     {
         print_error_message_by_code(return_code, &scanner.file_pos);
         return return_code;
+    }
+
+    // Semantic check if main function is present
+    stringT main_function_string;
+    string_init(&main_function_string);
+    string_add_string(&main_function_string, "main");
+    if (st_search(global_scope_symtable, &main_function_string) == NULL) {
+        fprintf(stderr, "Missing function \'main\'.");
+        return RC_SEMANTIC_IDENTIFIER_ERR;
     }
 
     // FREE ALL ALLOCATED MEMORY
