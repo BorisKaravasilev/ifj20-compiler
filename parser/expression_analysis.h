@@ -56,7 +56,7 @@ int switch_case;
 ///The number of brackets (++, )--
 int number_of_brackets;
 ///Variable for value returned by semantic analysis
-int semantic_data_type;
+ST_Item *semantic_symtable_symbol;
 ///Variable for saving if it is the first token of expression
 /// If the variable is set to 0 it is first token, else it is not first
 int is_it_first_token_of_expression;

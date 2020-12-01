@@ -266,13 +266,12 @@ void init_finite_automata(finite_automataT* fa) {
     // --- Rule #30
     fa->rules[30].from_state = STATE_STRING;
     fa->rules[30].to_state = STATE_STRING;
-    fa->rules[30].transition_ranges[0].from = 32;
+    fa->rules[30].transition_ranges[0].from = 0;
     fa->rules[30].transition_ranges[0].to = 33; // excluding ASCII 34 => '"'
     fa->rules[30].transition_ranges[1].from = 35;
     fa->rules[30].transition_ranges[1].to = 91; // excluding ASCII 34 => '\'
     fa->rules[30].transition_ranges[2].from = 93;
     fa->rules[30].transition_ranges[2].to = 127;
-    //TODO ASCII > 31
 
     // --- Rule #31
     fa->rules[31].from_state = STATE_STRING;
@@ -313,7 +312,11 @@ void init_finite_automata(finite_automataT* fa) {
     fa->rules[36].from_state = STATE_FF;
     fa->rules[36].to_state = STATE_STRING;
     fa->rules[36].transition_ranges[0].from = 32;
-    fa->rules[36].transition_ranges[0].to = 127;
+    fa->rules[36].transition_ranges[0].to = 33; // excluding ASCII 34 => '"'
+    fa->rules[36].transition_ranges[1].from = 35;
+    fa->rules[36].transition_ranges[1].to = 91; // excluding ASCII 34 => '\'
+    fa->rules[36].transition_ranges[2].from = 93;
+    fa->rules[36].transition_ranges[2].to = 127;
     //TODO ASCII > 31
 
     // --- Rule #37
@@ -439,6 +442,11 @@ void init_finite_automata(finite_automataT* fa) {
     fa->rules[SKIP_SYM_RULE_INDEX].transition_ranges[3].single_char = '\t';
     //TODO Maybe other white space characters?
 
+    // Added fix
+    // --- Rule #36
+    fa->rules[55].from_state = STATE_FF;
+    fa->rules[55].to_state = STATE_BACKSLASH;
+    fa->rules[55].transition_ranges[0].single_char = '\\';
 }
 
 void init_int_array(int int_array[], int len, int init_value) {
