@@ -1208,7 +1208,7 @@ int id_command(scannerT *ptr_scanner, tokenT token[]){
 
             tmp_result = assign(ptr_scanner, token, &proceed_semantic_check);
             if (tmp_result == SYNTAX_OK && !proceed_semantic_check) {
-                return compare_left_right_params(assignment_check_struct.left_side_types_list_first, assignment_check_struct.right_side_types_list_first);
+                return compare_left_right_params(&assignment_check_struct);
             }
             return tmp_result;
 
@@ -1233,7 +1233,7 @@ int id_command(scannerT *ptr_scanner, tokenT token[]){
 
             tmp_result = assign_list(ptr_scanner, token, &proceed_semantic_check);
             if (tmp_result == SYNTAX_OK && !proceed_semantic_check) {
-                return compare_left_right_params(assignment_check_struct.left_side_types_list_first, assignment_check_struct.right_side_types_list_first);
+                return compare_left_right_params(&assignment_check_struct);
             }
             return tmp_result;
 
@@ -1441,7 +1441,6 @@ int command(scannerT *ptr_scanner, tokenT token[]){
 
             unget_token = true;
             if (token[token_index].token_type == TOKEN_RIGHT_CURLY_BRACE){
-                stack_pop(&ptr_scanner->st_stack);
                 return SYNTAX_OK;
             }
             else {
