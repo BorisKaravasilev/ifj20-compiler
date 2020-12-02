@@ -23,5 +23,6 @@
 #define STATE_DECIMAL_NUMBER_NOT_END        211
 #define STATE_EXPONENT                      212
 #define STATE_PLUS_MINUS                    213
+#define STATE_LEADING_ZEROES                214
 
 #endif //IFJ20_COMPILER_STATES_LIST_H

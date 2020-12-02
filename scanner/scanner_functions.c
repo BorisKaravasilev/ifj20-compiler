@@ -102,6 +102,10 @@ void generate_token(scannerT *s, tokenT *ptr_token, int final_state) {
         // Is token keyword, build-in function or identifier?
         ptr_token->token_type = keyword_check(ptr_token);
         ptr_token->token_type = function_word_check(ptr_token);
+    } else if (final_state == TOKEN_ZERO_INTEGER_LITERAL) {
+        // Zero token is also integer literal (was added extra to check leading zeroes)
+        // Turn it into integer literal to not affect syntax analysis
+        ptr_token->token_type = TOKEN_INTEGER_LITERAL;
     }
 }
 
