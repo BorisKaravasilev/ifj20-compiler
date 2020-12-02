@@ -40,6 +40,7 @@ int id_next1(scannerT *ptr_scanner, tokenT token[]);
 int id_list1(scannerT *ptr_scanner, tokenT token[]);
 int id_next2(scannerT *ptr_scanner, tokenT token[]);
 int id_list2(scannerT *ptr_scanner, tokenT token[]);
+int underscore_command(scannerT *ptr_scanner, tokenT token[]);
 int id_command(scannerT *ptr_scanner, tokenT token[]);
 int cycle_assign(scannerT *ptr_scanner, tokenT token[]);
 int cycle_init(scannerT *ptr_scanner, tokenT token[]);

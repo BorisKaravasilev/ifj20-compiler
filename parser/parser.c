@@ -962,6 +962,7 @@ int assign(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic_type
     tmp_result = literal(ptr_scanner, token, &item_type);
     if (tmp_result == SYNTAX_OK){ // literal was found
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // operator or extra token
+
         if (operator_check(&token[token_index]) || token[token_index].token_type == TOKEN_PLUS ||
             token[token_index].token_type == TOKEN_DIVISION || token[token_index].token_type == TOKEN_DOUBLE_EQUAL ||
             token[token_index].token_type == TOKEN_NOT_EQUAL){
@@ -1204,12 +1205,63 @@ int id_list1(scannerT *ptr_scanner, tokenT token[]){
             unget_token = true;
             tmp_result = literal(ptr_scanner, token, &item_type);
             if (tmp_result == SYNTAX_OK){
+                late_check_stack_item_add_parameter(semantic_late_check_stack.top, item_type);
                 return id_next1(ptr_scanner, token);
             }
             else {
                 err_print("id, literal or )", token[token_index].token_type);
                 return RC_SYN_ERR;
             }
+    }
+}
+
+/*
+ * A command beginning with an underscore (one or multiple assignments)
+ */
+int underscore_command(scannerT *ptr_scanner, tokenT token[]){
+    Symtable *ptr_curr_scope_sym_table = stack_top(&ptr_scanner->st_stack).symtable;
+    ST_Item *symbol = NULL;
+
+    bool proceed_semantic_check = false;
+
+    if (!unget_token) {
+        get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // = or ,
+    }
+    else {
+        unget_token = false;
+    }
+
+    switch (token[token_index].token_type){
+        case TOKEN_EQUAL:
+            // TODO: Change to another non terminal because of cycle assign
+            // SEMANTIC
+            assignment_add_identifier(&assignment_check_struct, token[token_index-1].token_type, symbol);
+            // END SEMANTIC
+
+            tmp_result = assign(ptr_scanner, token, &proceed_semantic_check);
+            if (tmp_result == SYNTAX_OK && !proceed_semantic_check) {
+                return compare_left_right_params(assignment_check_struct.left_side_types_list_first, assignment_check_struct.right_side_types_list_first);
+            }
+            return tmp_result;
+
+        case TOKEN_COMMA:
+            // SEMANTIC
+            assignment_add_identifier(&assignment_check_struct, token[token_index-1].token_type, symbol);
+            //END SEMANTIC
+
+            tmp_result = id_list2(ptr_scanner, token);
+            if (tmp_result != SYNTAX_OK)
+                return tmp_result;
+
+            tmp_result = assign_list(ptr_scanner, token, &proceed_semantic_check);
+            if (tmp_result == SYNTAX_OK && !proceed_semantic_check) {
+                return compare_left_right_params(assignment_check_struct.left_side_types_list_first, assignment_check_struct.right_side_types_list_first);
+            }
+            return tmp_result;
+
+        default:
+            err_print("= or ,", token[token_index].token_type);
+            return RC_SYN_ERR;
     }
 }
 
@@ -1416,8 +1468,10 @@ int command(scannerT *ptr_scanner, tokenT token[]){
 
     switch (token[token_index].token_type){
         case TOKEN_IDENTIFIER:
-            tmp_result = id_command(ptr_scanner, token);
-            return tmp_result;
+            return id_command(ptr_scanner, token);
+
+        case TOKEN_UNDERSCORE:
+            return underscore_command(ptr_scanner, token);
 
         case TOKEN_KEYWORD_IF:
             tmp_result = expr(ptr_scanner, token, false, NULL);
