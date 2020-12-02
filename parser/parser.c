@@ -1115,6 +1115,11 @@ int id_next1(scannerT *ptr_scanner, tokenT token[]){
                 unget_token = false;
             }
 
+            if (token[token_index].token_type == TOKEN_UNDERSCORE) {
+                fprintf(stderr, "Error: Variable \'_\' cannot be used as function parameter.");
+                return RC_SEMANTIC_FUNC_PARAM_ERR;
+            }
+
             if (token[token_index].token_type != TOKEN_IDENTIFIER){
                 err_print("id", token[token_index].token_type);
                 return RC_SYN_ERR;
@@ -1149,6 +1154,10 @@ int id_list1(scannerT *ptr_scanner, tokenT token[]){
     switch (token[token_index].token_type){
         case TOKEN_RIGHT_BRACKET:
             return SYNTAX_OK;
+
+        case TOKEN_UNDERSCORE:
+            fprintf(stderr, "Error: Variable \'_\' cannot be used as function parameter.");
+            return RC_SEMANTIC_FUNC_PARAM_ERR;
 
         case TOKEN_IDENTIFIER:
             if ((identifier = stack_search(&ptr_scanner->st_stack, &token[token_index].attribute.string_val)) == NULL) {
