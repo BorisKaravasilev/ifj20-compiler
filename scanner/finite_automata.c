@@ -459,21 +459,21 @@ void init_finite_automata(finite_automataT* fa) {
     fa->rules[56].transition_ranges[0].single_char = '0';
 
     // --- Fix to Rule #43
+    fa->rules[57].from_state = TOKEN_ZERO_INTEGER_LITERAL;
+    fa->rules[57].to_state = STATE_EXPONENT;
+    fa->rules[57].transition_ranges[0].single_char = 'e';
+    fa->rules[57].transition_ranges[1].single_char = 'E';
+
+    // --- Rule #43
     fa->rules[58].from_state = TOKEN_ZERO_INTEGER_LITERAL;
-    fa->rules[58].to_state = STATE_EXPONENT;
-    fa->rules[58].transition_ranges[0].single_char = 'e';
-    fa->rules[58].transition_ranges[1].single_char = 'E';
+    fa->rules[58].to_state = STATE_DECIMAL_NUMBER_NOT_END;
+    fa->rules[58].transition_ranges[0].single_char = '.';
 
     // --- Rule #43
-    fa->rules[46].from_state = TOKEN_ZERO_INTEGER_LITERAL;
-    fa->rules[46].to_state = STATE_DECIMAL_NUMBER_NOT_END;
-    fa->rules[46].transition_ranges[0].single_char = '.';
-
-    // --- Rule #43
-    fa->rules[47].from_state = TOKEN_ZERO_INTEGER_LITERAL;
-    fa->rules[47].to_state = STATE_LEADING_ZEROES;
-    fa->rules[47].transition_ranges[0].from = '0';
-    fa->rules[47].transition_ranges[0].to = '9';
+    fa->rules[59].from_state = TOKEN_ZERO_INTEGER_LITERAL;
+    fa->rules[59].to_state = STATE_LEADING_ZEROES;
+    fa->rules[59].transition_ranges[0].from = '0';
+    fa->rules[59].transition_ranges[0].to = '9';
 }
 
 void init_int_array(int int_array[], int len, int init_value) {
