@@ -32,8 +32,9 @@ token_list_itemT *s_pop (tStack* s) {
 
 void s_push (tStack* s, token_list_itemT *new) {
     if (s != NULL || new != NULL) {
-        new->next = s->top;
-        s->top = new;
+        token_list_itemT *item = token_list_item_init(&new->token);
+        item->next = s->top;
+        s->top = item;
         s->size++;
     }
 }
