@@ -1449,6 +1449,7 @@ int command(scannerT *ptr_scanner, tokenT token[]){
 
             unget_token = true;
             if (token[token_index].token_type == TOKEN_RIGHT_CURLY_BRACE){
+                stack_pop(&ptr_scanner->st_stack);
                 return SYNTAX_OK;
             }
             else {
@@ -1520,7 +1521,6 @@ int return_type(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol)
         }
 
         if (token[token_index].token_type == TOKEN_LEFT_CURLY_BRACE){
-            stack_push(&ptr_scanner->st_stack);
             return SYNTAX_OK;
         }
         else {
@@ -1556,7 +1556,6 @@ int return_type_list(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_sy
     }
 
     if (token[token_index].token_type == TOKEN_LEFT_CURLY_BRACE){
-        stack_push(&ptr_scanner->st_stack);
         return SYNTAX_OK;
     }
     else if (token[token_index].token_type != TOKEN_LEFT_BRACKET){
@@ -1580,7 +1579,6 @@ int return_type_list(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_sy
         }
 
         if (token[token_index].token_type == TOKEN_LEFT_CURLY_BRACE){
-            stack_push(&ptr_scanner->st_stack);
             return SYNTAX_OK;
         }
         else {
@@ -1707,6 +1705,7 @@ int func(scannerT *ptr_scanner, tokenT token[]){
         return RC_SYN_ERR;
     }
 
+    stack_push(&ptr_scanner->st_stack);
     tmp_result = param_list(ptr_scanner, token, symbol);
     if (tmp_result != SYNTAX_OK)
         return tmp_result;
@@ -1766,7 +1765,7 @@ int parse(scannerT *ptr_scanner, tokenT token[]){
     gen_enter_main();
 
     if (token[token_index].token_type != TOKEN_IDENTIFIER ||
-    !string_compare_constant(&token[token_index].attribute.string_val, "main\n")){ // TODO remove newline
+    string_compare_constant(&token[token_index].attribute.string_val, "main") != 0){ // TODO remove newline
         err_print("main keyword", token[token_index].token_type);
         return RC_SYN_ERR;
     }
