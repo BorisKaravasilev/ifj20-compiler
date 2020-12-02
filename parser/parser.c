@@ -1249,7 +1249,7 @@ int underscore_command(scannerT *ptr_scanner, tokenT token[]){
 
             tmp_result = assign(ptr_scanner, token, &proceed_semantic_check);
             if (tmp_result == SYNTAX_OK && !proceed_semantic_check) {
-                return compare_left_right_params(assignment_check_struct.left_side_types_list_first, assignment_check_struct.right_side_types_list_first);
+                return compare_left_right_params(&assignment_check_struct);
             }
             return tmp_result;
 
@@ -1264,7 +1264,7 @@ int underscore_command(scannerT *ptr_scanner, tokenT token[]){
 
             tmp_result = assign_list(ptr_scanner, token, &proceed_semantic_check);
             if (tmp_result == SYNTAX_OK && !proceed_semantic_check) {
-                return compare_left_right_params(assignment_check_struct.left_side_types_list_first, assignment_check_struct.right_side_types_list_first);
+                return compare_left_right_params(&assignment_check_struct);
             }
             return tmp_result;
 
@@ -1885,7 +1885,7 @@ int parse(scannerT *ptr_scanner, tokenT token[]){
     gen_enter_main();
 
     if (token[token_index].token_type != TOKEN_IDENTIFIER ||
-    string_compare_constant(&token[token_index].attribute.string_val, "main") != 0){ // TODO remove newline
+    string_compare_constant(&token[token_index].attribute.string_val, "main") != 0){
         err_print("main keyword", token[token_index].token_type);
         return RC_SYN_ERR;
     }
