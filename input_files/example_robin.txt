@@ -3,5 +3,6 @@ package main
 
 func main() {
     a := 0
-    a = a + 2
+    y := 1
+    a = y / (5 * a) + 10
 }

@@ -109,7 +109,7 @@ void infix_to_postfix (token_listT* in_expr, token_listT* out_list) {
             token_list_add_item(out_list, &item->token);
         } else if (is_operator(item) == true) {
             p = s_pop(&stack);
-            while (is_operator(p) == true && priority(p) >= priority(item)) {
+            while (is_operator(p) == true && priority(p) <= priority(item)) {
                 token_list_add_item(out_list, &p->token);
                 p = s_pop(&stack);
             }
