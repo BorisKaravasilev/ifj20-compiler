@@ -1172,6 +1172,7 @@ int id_command(scannerT *ptr_scanner, tokenT token[]){
     ST_Item *symbol = NULL;
 
     bool proceed_semantic_check = false;
+    ST_Item *function_symb_check;
 
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // :=, =, ( or ,
@@ -1183,6 +1184,14 @@ int id_command(scannerT *ptr_scanner, tokenT token[]){
     switch (token[token_index].token_type){
         case TOKEN_COLON_EQUAL:
             // SEMANTIC: Insert identifier to symtable
+
+            if ((function_symb_check = stack_search(&ptr_scanner->st_stack, &token[token_index-1].attribute.string_val)) != NULL &&
+            st_item_is_function(function_symb_check)) {
+                fprintf(stderr, "Cannot declare variable \'%s\' with same name as function %s()",
+                        token[token_index-1].attribute.string_val.string, token[token_index-1].attribute.string_val.string);
+                return RC_SEMANTIC_IDENTIFIER_ERR;
+            }
+
             symbol = st_insert_symbol(ptr_curr_scope_sym_table, &token[token_index-1].attribute.string_val, false);
             assignment_add_identifier(&assignment_check_struct, token[token_index-1].token_type, symbol);
             // END SEMANTIC
