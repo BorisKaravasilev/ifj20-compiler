@@ -20,6 +20,8 @@ COMPILER_PATH=${COMPILER_BUILD_FOLDER}/ifj20-compiler
 # Run testsuite
 cd ./ifj-testsuite
 
+ulimit -u 120
+
 echo
 echo "LEXICAL"
 echo "--------------"

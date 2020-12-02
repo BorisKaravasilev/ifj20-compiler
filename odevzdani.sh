@@ -19,4 +19,5 @@ COMPILER_PATH=${COMPILER_BUILD_FOLDER}/ifj20-compiler
 
 # Run testsuite
 cd ./ifj-testsuite
+ulimit -u 120
 python2 testsuite.py --compiler ../${COMPILER_PATH} ${@}
