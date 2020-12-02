@@ -216,6 +216,15 @@ void handle_final_state_or_error(scannerT *s, tokenT *ptr_token, fa_stepT *step,
     }
 }
 
+// Checks for not closed block comment
+void check_unending_block_comment(scannerT *s, int curr_state) {
+    if (curr_state == STATE_BLOCK_COMMENT_BODY && s->curr_sym == EOF) {
+        fprintf(stderr, "Unending block comment.\n");
+        print_lex_error(&s->file_pos, s->curr_sym);
+        exit(RC_LEX_ERR); // Exit program with lexical error
+    }
+}
+
 // Scans input characters and generates token, lexical error or returns 'false' if EOF.
 bool scan_token(scannerT *s, tokenT *ptr_token, eol_flagE eol_flag) {
     int curr_state = STATE_START;
@@ -234,6 +243,8 @@ bool scan_token(scannerT *s, tokenT *ptr_token, eol_flagE eol_flag) {
         } else {
             // Can't transition to next state
             s->use_previous_sym = true; // Ensures reading of last character that belongs to next token
+
+            check_unending_block_comment(s, curr_state);
             handle_final_state_or_error(s, ptr_token, &fa_step, eol_flag);
             return true; // Successfully generated token into 'ptr_token'
         }
