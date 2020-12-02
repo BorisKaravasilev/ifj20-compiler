@@ -32,6 +32,7 @@ typedef struct assignment_param_struct {
  * @brief Structure of assigment element.
  */
 typedef struct assignment_struct {
+    bool function_call;
     int identifiers_count;
     int expressions_count;
     assignment_paramT *left_side_types_list_first;
@@ -75,7 +76,7 @@ void assignment_struct_free(assignmentT *s);
  * @brief Compares both sides of assignment.
  * @param s Assignment structure in which to compare left and right side param lists.
  */
-int compare_left_right_params(assignment_paramT *left, assignment_paramT *right);
+int compare_left_right_params(assignmentT *item);
 
 /**
  * @brief Derives id data type on left side from expression on righ side in the assignment structure.

@@ -26,6 +26,7 @@ void assignment_struct_init(assignmentT *s) {
 
 void assignment_struct_empty(assignmentT *s) {
     if (s != NULL) {
+        s->function_call = false;
         s->identifiers_count = 0;
         s->expressions_count = 0;
         assignment_param_list_free(s->left_side_types_list_first);
@@ -56,19 +57,26 @@ void assignment_param_list_free(assignment_paramT *assignment_param) {
     }
 }
 
-int compare_left_right_params(assignment_paramT *left, assignment_paramT *right) {
-    assignment_paramT *l_current = left;
-    assignment_paramT *r_current = right;
+int compare_left_right_params(assignmentT *item) {
+    assignment_paramT *l_current = item->left_side_types_list_first;
+    assignment_paramT *r_current = item->right_side_types_list_first;
 
     while (l_current != NULL || r_current != NULL) {
         if (l_current == NULL || r_current == NULL) {
-            // TODO: Maybe another semantic error dont know atm
-            return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
+            if (item->function_call) {
+                return RC_SEMANTIC_FUNC_PARAM_ERR;
+            } else {
+                return RC_SEMANTIC_OTHER_ERR;
+            }
         } else {
             if (l_current->data_type != r_current->data_type) {
                 // TODO: Maybe another semantic error dont know atm
                 if (l_current->data_type != TYPE_BLANK_VARIABLE) {
-                    return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
+                    if (item->function_call) {
+                        return RC_SEMANTIC_FUNC_PARAM_ERR;
+                    } else {
+                        return RC_SEMANTIC_OTHER_ERR;
+                    }
                 }
             }
         }
@@ -180,6 +188,7 @@ void assignment_add_user_function(assignmentT *item, ST_Item *function) {
         return;
     }
 
+    item->function_call = true;
     st_function_data_param_structT *current_function_return_type =
         function->function_data->return_types_list_first;
     while (current_function_return_type != NULL) {
@@ -237,7 +246,7 @@ void assignment_add_built_in_function(assignmentT *item, int function_token) {
     if (item == NULL) {
         return;
     }
-
+    item->function_call = true;
     built_in_functionT function = get_built_in_function_by_key(function_token);
 
     for(int i = 0; i < function.return_types_count; i++) {

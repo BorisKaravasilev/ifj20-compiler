@@ -43,9 +43,14 @@ int main(int argc, char** argv) {
     stringT main_function_string;
     string_init(&main_function_string);
     string_add_string(&main_function_string, "main");
-    if (st_search(global_scope_symtable, &main_function_string) == NULL) {
+    ST_Item *main_func_symbol = st_search(global_scope_symtable, &main_function_string);
+    if (main_func_symbol == NULL) {
         fprintf(stderr, "Missing function \'main\'.");
         return RC_SEMANTIC_IDENTIFIER_ERR;
+    }
+    if (main_func_symbol->function_data->parameters_count > 0 || main_func_symbol->function_data->return_types_count > 0) {
+        fprintf(stderr, "Function \'main\' must not have any parameters or return types.");
+        return RC_SEMANTIC_FUNC_PARAM_ERR;
     }
 
     // FREE ALL ALLOCATED MEMORY
