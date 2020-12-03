@@ -10,6 +10,7 @@
 #include "token_types.h"
 #include "token_linked_list.h"
 #include "infix2postfix.h"
+#include "expression_generator.h"
 
 ///The function for check if the token is an operator -,*,<,>,<=,>=
 int operator_check(tokenT *ptr_tok_num)
@@ -399,11 +400,25 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                 }
                 else
                 {
-                    //TODO Evaluate the expression and generate the code here
+                    ///Infix to postfix and generate the code
                     token_listT token_postfix;
                     token_list_initialize(&token_postfix);
                     infix_to_postfix(&token_list, &token_postfix);
-
+                    ///Generate the code here
+                    if (ptr_expr_data_and_type->token_type == EXPRESSION_FLOAT64)
+                    {
+                        if (generate_expression(&token_postfix, 1) == RC_RUN_ERR)
+                        {
+                            return RC_RUN_ERR;
+                        }
+                    }
+                    else
+                    {
+                        if (generate_expression(&token_postfix, 0) == RC_RUN_ERR)
+                        {
+                            return RC_RUN_ERR;
+                        }
+                    }
                     token_list_free(&token_list);
                     token_list_free(&token_postfix);
                     return 0;
@@ -489,11 +504,25 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                 }
                 else
                 {
-                    //TODO Evaluate the expression and generate the code here
+                    ///Infix to postfix and generate the code
                     token_listT token_postfix;
                     token_list_initialize(&token_postfix);
                     infix_to_postfix(&token_list, &token_postfix);
-
+                    ///Generate the code here
+                    if (ptr_expr_data_and_type->token_type == EXPRESSION_FLOAT64)
+                    {
+                        if (generate_expression(&token_postfix, 1) == RC_RUN_ERR)
+                        {
+                            return RC_RUN_ERR;
+                        }
+                    }
+                    else
+                    {
+                        if (generate_expression(&token_postfix, 0) == RC_RUN_ERR)
+                        {
+                            return RC_RUN_ERR;
+                        }
+                    }
                     token_list_free(&token_list);
                     token_list_free(&token_postfix);
                     return 0;
@@ -692,11 +721,25 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                     ///Now we must check if the number_of_brackets variable contains 0
                     if (number_of_brackets == 0)
                     {
-                        //TODO Evaluate the expression and generate the code here
+                        ///Infix to postfix and generate the code
                         token_listT token_postfix;
                         token_list_initialize(&token_postfix);
                         infix_to_postfix(&token_list, &token_postfix);
-
+                        ///Generate the code here
+                        if (ptr_expr_data_and_type->token_type == EXPRESSION_FLOAT64)
+                        {
+                            if (generate_expression(&token_postfix, 1) == RC_RUN_ERR)
+                            {
+                                return RC_RUN_ERR;
+                            }
+                        }
+                        else
+                        {
+                            if (generate_expression(&token_postfix, 0) == RC_RUN_ERR)
+                            {
+                                return RC_RUN_ERR;
+                            }
+                        }
                         token_list_free(&token_list);
                         token_list_free(&token_postfix);
                         return 0;
