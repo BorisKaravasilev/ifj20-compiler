@@ -18,7 +18,7 @@
 #else
 #define MERLIN false
 #define PRINT_DEBUG_TO stdout  // in CLion stderr order is random
-//#endif
+#endif
 
 // ATTENTION
 // __VA_ARGS__ can't be empty so you always have to provide some argument
