@@ -302,15 +302,205 @@ int generate_expression(token_listT *token_list_generate, int division_type)
         }
         else if (token_pointer->token.token_type == TOKEN_NOT_EQUAL)
         {
-            //TODO
+            ///First is ==
+            ///Adding variable to the stack
+            if (number_of_variables_on_stack == size_of_stack)
+            {
+                ///Realloc
+                size_of_stack++;
+                int *expr_stack_2 = realloc(expr_stack, sizeof(int) * size_of_stack);
+                if (expr_stack_2 == NULL)
+                {
+                    return RC_RUN_ERR;
+                }
+                expr_stack = expr_stack_2;
+            }
+            expr_stack[number_of_variables_on_stack] = name_of_first_free_variable;
+
+            ///DEFVAR
+            printf("DEFVAR TF@E%d\n", name_of_first_free_variable);
+            number_of_variables_on_stack++;
+            ///EQ
+            printf("EQ TF@E%d TF@E%d TF@E%d\n", name_of_first_free_variable, expr_stack[(number_of_variables_on_stack - 3)], expr_stack[(number_of_variables_on_stack - 2)]);
+
+            expr_stack[(number_of_variables_on_stack - 3)] = expr_stack[(number_of_variables_on_stack - 1)];
+
+            number_of_variables_on_stack = number_of_variables_on_stack - 2;
+            name_of_first_free_variable++;
+
+            ///Now NOT
+            ///Adding variable to the stack
+            if (number_of_variables_on_stack == size_of_stack)
+            {
+                ///Realloc
+                size_of_stack++;
+                int *expr_stack_2 = realloc(expr_stack, sizeof(int) * size_of_stack);
+                if (expr_stack_2 == NULL)
+                {
+                    return RC_RUN_ERR;
+                }
+                expr_stack = expr_stack_2;
+            }
+            expr_stack[number_of_variables_on_stack] = name_of_first_free_variable;
+
+            ///DEFVAR
+            printf("DEFVAR TF@E%d\n", name_of_first_free_variable);
+            number_of_variables_on_stack++;
+            ///NOT
+            printf("NOT TF@E%d TF@E%d\n", name_of_first_free_variable, expr_stack[(number_of_variables_on_stack - 2)]);
+
+            expr_stack[(number_of_variables_on_stack - 2)] = expr_stack[(number_of_variables_on_stack - 1)];
+
+            number_of_variables_on_stack = number_of_variables_on_stack - 1;
+            name_of_first_free_variable++;
         }
         else if (token_pointer->token.token_type == TOKEN_LESS_OR_EQUAL)
         {
-            //TODO
+            ///First LT
+            ///Adding variable to the stack
+            if (number_of_variables_on_stack == size_of_stack)
+            {
+                ///Realloc
+                size_of_stack++;
+                int *expr_stack_2 = realloc(expr_stack, sizeof(int) * size_of_stack);
+                if (expr_stack_2 == NULL)
+                {
+                    return RC_RUN_ERR;
+                }
+                expr_stack = expr_stack_2;
+            }
+            expr_stack[number_of_variables_on_stack] = name_of_first_free_variable;
+
+            ///DEFVAR
+            printf("DEFVAR TF@E%d\n", name_of_first_free_variable);
+            number_of_variables_on_stack++;
+            ///LT
+            printf("LT TF@E%d TF@E%d TF@E%d\n", name_of_first_free_variable, expr_stack[(number_of_variables_on_stack - 3)], expr_stack[(number_of_variables_on_stack - 2)]);
+
+            name_of_first_free_variable++;
+
+            ///Now EQ
+            ///Adding variable to the stack
+            if (number_of_variables_on_stack == size_of_stack)
+            {
+                ///Realloc
+                size_of_stack++;
+                int *expr_stack_2 = realloc(expr_stack, sizeof(int) * size_of_stack);
+                if (expr_stack_2 == NULL)
+                {
+                    return RC_RUN_ERR;
+                }
+                expr_stack = expr_stack_2;
+            }
+            expr_stack[number_of_variables_on_stack] = name_of_first_free_variable;
+
+            ///DEFVAR
+            printf("DEFVAR TF@E%d\n", name_of_first_free_variable);
+            number_of_variables_on_stack++;
+            ///EQ
+            printf("EQ TF@E%d TF@E%d TF@E%d\n", name_of_first_free_variable, expr_stack[(number_of_variables_on_stack - 4)], expr_stack[(number_of_variables_on_stack - 3)]);
+
+            name_of_first_free_variable++;
+
+            ///Now OR
+            ///Adding variable to the stack
+            if (number_of_variables_on_stack == size_of_stack)
+            {
+                ///Realloc
+                size_of_stack++;
+                int *expr_stack_2 = realloc(expr_stack, sizeof(int) * size_of_stack);
+                if (expr_stack_2 == NULL)
+                {
+                    return RC_RUN_ERR;
+                }
+                expr_stack = expr_stack_2;
+            }
+            expr_stack[number_of_variables_on_stack] = name_of_first_free_variable;
+
+            ///DEFVAR
+            printf("DEFVAR TF@E%d\n", name_of_first_free_variable);
+            number_of_variables_on_stack++;
+            ///OR
+            printf("OR TF@E%d TF@E%d TF@E%d\n", name_of_first_free_variable, expr_stack[(number_of_variables_on_stack - 3)], expr_stack[(number_of_variables_on_stack - 2)]);
+
+            expr_stack[(number_of_variables_on_stack - 5)] = expr_stack[(number_of_variables_on_stack - 1)];
+
+            number_of_variables_on_stack = number_of_variables_on_stack - 4;
+            name_of_first_free_variable++;
         }
         else if (token_pointer->token.token_type == TOKEN_GREATER_OR_EQUAL)
         {
-            //TODO
+            ///First GT
+            ///Adding variable to the stack
+            if (number_of_variables_on_stack == size_of_stack)
+            {
+                ///Realloc
+                size_of_stack++;
+                int *expr_stack_2 = realloc(expr_stack, sizeof(int) * size_of_stack);
+                if (expr_stack_2 == NULL)
+                {
+                    return RC_RUN_ERR;
+                }
+                expr_stack = expr_stack_2;
+            }
+            expr_stack[number_of_variables_on_stack] = name_of_first_free_variable;
+
+            ///DEFVAR
+            printf("DEFVAR TF@E%d\n", name_of_first_free_variable);
+            number_of_variables_on_stack++;
+            ///GT
+            printf("GT TF@E%d TF@E%d TF@E%d\n", name_of_first_free_variable, expr_stack[(number_of_variables_on_stack - 3)], expr_stack[(number_of_variables_on_stack - 2)]);
+
+            name_of_first_free_variable++;
+
+            ///Now EQ
+            ///Adding variable to the stack
+            if (number_of_variables_on_stack == size_of_stack)
+            {
+                ///Realloc
+                size_of_stack++;
+                int *expr_stack_2 = realloc(expr_stack, sizeof(int) * size_of_stack);
+                if (expr_stack_2 == NULL)
+                {
+                    return RC_RUN_ERR;
+                }
+                expr_stack = expr_stack_2;
+            }
+            expr_stack[number_of_variables_on_stack] = name_of_first_free_variable;
+
+            ///DEFVAR
+            printf("DEFVAR TF@E%d\n", name_of_first_free_variable);
+            number_of_variables_on_stack++;
+            ///EQ
+            printf("EQ TF@E%d TF@E%d TF@E%d\n", name_of_first_free_variable, expr_stack[(number_of_variables_on_stack - 4)], expr_stack[(number_of_variables_on_stack - 3)]);
+
+            name_of_first_free_variable++;
+
+            ///Now OR
+            ///Adding variable to the stack
+            if (number_of_variables_on_stack == size_of_stack)
+            {
+                ///Realloc
+                size_of_stack++;
+                int *expr_stack_2 = realloc(expr_stack, sizeof(int) * size_of_stack);
+                if (expr_stack_2 == NULL)
+                {
+                    return RC_RUN_ERR;
+                }
+                expr_stack = expr_stack_2;
+            }
+            expr_stack[number_of_variables_on_stack] = name_of_first_free_variable;
+
+            ///DEFVAR
+            printf("DEFVAR TF@E%d\n", name_of_first_free_variable);
+            number_of_variables_on_stack++;
+            ///OR
+            printf("OR TF@E%d TF@E%d TF@E%d\n", name_of_first_free_variable, expr_stack[(number_of_variables_on_stack - 3)], expr_stack[(number_of_variables_on_stack - 2)]);
+
+            expr_stack[(number_of_variables_on_stack - 5)] = expr_stack[(number_of_variables_on_stack - 1)];
+
+            number_of_variables_on_stack = number_of_variables_on_stack - 4;
+            name_of_first_free_variable++;
         }
         else if (token_pointer->token.token_type == TOKEN_DOUBLE_EQUAL)
         {
