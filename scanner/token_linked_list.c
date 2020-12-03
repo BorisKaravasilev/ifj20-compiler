@@ -19,6 +19,16 @@ void token_list_initialize(token_listT *list_of_tokens)
     list_of_tokens->first = NULL;
 }
 
+token_list_itemT *token_list_item_init(tokenT *token)
+{
+    token_list_itemT *new;
+    if ((new = (token_list_itemT*) malloc(sizeof(token_list_itemT))) == NULL) {
+        exit(RC_RUN_ERR);
+    }
+    token_list_item_set_token(new, token);
+    return new;
+}
+
 /// Adds item to token linked list
 bool token_list_add_item(token_listT *list_of_tokens, tokenT *token_to_add)
 {
@@ -34,7 +44,7 @@ bool token_list_add_item(token_listT *list_of_tokens, tokenT *token_to_add)
         token_list_itemT *current_item = list_of_tokens->first;
 
         while(current_item->next != NULL) {
-            token_list_last_item = current_item;
+            token_list_last_item = current_item->next;
             current_item = current_item->next;
         }
 

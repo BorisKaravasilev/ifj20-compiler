@@ -20,6 +20,8 @@ add_executable(ifj20_compiler
         generator/generator.h
         parser/expression_analysis.c
         parser/expression_analysis.h
+        parser/expression_generator.c
+        parser/expression_generator.h
         parser/semantic_late_check.c
         parser/semantic_late_check.h
         parser/semantic_functions.c

@@ -9,6 +9,8 @@
 #include "expression_analysis.h"
 #include "token_types.h"
 #include "token_linked_list.h"
+#include "infix2postfix.h"
+#include "expression_generator.h"
 
 ///The function for check if the token is an operator -,*,<,>,<=,>=
 int operator_check(tokenT *ptr_tok_num)
@@ -45,33 +47,41 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
     if (ptr_identifier_token != NULL)
     {
         switch_case = 3;
-        ///Now we change ptr_expr_data_and_type.token_type to identifier data type
-        //TODO
-        semantic_symtable_symbol = stack_search(&scanner->st_stack, &ptr_identifier_token->attribute.string_val);
-        if (semantic_symtable_symbol == NULL)
+        ///Now we must decide if the token is identifier
+        if (ptr_identifier_token->token_type == TOKEN_IDENTIFIER)
         {
-            token_list_free(&token_list);
-            return RC_SEMANTIC_IDENTIFIER_ERR;
+            ///Now we change ptr_expr_data_and_type.token_type to identifier data type
+            semantic_symtable_symbol = stack_search(&scanner->st_stack, &ptr_identifier_token->attribute.string_val);
+            if (semantic_symtable_symbol == NULL)
+            {
+                token_list_free(&token_list);
+                return RC_SEMANTIC_IDENTIFIER_ERR;
+            }
+            ///If semantic_data_type contains int
+            if (semantic_symtable_symbol->type == TYPE_INT)
+            {
+                ptr_expr_data_and_type->token_type = EXPRESSION_INT;
+            }
+                ///If semantic_data_type contains float
+            else if (semantic_symtable_symbol->type == TYPE_DECIMAL)
+            {
+                ptr_expr_data_and_type->token_type = EXPRESSION_FLOAT64;
+            }
+                ///If semantic_data_type contains string
+            else if (semantic_symtable_symbol->type == TYPE_STRING)
+            {
+                ptr_expr_data_and_type->token_type = EXPRESSION_STRING;
+            }
+            else
+            {
+                token_list_free(&token_list);
+                return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
+            }
         }
-        ///If semantic_data_type contains int
-        if (semantic_symtable_symbol->type == TYPE_INT)
+        else if (ptr_identifier_token->token_type == TOKEN_STRING_LITERAL)
         {
-            ptr_expr_data_and_type->token_type = EXPRESSION_INT;
-        }
-        ///If semantic_data_type contains float
-        else if (semantic_symtable_symbol->type == TYPE_DECIMAL)
-        {
-            ptr_expr_data_and_type->token_type = EXPRESSION_FLOAT64;
-        }
-        ///If semantic_data_type contains string
-        else if (semantic_symtable_symbol->type == TYPE_STRING)
-        {
-            ptr_expr_data_and_type->token_type = EXPRESSION_STRING;
-        }
-        else
-        {
-            token_list_free(&token_list);
-            return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
+            ///If the first token is string literal, next switch case must be case 2 (after string)
+            switch_case = 2;
         }
         ///Now we have to add this identifier token to the list of tokens
         token_list_add_item(&token_list, ptr_identifier_token);
@@ -360,7 +370,6 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                     token_list_free(&token_list);
                     return RC_RUN_ERR;
                 }
-                token_list_add_item(&token_list, ptr_last_token);
 
                 ///What is the next token?
                 if (ptr_last_token->token_type == RC_LEX_ERR)
@@ -380,17 +389,38 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                 }
                 else if (ptr_last_token->token_type == TOKEN_RIGHT_BRACKET)
                 {
+                    token_list_add_item(&token_list, ptr_last_token);
                     switch_case = 5;
                     number_of_brackets--;
                 }
                 else if (ptr_last_token->token_type == TOKEN_PLUS)
                 {
+                    token_list_add_item(&token_list, ptr_last_token);
                     switch_case = 0;
                 }
                 else
                 {
-                    //TODO Evaluate the expression and generate the code here
+                    ///Infix to postfix and generate the code
+                    token_listT token_postfix;
+                    token_list_initialize(&token_postfix);
+                    infix_to_postfix(&token_list, &token_postfix);
+                    ///Generate the code here
+                    if (ptr_expr_data_and_type->token_type == EXPRESSION_FLOAT64)
+                    {
+                        if (generate_expression(&token_postfix, 1) == RC_RUN_ERR)
+                        {
+                            return RC_RUN_ERR;
+                        }
+                    }
+                    else
+                    {
+                        if (generate_expression(&token_postfix, 0) == RC_RUN_ERR)
+                        {
+                            return RC_RUN_ERR;
+                        }
+                    }
                     token_list_free(&token_list);
+                    token_list_free(&token_postfix);
                     return 0;
                 }
             }
@@ -410,14 +440,13 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                         token_list_free(&token_list);
                         return RC_RUN_ERR;
                     }
-                    token_list_add_item(&token_list, ptr_last_token);
                 }
                 else
                 {
                     ptr_last_token = ptr_start_token;
                     is_it_first_token_of_expression++;
-                    ///If this identifier is the first token of the whole expression, its already saved in the array of tokens
                 }
+
                 ///What is the first token?
                 if (ptr_last_token->token_type == RC_LEX_ERR)
                 {
@@ -431,6 +460,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                 }
                 else if (ptr_last_token->token_type == TOKEN_RIGHT_BRACKET)
                 {
+                    token_list_add_item(&token_list, ptr_last_token);
                     switch_case = 5;
                     number_of_brackets--;
                 }
@@ -444,6 +474,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                     ///We have to check if the expr_data_type is not a string
                     if ((ptr_expr_data_and_type->token_type == EXPRESSION_NO_TYPE) || (ptr_expr_data_and_type->token_type == EXPRESSION_INT) || (ptr_expr_data_and_type->token_type == EXPRESSION_FLOAT64))
                     {
+                        token_list_add_item(&token_list, ptr_last_token);
                         switch_case = 1;
                     }
                     else
@@ -454,6 +485,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                 }
                 else if ((ptr_last_token->token_type == TOKEN_PLUS) || (ptr_last_token->token_type == TOKEN_DOUBLE_EQUAL) || (ptr_last_token->token_type == TOKEN_NOT_EQUAL))
                 {
+                    token_list_add_item(&token_list, ptr_last_token);
                     switch_case = 0;
                 }
                 else if (ptr_last_token->token_type == TOKEN_DIVISION)
@@ -461,6 +493,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                     ///We have to check if the expr_data_type is a number
                     if ((ptr_expr_data_and_type->token_type == EXPRESSION_INT) || (ptr_expr_data_and_type->token_type == EXPRESSION_FLOAT64))
                     {
+                        token_list_add_item(&token_list, ptr_last_token);
                         switch_case = 4;
                     }
                     else
@@ -471,8 +504,27 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                 }
                 else
                 {
-                    //TODO Evaluate the expression and generate the code here
+                    ///Infix to postfix and generate the code
+                    token_listT token_postfix;
+                    token_list_initialize(&token_postfix);
+                    infix_to_postfix(&token_list, &token_postfix);
+                    ///Generate the code here
+                    if (ptr_expr_data_and_type->token_type == EXPRESSION_FLOAT64)
+                    {
+                        if (generate_expression(&token_postfix, 1) == RC_RUN_ERR)
+                        {
+                            return RC_RUN_ERR;
+                        }
+                    }
+                    else
+                    {
+                        if (generate_expression(&token_postfix, 0) == RC_RUN_ERR)
+                        {
+                            return RC_RUN_ERR;
+                        }
+                    }
                     token_list_free(&token_list);
+                    token_list_free(&token_postfix);
                     return 0;
                 }
             }
@@ -619,7 +671,6 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                     token_list_free(&token_list);
                     return RC_RUN_ERR;
                 }
-                token_list_add_item(&token_list, ptr_last_token);
 
                 ///What is the first token?
                 if (ptr_last_token->token_type == RC_LEX_ERR)
@@ -637,6 +688,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                     ///We have to check if the expr_data_type is not a string
                     if ((ptr_expr_data_and_type->token_type == EXPRESSION_NO_TYPE) || (ptr_expr_data_and_type->token_type == EXPRESSION_INT) || (ptr_expr_data_and_type->token_type == EXPRESSION_FLOAT64))
                     {
+                        token_list_add_item(&token_list, ptr_last_token);
                         switch_case = 1;
                     }
                     else
@@ -647,6 +699,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                 }
                 else if ((ptr_last_token->token_type == TOKEN_PLUS) || (ptr_last_token->token_type == TOKEN_DOUBLE_EQUAL) || (ptr_last_token->token_type == TOKEN_NOT_EQUAL))
                 {
+                    token_list_add_item(&token_list, ptr_last_token);
                     switch_case = 0;
                 }
                 else if (ptr_last_token->token_type == TOKEN_DIVISION)
@@ -654,6 +707,7 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                     ///We have to check if the expr_data_type is not a string
                     if ((ptr_expr_data_and_type->token_type == EXPRESSION_NO_TYPE) || (ptr_expr_data_and_type->token_type == EXPRESSION_INT) || (ptr_expr_data_and_type->token_type == EXPRESSION_FLOAT64))
                     {
+                        token_list_add_item(&token_list, ptr_last_token);
                         switch_case = 4;
                     }
                     else
@@ -667,8 +721,27 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                     ///Now we must check if the number_of_brackets variable contains 0
                     if (number_of_brackets == 0)
                     {
-                        //TODO Evaluate the expression and generate the code here
+                        ///Infix to postfix and generate the code
+                        token_listT token_postfix;
+                        token_list_initialize(&token_postfix);
+                        infix_to_postfix(&token_list, &token_postfix);
+                        ///Generate the code here
+                        if (ptr_expr_data_and_type->token_type == EXPRESSION_FLOAT64)
+                        {
+                            if (generate_expression(&token_postfix, 1) == RC_RUN_ERR)
+                            {
+                                return RC_RUN_ERR;
+                            }
+                        }
+                        else
+                        {
+                            if (generate_expression(&token_postfix, 0) == RC_RUN_ERR)
+                            {
+                                return RC_RUN_ERR;
+                            }
+                        }
                         token_list_free(&token_list);
+                        token_list_free(&token_postfix);
                         return 0;
                     }
                     else

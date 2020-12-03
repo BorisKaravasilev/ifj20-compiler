@@ -1,0 +1,10 @@
+// Program 1: Vypocet faktorialu (iterativne)
+package main
+
+func main() {
+    a := 0
+    y := 1
+    a = y / (5 * a) + 10
+    b := 0
+    b = a >= 1
+}
