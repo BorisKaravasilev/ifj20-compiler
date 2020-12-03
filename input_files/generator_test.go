@@ -3,7 +3,7 @@ package main
 
 func main() {
 
-	/*a := ""
+	a := ""
 	b := 0
 	a, _ = inputs()
 	print(a)
@@ -23,7 +23,7 @@ func main() {
 
     a = "cau"
     b = len(a)
-    print(b)*/
+    print(b)
 
     err := 0   // for error flag
     s := "Hello World!"

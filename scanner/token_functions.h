@@ -10,7 +10,7 @@
 #ifndef LEX_TOKEN_FUNCTIONS_H
 #define LEX_TOKEN_FUNCTIONS_H
 
-#define TOKEN_ARRAY_LEN 100
+#define TOKEN_ARRAY_LEN 5000
 
 #include "string_functions.h"
 #include "symtable.h"
