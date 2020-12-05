@@ -14,6 +14,7 @@
 #include "string_functions.h"
 #include "symtable.h"
 #include "token_types.h"
+#include "utility_functions.h"
 
 // IFJcode20 converted to C string by:
 // https://tomeko.net/online_tools/cpp_text_escape.php?lang=en
@@ -58,7 +59,43 @@ void gen_escape_string(char *orig, stringT *escaped){
                 char str_digit[2];
                 sprintf(str_digit, "%d", orig[i]);
                 string_add_string(escaped, str_digit);
-            } else {
+            }
+            else if (orig[i] == 92) {
+                if (orig[i + 1] == 34) {    // "
+                    string_add_character(escaped, '\"');
+                    i++;
+                }
+                else if (orig[i + 1] == 110) {  // \n
+                    string_add_string(escaped, "\\010");
+                    i++;
+                }
+                else if (orig[i + 1] == 116){   // \t
+                    string_add_string(escaped, "\\009");
+                    i++;
+                }
+                else if (orig[i + 1] == 92){    // "\"
+                    string_add_string(escaped, "\\092");
+                    i++;
+                }
+                else if (orig[i + 1] == 120){    // x
+                    if (check_hex(orig[i + 2]) && check_hex(orig[i + 3])){
+                        char str_hex[5];
+                        sprintf(str_hex, "0x%c%c", orig[i + 2], orig[i + 3]);
+                        long n = strtol(str_hex, NULL, 16);
+                        string_add_character(escaped, (char) n);
+                        i += 3;
+                    }
+                    else {
+                        fprintf(stderr, "Invalid escape sequence.\n");
+                        exit(1);
+                    }
+                }
+                else {
+                    fprintf(stderr, "Invalid escape sequence.\n");
+                    exit(1);
+                }
+            }
+            else {
                 string_add_string(escaped, "\\0");
                 char str_two_digits[3];
                 sprintf(str_two_digits, "%d", orig[i]);

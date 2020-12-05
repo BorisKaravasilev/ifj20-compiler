@@ -1,11 +1,11 @@
 //
 package main
 
-/*func swap(x int, y int) (int, int) {
+func swap(x int, y int) (int, int) {
     return y, x
 }
 
-func print_floats(x float64, y float64) (float64, float64) {
+/*func print_floats(x float64, y float64) (float64, float64) {
     print(x, y)
     return x, y
 }
@@ -30,7 +30,7 @@ func main () {
     e := 0
     f := 0
 
-    a, b, c = 1, 2, 3
+    a, b, c = inputi(), 1
     d, e, f = 4, 5, 6
 
     /*empty_return()

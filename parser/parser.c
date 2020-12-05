@@ -1546,7 +1546,6 @@ int cycle_init(scannerT *ptr_scanner, tokenT token[]){
                 i--;
             }
             gen_defvar_lf(token[i - 1].attribute.string_val.string);
-            printf("MOVE LF@a int@1\n"); //TODO HARDCODED REMOVE
             // TODO GEN printf("MOVE LF@%s TF@result_here\n", token[i - 1].attribute.string_val.string);
 
             return SYNTAX_OK;
@@ -1641,7 +1640,7 @@ int command(scannerT *ptr_scanner, tokenT token[]){
 
         case TOKEN_KEYWORD_FOR:
             for_count++;
-            printf("# FOR cycle number %d\n", for_count);
+            printf("# FOR cycle\n");
 
             stack_push(&ptr_scanner->st_stack);
             tmp_result = cycle_init(ptr_scanner, token);
