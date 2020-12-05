@@ -1569,7 +1569,7 @@ int command(scannerT *ptr_scanner, tokenT token[]){
 
             unget_token = true;
             if (token[token_index].token_type == TOKEN_RIGHT_CURLY_BRACE){
-                stack_pop(&ptr_scanner->st_stack);
+                //stack_pop(&ptr_scanner->st_stack);
                 return SYNTAX_OK;
             }
             else {
@@ -1746,12 +1746,14 @@ int param(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol){
     }
 
     if (token[token_index].token_type == TOKEN_IDENTIFIER){
+        ST_Item *newParamSymbol = st_insert_symbol(ptr_scanner->st_stack.top->symtable, &token[token_index].attribute.string_val, false);
         int item_type;
         tmp_result = item(ptr_scanner, token, &item_type);
         if (tmp_result != SYNTAX_OK) {
             return tmp_result;
         }
         st_add_function_param(ptr_curr_symbol, item_type);
+        newParamSymbol->type = item_type;
     }
 
     return param(ptr_scanner, token, ptr_curr_symbol);
