@@ -36,7 +36,7 @@ int assign_list(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic
 int assign_nofunc(scannerT *ptr_scanner, tokenT token[]);
 int assign_nofunc_next(scannerT *ptr_scanner, tokenT token[]);
 int assign_nofunc_list(scannerT *ptr_scanner, tokenT token[]);
-int id_next1(scannerT *ptr_scanner, tokenT token[]);
+int id_next1(scannerT *ptr_scanner, tokenT token[], int param_num);
 int id_list1(scannerT *ptr_scanner, tokenT token[]);
 int id_next2(scannerT *ptr_scanner, tokenT token[]);
 int id_list2(scannerT *ptr_scanner, tokenT token[]);
@@ -48,7 +48,7 @@ int command(scannerT *ptr_scanner, tokenT token[]);
 int command_list(scannerT *ptr_scanner, tokenT token[]);
 int return_type(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol);
 int return_type_list(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol);
-int param(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol);
+int param(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol, int param_number);
 int param_list(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol);
 int func(scannerT *ptr_scanner, tokenT token[]);
 int program(scannerT *ptr_scanner, tokenT token[]);
