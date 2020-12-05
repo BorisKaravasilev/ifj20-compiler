@@ -1795,6 +1795,7 @@ int param(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol, int p
     }
 
     if (token[token_index].token_type == TOKEN_IDENTIFIER){
+        ST_Item *newParamSymbol = st_insert_symbol(ptr_scanner->st_stack.top->symtable, &token[token_index].attribute.string_val, false);
         param_number++;
         char par_num_str[10];
         sprintf(par_num_str, "LF@%%%d", param_number);
@@ -1808,6 +1809,7 @@ int param(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol, int p
             return tmp_result;
         }
         st_add_function_param(ptr_curr_symbol, item_type);
+        newParamSymbol->type = item_type;
     }
 
     return param(ptr_scanner, token, ptr_curr_symbol, param_number);
