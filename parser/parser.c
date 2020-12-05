@@ -1388,7 +1388,7 @@ int cycle_assign(scannerT *ptr_scanner, tokenT token[]){
     else {
         unget_token = true; // id or _ is already loaded
         // TODO SEMANTIC: Check id assignment in cycle semantic
-        tmp_result = id(ptr_scanner, token, false);
+        tmp_result = id(ptr_scanner, token, true);
         if (tmp_result == SYNTAX_OK){
             if (!unget_token) {
                 get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // =
@@ -1402,9 +1402,13 @@ int cycle_assign(scannerT *ptr_scanner, tokenT token[]){
                 return RC_SYN_ERR;
             }
 
-            tmp_result = expr(ptr_scanner, token, false, NULL);
-            if (tmp_result != SYNTAX_OK)
+            int expr_result_type;
+            tmp_result = expr(ptr_scanner, token, false, &expr_result_type);
+            if (tmp_result != SYNTAX_OK) {
                 return tmp_result;
+            }
+
+            assignment_add_expression(&assignment_check_struct, expr_result_type, NULL);
 
             if (token[token_index].token_type != TOKEN_LEFT_CURLY_BRACE){
                 err_print("{", token[token_index].token_type);
@@ -1412,7 +1416,7 @@ int cycle_assign(scannerT *ptr_scanner, tokenT token[]){
             }
 
             stack_push(&ptr_scanner->st_stack);
-            return SYNTAX_OK;
+            return compare_left_right_params(&assignment_check_struct); // return SYNTAX_OK
         }
         else {
             err_print("id, _ or {", token[token_index].token_type);
