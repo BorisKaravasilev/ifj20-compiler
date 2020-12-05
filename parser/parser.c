@@ -910,6 +910,10 @@ int assign_nofunc(scannerT *ptr_scanner, tokenT token[]){
  * The optional continuation of a list of assignments (without function calls)
  */
 int assign_nofunc_next(scannerT *ptr_scanner, tokenT token[]){
+    if (was_expr) {
+        unget_token = true;
+        was_expr = false;
+    }
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // , or extra token was read
     }
@@ -1159,6 +1163,7 @@ int id_next1(scannerT *ptr_scanner, tokenT token[]){
                 unget_token = true;
                 tmp_result = literal(ptr_scanner, token, &item_type);
                 if (tmp_result == SYNTAX_OK){
+                    late_check_stack_item_add_parameter(semantic_late_check_stack.top, item_type);
                     return id_next1(ptr_scanner, token);
                 }
                 else {
