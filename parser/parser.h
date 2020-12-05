@@ -20,6 +20,7 @@
 #include "semantic_late_check.h"
 
 #define SYNTAX_OK 0
+#define LEFT_SIDE_TOKEN_COUNT 10
 
 void err_print(char *str, int token_type);
 
@@ -38,15 +39,15 @@ int assign_nofunc_next(scannerT *ptr_scanner, tokenT token[]);
 int assign_nofunc_list(scannerT *ptr_scanner, tokenT token[]);
 int id_next1(scannerT *ptr_scanner, tokenT token[], int param_num);
 int id_list1(scannerT *ptr_scanner, tokenT token[]);
-int id_next2(scannerT *ptr_scanner, tokenT token[]);
+int id_next2(scannerT *ptr_scanner, tokenT token[], int id_number);
 int id_list2(scannerT *ptr_scanner, tokenT token[]);
 int underscore_command(scannerT *ptr_scanner, tokenT token[]);
 int id_command(scannerT *ptr_scanner, tokenT token[]);
-int cycle_assign(scannerT *ptr_scanner, tokenT token[]);
+int cycle_assign(scannerT *ptr_scanner, tokenT token[], int for_count);
 int cycle_init(scannerT *ptr_scanner, tokenT token[]);
 int command(scannerT *ptr_scanner, tokenT token[]);
 int command_list(scannerT *ptr_scanner, tokenT token[]);
-int return_type(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol);
+int return_type(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol, int return_type_num);
 int return_type_list(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol);
 int param(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol, int param_number);
 int param_list(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol);

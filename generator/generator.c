@@ -124,6 +124,55 @@ void gen_assign_token_to_var(char *var_name, tokenT *token) {
     gen_move(str_var_with_frame.string, str_to_assign.string);
 }
 
+
+void gen_parameter(tokenT *param_token, int param_number){
+    stringT right_side_str;
+    string_init(&right_side_str);
+
+    char *assigned_data_type;
+
+    switch (param_token->token_type) {
+        case TOKEN_STRING_LITERAL:
+            assigned_data_type = "string@";
+            break;
+
+        case TOKEN_INTEGER_LITERAL:
+            assigned_data_type = "int@";
+            break;
+
+        case TOKEN_EXPONENT_LITERAL:
+        case TOKEN_DECIMAL_LITERAL:
+            assigned_data_type = "float@";
+            break;
+
+        case TOKEN_IDENTIFIER:
+            assigned_data_type = "LF@";
+            break;
+
+        default:
+            assigned_data_type = "nil@";
+            break;
+    }
+
+    string_add_string(&right_side_str, assigned_data_type);
+    if (param_token->token_type == TOKEN_EXPONENT_LITERAL || param_token->token_type == TOKEN_DECIMAL_LITERAL) {
+        char str_hex_float[1000];
+        sprintf(str_hex_float, "%a", strtof(param_token->attribute.string_val.string, NULL));
+        string_add_string(&right_side_str, str_hex_float);
+    }
+    else if (param_token->token_type == TOKEN_STRING_LITERAL){
+        gen_escape_string(param_token->attribute.string_val.string, &right_side_str);
+    }
+    else if (param_token->token_type == TOKEN_IDENTIFIER || param_token->token_type == TOKEN_INTEGER_LITERAL) {
+        string_add_string(&right_side_str, param_token->attribute.string_val.string);
+    }
+    else {
+        string_add_string(&right_side_str, "nil");
+    }
+
+    printf("MOVE TF@%%%d %s\n", param_number, right_side_str.string);
+}
+
 void gen_print(tokenT *token_to_print) {
     stringT var_or_symb;
     string_init(&var_or_symb);
