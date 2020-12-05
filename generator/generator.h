@@ -4,6 +4,7 @@
  * @file generator.h
  * @brief Functions for generating "IFJcode20"
  * @author Boris Karavasilev <xkarav01@stud.fit.vutbr.cz>
+ * @author Dominik Vecera <xvecer23@stud.fit.vutbr.cz>
  * @date 21. 11. 2020
  */
 
@@ -17,6 +18,7 @@
 
 // Code blocks generation
 void gen_enter_main();
+void gen_start_func(char *name);
 void gen_exit_main();
 void gen_enter_function_scope();
 void gen_leave_function_scope();

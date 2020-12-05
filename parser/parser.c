@@ -11,8 +11,8 @@
 #include "debugging.h"
 #include "generator.h"
 
-int token_index = 0, tmp_result = 0;
-bool was_expr = false, unget_token = false;
+int indent_level = 0, token_index = 0, tmp_result = 0;
+bool in_main = false, was_expr = false, unget_token = false;
 
 /* store information whether to generate individual built-in function definitions
    order is the same as in token_types.h, but print is excluded */
@@ -810,9 +810,17 @@ int expr(scannerT *ptr_scanner, tokenT token[], bool two_tokens, int *result_dat
         unget_token = false;
     }
 
-    tokenT last_expr_token, expr_result_token;
+    tokenT last_expr_token, expr_result_token, left_side_token;
     token_init(&last_expr_token);
     token_init(&expr_result_token);
+
+    // GENERATE
+    if (two_tokens){
+        left_side_token = token[token_index - 3];
+    }
+    else {
+        left_side_token = token[token_index - 2];
+    }
 
     debug_parser("\nEntering expression analysis%s.\n", "");
     if (two_tokens){
@@ -827,6 +835,9 @@ int expr(scannerT *ptr_scanner, tokenT token[], bool two_tokens, int *result_dat
         if (tmp_result != SYNTAX_OK)
             return tmp_result;
     }
+
+    // GENERATE
+    // TODO nefunguje printf("LF@%s TF@result_here\n", left_side_token.attribute.string_val.string);
 
     // SEMANTIC
     if (result_data_type != NULL) {
@@ -1007,6 +1018,11 @@ int assign(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic_type
             if (skip_sides_semantic_type_check != NULL) {
                 *skip_sides_semantic_type_check = true;
             }
+
+            // GENERATE
+            printf("\n");
+            gen_createframe();
+
             late_check_stack_push_method(&semantic_late_check_stack, &token[token_index-1].attribute.string_val);
             late_check_stack_item_create_assignment_list(semantic_late_check_stack.top, assignment_check_struct.left_side_types_list_first);
             return id_list1(ptr_scanner, token);
@@ -1128,7 +1144,7 @@ int id_list2(scannerT *ptr_scanner, tokenT token[]){
 /*
  * The optional continuation of a list of identifiers
  */
-int id_next1(scannerT *ptr_scanner, tokenT token[]){
+int id_next1(scannerT *ptr_scanner, tokenT token[], int param_num){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // ) or ,
     }
@@ -1140,6 +1156,7 @@ int id_next1(scannerT *ptr_scanner, tokenT token[]){
 
     switch (token[token_index].token_type){
         case TOKEN_RIGHT_BRACKET:
+            printf("CALL $%s\n", token[token_index - 1 - 2 * param_num].attribute.string_val.string);
             return SYNTAX_OK;
 
         case TOKEN_COMMA:
@@ -1159,7 +1176,7 @@ int id_next1(scannerT *ptr_scanner, tokenT token[]){
                 unget_token = true;
                 tmp_result = literal(ptr_scanner, token, &item_type);
                 if (tmp_result == SYNTAX_OK){
-                    return id_next1(ptr_scanner, token);
+                    return id_next1(ptr_scanner, token, param_num);
                 }
                 else {
                     err_print("id or literal", token[token_index].token_type);
@@ -1167,13 +1184,18 @@ int id_next1(scannerT *ptr_scanner, tokenT token[]){
                 }
             }
 
+            // GENERATE - create temporary variable for parameter
+            param_num++;
+            printf("DEFVAR TF@%%%d\n", param_num);
+            printf("MOVE TF@%%%d LF@%s\n", param_num, token[token_index].attribute.string_val.string);
+
             if ((identifier = stack_search(&ptr_scanner->st_stack, &token[token_index].attribute.string_val)) == NULL) {
                 fprintf(stderr, "Error: Undefined variable \'%s\'\n", token[token_index].attribute.string_val.string);
                 return RC_SEMANTIC_IDENTIFIER_ERR;
             }
             late_check_stack_item_add_parameter(semantic_late_check_stack.top, identifier->type);
 
-            return id_next1(ptr_scanner, token);
+            return id_next1(ptr_scanner, token, param_num);
 
         default:
             err_print(") or ,", token[token_index].token_type);
@@ -1192,10 +1214,11 @@ int id_list1(scannerT *ptr_scanner, tokenT token[]){
         unget_token = false;
     }
     ST_Item *identifier = NULL;
-    int item_type;
+    int item_type, param_num = 1;
 
     switch (token[token_index].token_type){
         case TOKEN_RIGHT_BRACKET:
+            printf("CALL $%s\n", token[token_index - 2].attribute.string_val.string);
             return SYNTAX_OK;
 
         case TOKEN_UNDERSCORE:
@@ -1208,14 +1231,23 @@ int id_list1(scannerT *ptr_scanner, tokenT token[]){
                 return RC_SEMANTIC_IDENTIFIER_ERR;
             }
             late_check_stack_item_add_parameter(semantic_late_check_stack.top, identifier->type);
-            return id_next1(ptr_scanner, token);
+
+            // GENERATE - create temporary variable for parameter
+            printf("DEFVAR TF@%%%d\n", param_num);
+            printf("MOVE TF@%%%d LF@%s\n", param_num, token[token_index].attribute.string_val.string);
+
+            return id_next1(ptr_scanner, token, param_num);
 
         default:
             unget_token = true;
             tmp_result = literal(ptr_scanner, token, &item_type);
             if (tmp_result == SYNTAX_OK){
+                // GENERATE - create temporary variable for parameter
+                printf("DEFVAR TF@%%%d\n", param_num);
+                printf("MOVE TF@%%%d LF@%s\n", param_num, token[token_index].attribute.string_val.string);
+
                 late_check_stack_item_add_parameter(semantic_late_check_stack.top, item_type);
-                return id_next1(ptr_scanner, token);
+                return id_next1(ptr_scanner, token, param_num);
             }
             else {
                 err_print("id, literal or )", token[token_index].token_type);
@@ -1383,6 +1415,7 @@ int cycle_assign(scannerT *ptr_scanner, tokenT token[]){
 
     if (token[token_index].token_type == TOKEN_LEFT_CURLY_BRACE){
         stack_push(&ptr_scanner->st_stack);
+        indent_level++;
         return SYNTAX_OK;
     }
     else {
@@ -1411,6 +1444,7 @@ int cycle_assign(scannerT *ptr_scanner, tokenT token[]){
                 return RC_SYN_ERR;
             }
 
+            indent_level++;
             stack_push(&ptr_scanner->st_stack);
             return SYNTAX_OK;
         }
@@ -1500,6 +1534,7 @@ int command(scannerT *ptr_scanner, tokenT token[]){
                 err_print("{", token[token_index].token_type);
                 return RC_SYN_ERR;
             }
+            indent_level++;
             stack_push(&ptr_scanner->st_stack);
 
             tmp_result = command_list(ptr_scanner, token);
@@ -1529,6 +1564,7 @@ int command(scannerT *ptr_scanner, tokenT token[]){
                 err_print("{", token[token_index].token_type);
                 return RC_SYN_ERR;
             }
+            indent_level++;
             stack_push(&ptr_scanner->st_stack);
 
             return command_list(ptr_scanner, token);
@@ -1569,7 +1605,6 @@ int command(scannerT *ptr_scanner, tokenT token[]){
 
             unget_token = true;
             if (token[token_index].token_type == TOKEN_RIGHT_CURLY_BRACE){
-                stack_pop(&ptr_scanner->st_stack);
                 return SYNTAX_OK;
             }
             else {
@@ -1610,6 +1645,19 @@ int command_list(scannerT *ptr_scanner, tokenT token[]){
 
     if (token[token_index].token_type == TOKEN_RIGHT_CURLY_BRACE){
         stack_pop(&ptr_scanner->st_stack);
+
+        indent_level--;
+        if (indent_level == 0){
+            if (in_main){
+                gen_exit_main();
+                in_main = false;
+            }
+            else {
+                gen_popframe();
+                gen_return();
+            }
+        }
+
         return SYNTAX_OK;
     }
     else {
@@ -1722,7 +1770,7 @@ int return_type_list(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_sy
 /*
  * The optional continuation of a list of function parameters
  */
-int param(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol){
+int param(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol, int param_number){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // , or )
     }
@@ -1731,6 +1779,7 @@ int param(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol){
     }
 
     if (token[token_index].token_type == TOKEN_RIGHT_BRACKET){
+        printf("\n");
         return SYNTAX_OK;
     }
     else if (token[token_index].token_type != TOKEN_COMMA){
@@ -1746,6 +1795,13 @@ int param(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol){
     }
 
     if (token[token_index].token_type == TOKEN_IDENTIFIER){
+        param_number++;
+        char par_num_str[10];
+        sprintf(par_num_str, "LF@%%%d", param_number);
+
+        gen_defvar_lf(token[token_index].attribute.string_val.string);
+        gen_move_to_lf(token[token_index].attribute.string_val.string, par_num_str);
+
         int item_type;
         tmp_result = item(ptr_scanner, token, &item_type);
         if (tmp_result != SYNTAX_OK) {
@@ -1754,7 +1810,7 @@ int param(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol){
         st_add_function_param(ptr_curr_symbol, item_type);
     }
 
-    return param(ptr_scanner, token, ptr_curr_symbol);
+    return param(ptr_scanner, token, ptr_curr_symbol, param_number);
 }
 
 /*
@@ -1768,6 +1824,7 @@ int param_list(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol){
         unget_token = false;
     }
 
+    int param_number = 1;
     if (token[token_index].token_type == TOKEN_RIGHT_BRACKET){
         return SYNTAX_OK;
     }
@@ -1775,6 +1832,11 @@ int param_list(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol){
         int item_type;
         Symtable *ptr_curr_scope_sym_table = stack_top(&ptr_scanner->st_stack).symtable;
         ST_Item *newParamSymbol = st_insert_symbol(ptr_curr_scope_sym_table, &token[token_index].attribute.string_val, false);
+
+        // GENERATE
+        printf("# init parameters\n");
+        gen_defvar_lf(token[token_index].attribute.string_val.string);
+        gen_move_to_lf(token[token_index].attribute.string_val.string, "LF@%1");
 
         tmp_result = item(ptr_scanner, token, &item_type);
         if (tmp_result != SYNTAX_OK) {
@@ -1788,7 +1850,7 @@ int param_list(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol){
         return RC_SYN_ERR;
     }
 
-    return param(ptr_scanner, token, ptr_curr_symbol);
+    return param(ptr_scanner, token, ptr_curr_symbol, param_number);
 }
 
 /*
@@ -1812,6 +1874,14 @@ int func(scannerT *ptr_scanner, tokenT token[]){
     ST_Item *symbol = st_insert_symbol(ptr_curr_scope_sym_table, &token[token_index].attribute.string_val, true);
     current_function_block_symbol = symbol;
     // END SEMANTIC
+
+    // GENERATE
+    if (strcmp(token[token_index].attribute.string_val.string, "main") == 0){
+        in_main = true;
+    }
+    gen_start_func(token[token_index].attribute.string_val.string);
+    indent_level = 1;
+    //END GENERATE
 
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // left opening bracket
@@ -1898,7 +1968,6 @@ int parse(scannerT *ptr_scanner, tokenT token[]){
             return tmp_result;
         else {
             // GENERATE
-            gen_exit_main();
             gen_def_builtin_functions(builtin_func_used);
         }
     }

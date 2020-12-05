@@ -4,6 +4,7 @@
  * @file generator.c
  * @brief Functions for generating "IFJcode20"
  * @author Boris Karavasilev <xkarav01@stud.fit.vutbr.cz>
+ * @author Dominik Vecera <xvecer23@stud.fit.vutbr.cz>
  * @date 21. 11. 2020
  */
 
@@ -19,12 +20,19 @@
 
 void gen_enter_main() {
     printf(".IFJcode20\n");
-    gen_jump("$$main");
+    gen_jump("$main");
+}
 
-    printf("\n# ----------------------------------- main()\n");
-    gen_label("$$main");
-    // Create local frame for the scope of main()
-    gen_createframe();
+void gen_start_func(char *name) {
+    printf("\n# ----------------------------------- %s()\n", name);
+    char label[100];
+    sprintf(label, "$%s", name);
+
+    gen_label(label);
+    // Push or create local frame for the scope of the function()
+    if (strcmp(label, "$main") == 0){
+        gen_createframe();
+    }
     gen_pushframe();
     printf("\n");
 }
@@ -620,7 +628,7 @@ void gen_pushframe() {
     printf("PUSHFRAME\n");
 }
 void gen_popframe() {
-    printf("POPFRAME\n");
+    printf("\nPOPFRAME\n");
 }
 
 void gen_defvar(char *var) {
