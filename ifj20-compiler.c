@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
         fprintf(stderr, "Missing function \'main\'.");
         return RC_SEMANTIC_IDENTIFIER_ERR;
     }
-    if (main_func_symbol->function_data->parameters_count > 0 || main_func_symbol->function_data->return_types_count > 0) {
+    if (main_func_symbol->function_data->parameters_list_first != NULL || main_func_symbol->function_data->return_types_list_first != NULL) {
         fprintf(stderr, "Function \'main\' must not have any parameters or return types.");
         return RC_SEMANTIC_FUNC_PARAM_ERR;
     }
