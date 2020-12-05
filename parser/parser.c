@@ -1569,7 +1569,6 @@ int command(scannerT *ptr_scanner, tokenT token[]){
 
             unget_token = true;
             if (token[token_index].token_type == TOKEN_RIGHT_CURLY_BRACE){
-                //stack_pop(&ptr_scanner->st_stack);
                 return SYNTAX_OK;
             }
             else {
