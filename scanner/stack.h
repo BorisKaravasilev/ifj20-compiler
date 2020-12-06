@@ -3,7 +3,7 @@
  *
  * @file stack.h
  * @brief Stack implementation for semantic analysis.
- * @author Dominik Večeřa <xvecer23@stud.fit.vutbr.cz>
+ * @author Dominik Vecera <xvecer23@stud.fit.vutbr.cz>
  * @date 25. 10. 2020
  */
 

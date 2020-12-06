@@ -161,6 +161,30 @@ void gen_assign_token_to_var(char *var_name, tokenT *token) {
     gen_move(str_var_with_frame.string, str_to_assign.string);
 }
 
+void gen_print_type(tokenT *param_token){
+    switch (param_token->token_type) {
+        case TOKEN_STRING_LITERAL:
+            printf("string@");
+            break;
+
+        case TOKEN_INTEGER_LITERAL:
+            printf("int@");
+            break;
+
+        case TOKEN_EXPONENT_LITERAL:
+        case TOKEN_DECIMAL_LITERAL:
+            printf("float@");
+            break;
+
+        case TOKEN_IDENTIFIER:
+            printf("LF@");
+            break;
+
+        default:
+            printf("nil@");
+            break;
+    }
+}
 
 void gen_parameter(tokenT *param_token, int param_number){
     stringT right_side_str;

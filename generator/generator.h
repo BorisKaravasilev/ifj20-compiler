@@ -28,6 +28,7 @@ void gen_assign_token_to_var(char *var, tokenT *token);
 void gen_print(tokenT *token_to_print);
 void gen_escape_string(char *orig, stringT *escaped);
 void gen_parameter(tokenT *param_token, int param_number);
+void gen_print_type(tokenT *param_token);
 
 // Built-in functions
 void gen_call_input(int func_token_type, tokenT *token_array, int tok_index);

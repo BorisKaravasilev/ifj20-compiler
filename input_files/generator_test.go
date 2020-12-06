@@ -2,6 +2,12 @@
 package main
 
 func main() {
+    x := 5
+    _ = 10
+    y := 1 + 2
+    z := 0
+    y = 2 * 3
+    z = x
 
 	a := ""
 	b := 0
@@ -29,16 +35,13 @@ func main() {
     s := "Hello World!"
     pos := 6
     s, err = substr(s, pos, pos)
-    print(s, " ", err, "
-") // should be "World!"
+    print(s, " ", err, "\n") // should be "World!"
 
     ord_val := 0
     pos = 1
     ord_val, err = ord(s, pos)
-    print(ord_val, " ", err, "
-")  // should be 111 - ASCII o
+    print(ord_val, " ", err, "\n")  // should be 111 - ASCII o
 
     s, err = chr(69)
-    print(s, " ", err, "
-")    // should be 'E'
+    print(s, " ", err, "\n")    // should be 'E'
 }

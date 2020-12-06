@@ -3,7 +3,7 @@
  *
  * @file parser.h
  * @brief Parser header
- * @author Dominik Večeřa <xvecer23@stud.fit.vutbr.cz>
+ * @author Dominik Vecera <xvecer23@stud.fit.vutbr.cz>
  * @author Petr Vrtal <xvrtal01@stud.fit.vutbr.cz>
  */
 
@@ -35,7 +35,7 @@ int assign(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic_type
 int assign_next(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic_type_check);
 int assign_list(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic_type_check);
 int assign_nofunc(scannerT *ptr_scanner, tokenT token[]);
-int assign_nofunc_next(scannerT *ptr_scanner, tokenT token[]);
+int assign_nofunc_next(scannerT *ptr_scanner, tokenT token[], int return_value_number);
 int assign_nofunc_list(scannerT *ptr_scanner, tokenT token[]);
 int id_next1(scannerT *ptr_scanner, tokenT token[], int param_num);
 int id_list1(scannerT *ptr_scanner, tokenT token[]);
