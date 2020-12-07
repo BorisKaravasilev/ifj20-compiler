@@ -887,6 +887,12 @@ int assign_nofunc(scannerT *ptr_scanner, tokenT token[]){
             }
             else {
                 // TODO D multiple assignments
+                if (left_side_assignments[assigns_right].token_type != TOKEN_UNDERSCORE) {
+                    printf("MOVE LF@%s TF@result_here\n", left_side_assignments[assigns_right++].attribute.string_val.string);
+                }
+                else {
+                    assigns_right++;
+                }
             }
 
             return tmp_result;
@@ -926,6 +932,29 @@ int assign_nofunc(scannerT *ptr_scanner, tokenT token[]){
             }
             else {
                 // TODO D multiple assignments
+                if (left_side_assignments[assigns_right].token_type != TOKEN_UNDERSCORE) {
+                    printf("MOVE LF@%s ", left_side_assignments[assigns_right++].attribute.string_val.string);
+                    gen_print_type(&token[token_index - 1]);
+
+                    if (token[token_index - 1].token_type == TOKEN_STRING_LITERAL){
+                        stringT escaped_str;
+                        string_init(&escaped_str);
+                        gen_escape_string(token[token_index - 1].attribute.string_val.string, &escaped_str);
+                        printf("%s\n", escaped_str.string);
+                    }
+                    else if (token[token_index - 1].token_type == TOKEN_DECIMAL_LITERAL ||
+                             token[token_index - 1].token_type == TOKEN_EXPONENT_LITERAL){
+                        char str_hex_float[1000];
+                        sprintf(str_hex_float, "%a", strtof(token[token_index - 1].attribute.string_val.string, NULL));
+                        printf("%s\n", str_hex_float);
+                    }
+                    else {
+                        printf("%s\n", token[token_index - 1].attribute.string_val.string);
+                    }
+                }
+                else {
+                    assigns_right++;
+                }
             }
 
             return SYNTAX_OK;
@@ -964,6 +993,12 @@ int assign_nofunc(scannerT *ptr_scanner, tokenT token[]){
             }
             else {
                 // TODO D multiple assignments
+                if (left_side_assignments[assigns_right].token_type != TOKEN_UNDERSCORE) {
+                    printf("MOVE LF@%s TF@result_here\n", left_side_assignments[assigns_right++].attribute.string_val.string);
+                }
+                else {
+                    assigns_right++;
+                }
             }
 
             return tmp_result;
@@ -988,6 +1023,14 @@ int assign_nofunc(scannerT *ptr_scanner, tokenT token[]){
             }
             else {
                 // TODO D multiple assignments
+                if (left_side_assignments[assigns_right].token_type != TOKEN_UNDERSCORE) {
+                    printf("MOVE LF@%s ", left_side_assignments[assigns_right++].attribute.string_val.string);
+                    gen_print_type(&token[token_index - 1]);
+                    printf("%s\n", token[token_index - 1].attribute.string_val.string);
+                }
+                else {
+                    assigns_right++;
+                }
             }
 
             return SYNTAX_OK;
@@ -996,6 +1039,7 @@ int assign_nofunc(scannerT *ptr_scanner, tokenT token[]){
 
     int expr_result_type;
     tmp_result = expr(ptr_scanner, token, false, &expr_result_type);
+    // TODO D assign here too
     was_expr = true;
     assignment_add_expression(&assignment_check_struct, expr_result_type, NULL);
     return tmp_result;
@@ -1113,6 +1157,12 @@ int assign(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic_type
             }
             else {
                 // TODO D multiple assignments
+                if (left_side_assignments[assigns_right].token_type != TOKEN_UNDERSCORE) {
+                    printf("MOVE LF@%s TF@result_here\n", left_side_assignments[assigns_right++].attribute.string_val.string);
+                }
+                else {
+                    assigns_right++;
+                }
             }
 
             return tmp_result;
@@ -1151,6 +1201,29 @@ int assign(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic_type
             }
             else {
                 // TODO D multiple assignments
+                if (left_side_assignments[assigns_right].token_type != TOKEN_UNDERSCORE) {
+                    printf("MOVE LF@%s ", left_side_assignments[assigns_right++].attribute.string_val.string);
+                    gen_print_type(&token[token_index - 1]);
+
+                    if (token[token_index - 1].token_type == TOKEN_STRING_LITERAL){
+                        stringT escaped_str;
+                        string_init(&escaped_str);
+                        gen_escape_string(token[token_index - 1].attribute.string_val.string, &escaped_str);
+                        printf("%s\n", escaped_str.string);
+                    }
+                    else if (token[token_index - 1].token_type == TOKEN_DECIMAL_LITERAL ||
+                             token[token_index - 1].token_type == TOKEN_EXPONENT_LITERAL){
+                        char str_hex_float[1000];
+                        sprintf(str_hex_float, "%a", strtof(token[token_index - 1].attribute.string_val.string, NULL));
+                        printf("%s\n", str_hex_float);
+                    }
+                    else {
+                        printf("%s\n", token[token_index - 1].attribute.string_val.string);
+                    }
+                }
+                else {
+                    assigns_right++;
+                }
             }
 
             return SYNTAX_OK;
@@ -1193,6 +1266,7 @@ int assign(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic_type
             return id_list1(ptr_scanner, token);
         }
         else {
+            // TODO D maybe add branch for expr and without based on operator check result?
             ST_Item *identifier;
             if ((identifier = stack_search(&ptr_scanner->st_stack, &token[token_index-1].attribute.string_val)) == NULL) {
                 fprintf(stderr, "Error: Undefined variable \'%s\'\n", token[token_index-1].attribute.string_val.string);
@@ -1211,13 +1285,17 @@ int assign(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic_type
                     i--;
                 }
                 if (token[i - 1].token_type != TOKEN_UNDERSCORE) {
-                    printf("MOVE LF@%s ", token[i - 1].attribute.string_val.string);
-                    gen_print_type(&token[token_index - 1]);
-                    printf("%s\n", token[token_index - 1].attribute.string_val.string);
+                    printf("MOVE LF@%s TF@result_here\n", token[i - 1].attribute.string_val.string);
                 }
             }
             else {
                 // TODO D multiple assignments
+                if (left_side_assignments[assigns_right].token_type != TOKEN_UNDERSCORE) {
+                    printf("MOVE LF@%s TF@result_here\n", left_side_assignments[assigns_right].attribute.string_val.string);
+                }
+                else {
+                    assigns_right++;
+                }
             }
 
             return tmp_result;
@@ -1226,6 +1304,7 @@ int assign(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic_type
 
     int expr_result_type;
     tmp_result = expr(ptr_scanner, token, false, &expr_result_type);
+    // TODO D assign here too
     was_expr = true;
     assignment_add_expression(&assignment_check_struct, expr_result_type, NULL);
     return tmp_result;
@@ -1313,6 +1392,7 @@ int id_list2(scannerT *ptr_scanner, tokenT token[]){
     }
 
     int id_number = 1;
+    assigns_right = 0;
 
     unget_token = true; // id or _ is already loaded
     tmp_result = id(ptr_scanner, token, true);
@@ -1845,7 +1925,6 @@ int command(scannerT *ptr_scanner, tokenT token[]){
                 return tmp_result;
 
             // GENERATE
-            indent_level++;
             printf("\nLABEL $for%d$start\n", for_count);
 
             tmp_result = expr(ptr_scanner, token, false, NULL);
