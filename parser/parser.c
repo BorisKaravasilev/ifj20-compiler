@@ -1326,11 +1326,16 @@ int assign(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic_type
  * The optional continuation of a list of assignments
  */
 int assign_next(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic_type_check){
-    if (!unget_token) {
-        get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // , or extra token was read
+    if (!was_expr){
+        if (!unget_token) {
+            get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // command or }
+        }
+        else {
+            unget_token = false;
+        }
     }
     else {
-        unget_token = false;
+        was_expr = false;
     }
 
     if (token[token_index].token_type == TOKEN_COMMA){
