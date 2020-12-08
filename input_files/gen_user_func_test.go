@@ -1,14 +1,13 @@
 //
 package main
 
-func swap(x int, y int, z int) (int, int, int) {
-    return z, y, x
-    //return 1, 2, 3
+func reverse(a int, b int, c int, d int, e int) (int, int, int, int, int) {
+    print("\nInside reverse function\n")
+    return e, d, c, b, a
 }
 
-/*func print_floats(x float64, y float64) (float64, float64) {
-    print(x, y)
-    return x, y
+func print_floats(x float64, y float64) () {
+    print(x, " ", y, "\n")
 }
 
 func get(num int) (int) {
@@ -21,26 +20,30 @@ func empty(){
 func empty_return(){
     return
 }
-*/
+
 func main () {
-    a := 0
-    b := 0
-    c := 0
+    a := 1
+    b := 2
+    c := 3
+    d := 4
+    e := 5
 
-    d := 0
-    e := 0
-    f := 0
+    print("Before\n")
+    print(a, " ", b, " ", c, " ", d, " ", e, " ")
 
-    a, b, c = swap(a, b, c)
-    d, e, f = 4, 5, 6
+    a, b, c, d, e = reverse(a, b, c, d, e)
 
-    /*empty_return()
+    print("After\n")
+    print(a, " ", b, " ", c, " ", d, " ", e, " ")
+    print("\n")
+
+    empty_return()
     empty()
 
-	a, b = swap(a, b)
 	a = get(b)
+	print("\n", a, "\n")
 
 	fl1 := 0.69
     fl2 := 0.96
-    fl1, fl2 = print_floats(fl1, fl2)*/
+    print_floats(fl1, fl2)
 }

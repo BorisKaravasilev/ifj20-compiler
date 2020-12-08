@@ -9,19 +9,21 @@ func main() {
     y = 2 * 3
     z = x
 
+    x, y, z = 420, 69, 9000
+    // TODO tohle vyhazuje semantickou chybu
+    //z, y, x = 1 + 1, 2 * 2, 3 - 3
+
 	a := ""
 	b := 0
 	a, _ = inputs()
-	print(a)
-	print("ahoj svete	tab#\n\\
-	")
-	print(a, b, "ahoj")
+	print(a, " ", b)
+	print("ahoj svete	tab#\n\\")
 
 	b = 5
 
     c := 1.2
 	c = int2float(7)
-    print(c)
+    print(c, "\n")
     int2float(7)
 
     b = float2int(c)
@@ -29,7 +31,7 @@ func main() {
 
     a = "cau"
     b = len(a)
-    print(b)
+    print(b, "\n")
 
     err := 0   // for error flag
     s := "Hello World!"
@@ -43,5 +45,5 @@ func main() {
     print(ord_val, " ", err, "\n")  // should be 111 - ASCII o
 
     s, err = chr(69)
-    print(s, " ", err, "\n")    // should be 'E'
+    print(s, " ", err, "\n")    // should be 'E'*/
 }

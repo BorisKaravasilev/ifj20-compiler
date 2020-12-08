@@ -22,6 +22,7 @@
 #define SYNTAX_OK 0
 #define LEFT_SIDE_TOKEN_COUNT 10
 
+
 void err_print(char *str, int token_type);
 
 int id(scannerT *ptr_scanner, tokenT token[], bool assign_allowed);
@@ -37,8 +38,8 @@ int assign_list(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic
 int assign_nofunc(scannerT *ptr_scanner, tokenT token[]);
 int assign_nofunc_next(scannerT *ptr_scanner, tokenT token[], int return_value_number);
 int assign_nofunc_list(scannerT *ptr_scanner, tokenT token[]);
-int id_next1(scannerT *ptr_scanner, tokenT token[], int param_num);
-int id_list1(scannerT *ptr_scanner, tokenT token[]);
+int id_next1(scannerT *ptr_scanner, tokenT token[], int param_num, bool assignment);
+int id_list1(scannerT *ptr_scanner, tokenT token[], bool assignment);
 int id_next2(scannerT *ptr_scanner, tokenT token[], int id_number);
 int id_list2(scannerT *ptr_scanner, tokenT token[]);
 int underscore_command(scannerT *ptr_scanner, tokenT token[]);
