@@ -8,7 +8,7 @@
 #include "expression_generator.h"
 
 ///Function for generating the IFJcode20 for the expression
-int generate_expression(token_listT *token_list_generate, int division_type)
+int generate_expression(token_listT *token_list_generate, int data_type)
 {
     ///First we need the new temporary frame
     gen_createframe();
@@ -153,8 +153,18 @@ int generate_expression(token_listT *token_list_generate, int division_type)
             ///DEFVAR
             printf("DEFVAR TF@E%d\n", name_of_first_free_variable);
             number_of_variables_on_stack++;
-            ///ADD
-            printf("ADD TF@E%d TF@E%d TF@E%d\n", name_of_first_free_variable, expr_stack[(number_of_variables_on_stack - 3)], expr_stack[(number_of_variables_on_stack - 2)]);
+
+            ///If data type is EXPRESSION_TYPE_STRING -> CONCAT, else it is a normal plus -> ADD
+            if (data_type == EXPRESSION_STRING)
+            {
+                ///CONCAT
+                printf("CONCAT TF@E%d TF@E%d TF@E%d\n", name_of_first_free_variable, expr_stack[(number_of_variables_on_stack - 3)], expr_stack[(number_of_variables_on_stack - 2)]);
+            }
+            else
+            {
+                ///ADD
+                printf("ADD TF@E%d TF@E%d TF@E%d\n", name_of_first_free_variable, expr_stack[(number_of_variables_on_stack - 3)], expr_stack[(number_of_variables_on_stack - 2)]);
+            }
 
             expr_stack[(number_of_variables_on_stack - 3)] = expr_stack[(number_of_variables_on_stack - 1)];
 
@@ -235,8 +245,8 @@ int generate_expression(token_listT *token_list_generate, int division_type)
             printf("DEFVAR TF@E%d\n", name_of_first_free_variable);
             number_of_variables_on_stack++;
 
-            ///If division type is 1, it is float division -> DIV, else it is int division -> IDIV
-            if (division_type == 1)
+            ///If data type is EXPRESSION_TYPE_FLOAT64 -> DIV, else it is int division -> IDIV
+            if (data_type == EXPRESSION_FLOAT64)
             {
                 ///DIV
                 printf("DIV TF@E%d TF@E%d TF@E%d\n", name_of_first_free_variable, expr_stack[(number_of_variables_on_stack - 3)], expr_stack[(number_of_variables_on_stack - 2)]);

@@ -7,7 +7,7 @@
  */
 
 #include "expression_analysis.h"
-#include "../scanner/token_types.h"
+#include "token_types.h"
 #include "token_linked_list.h"
 #include "infix2postfix.h"
 #include "expression_generator.h"
@@ -439,19 +439,9 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                     token_list_initialize(&token_postfix);
                     infix_to_postfix(&token_list, &token_postfix);
                     ///Generate the code here
-                    if (ptr_expr_data_and_type->token_type == EXPRESSION_FLOAT64)
+                    if (generate_expression(&token_postfix, ptr_expr_data_and_type->token_type) == RC_RUN_ERR)
                     {
-                        if (generate_expression(&token_postfix, 1) == RC_RUN_ERR)
-                        {
-                            return RC_RUN_ERR;
-                        }
-                    }
-                    else
-                    {
-                        if (generate_expression(&token_postfix, 0) == RC_RUN_ERR)
-                        {
-                            return RC_RUN_ERR;
-                        }
+                        return RC_RUN_ERR;
                     }
                     token_list_free(&token_list);
                     token_list_free(&token_postfix);
@@ -543,19 +533,9 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                     token_list_initialize(&token_postfix);
                     infix_to_postfix(&token_list, &token_postfix);
                     ///Generate the code here
-                    if (ptr_expr_data_and_type->token_type == EXPRESSION_FLOAT64)
+                    if (generate_expression(&token_postfix, ptr_expr_data_and_type->token_type) == RC_RUN_ERR)
                     {
-                        if (generate_expression(&token_postfix, 1) == RC_RUN_ERR)
-                        {
-                            return RC_RUN_ERR;
-                        }
-                    }
-                    else
-                    {
-                        if (generate_expression(&token_postfix, 0) == RC_RUN_ERR)
-                        {
-                            return RC_RUN_ERR;
-                        }
+                        return RC_RUN_ERR;
                     }
                     token_list_free(&token_list);
                     token_list_free(&token_postfix);
@@ -766,19 +746,9 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                         token_list_initialize(&token_postfix);
                         infix_to_postfix(&token_list, &token_postfix);
                         ///Generate the code here
-                        if (ptr_expr_data_and_type->token_type == EXPRESSION_FLOAT64)
+                        if (generate_expression(&token_postfix, ptr_expr_data_and_type->token_type) == RC_RUN_ERR)
                         {
-                            if (generate_expression(&token_postfix, 1) == RC_RUN_ERR)
-                            {
-                                return RC_RUN_ERR;
-                            }
-                        }
-                        else
-                        {
-                            if (generate_expression(&token_postfix, 0) == RC_RUN_ERR)
-                            {
-                                return RC_RUN_ERR;
-                            }
+                            return RC_RUN_ERR;
                         }
                         token_list_free(&token_list);
                         token_list_free(&token_postfix);
