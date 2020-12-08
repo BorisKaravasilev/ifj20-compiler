@@ -4,6 +4,7 @@
  * @file generator.c
  * @brief Functions for generating "IFJcode20"
  * @author Boris Karavasilev <xkarav01@stud.fit.vutbr.cz>
+ * @author Dominik Vecera <xvecer23@stud.fit.vutbr.cz>
  * @date 21. 11. 2020
  */
 
@@ -13,18 +14,26 @@
 #include "string_functions.h"
 #include "symtable.h"
 #include "token_types.h"
+#include "utility_functions.h"
 
 // IFJcode20 converted to C string by:
 // https://tomeko.net/online_tools/cpp_text_escape.php?lang=en
 
 void gen_enter_main() {
     printf(".IFJcode20\n");
-    gen_jump("$$main");
+    gen_jump("$main");
+}
 
-    printf("\n# ----------------------------------- main()\n");
-    gen_label("$$main");
-    // Create local frame for the scope of main()
-    gen_createframe();
+void gen_start_func(char *name) {
+    printf("\n# ----------------------------------- %s()\n", name);
+    char label[100];
+    sprintf(label, "$%s", name);
+
+    gen_label(label);
+    // Push or create local frame for the scope of the function()
+    if (strcmp(label, "$main") == 0){
+        gen_createframe();
+    }
     gen_pushframe();
     printf("\n");
 }
@@ -50,7 +59,43 @@ void gen_escape_string(char *orig, stringT *escaped){
                 char str_digit[2];
                 sprintf(str_digit, "%d", orig[i]);
                 string_add_string(escaped, str_digit);
-            } else {
+            }
+            else if (orig[i] == 92) {
+                if (orig[i + 1] == 34) {    // "
+                    string_add_character(escaped, '\"');
+                    i++;
+                }
+                else if (orig[i + 1] == 110) {  // \n
+                    string_add_string(escaped, "\\010");
+                    i++;
+                }
+                else if (orig[i + 1] == 116){   // \t
+                    string_add_string(escaped, "\\009");
+                    i++;
+                }
+                else if (orig[i + 1] == 92){    // "\"
+                    string_add_string(escaped, "\\092");
+                    i++;
+                }
+                else if (orig[i + 1] == 120){    // x
+                    if (check_hex(orig[i + 2]) && check_hex(orig[i + 3])){
+                        char str_hex[5];
+                        sprintf(str_hex, "0x%c%c", orig[i + 2], orig[i + 3]);
+                        long n = strtol(str_hex, NULL, 16);
+                        string_add_character(escaped, (char) n);
+                        i += 3;
+                    }
+                    else {
+                        fprintf(stderr, "Invalid escape sequence.\n");
+                        exit(1);
+                    }
+                }
+                else {
+                    fprintf(stderr, "Invalid escape sequence.\n");
+                    exit(1);
+                }
+            }
+            else {
                 string_add_string(escaped, "\\0");
                 char str_two_digits[3];
                 sprintf(str_two_digits, "%d", orig[i]);
@@ -114,6 +159,79 @@ void gen_assign_token_to_var(char *var_name, tokenT *token) {
     }
 
     gen_move(str_var_with_frame.string, str_to_assign.string);
+}
+
+void gen_print_type(tokenT *param_token){
+    switch (param_token->token_type) {
+        case TOKEN_STRING_LITERAL:
+            printf("string@");
+            break;
+
+        case TOKEN_INTEGER_LITERAL:
+            printf("int@");
+            break;
+
+        case TOKEN_EXPONENT_LITERAL:
+        case TOKEN_DECIMAL_LITERAL:
+            printf("float@");
+            break;
+
+        case TOKEN_IDENTIFIER:
+            printf("LF@");
+            break;
+
+        default:
+            printf("nil@");
+            break;
+    }
+}
+
+void gen_parameter(tokenT *param_token, int param_number){
+    stringT right_side_str;
+    string_init(&right_side_str);
+
+    char *assigned_data_type;
+
+    switch (param_token->token_type) {
+        case TOKEN_STRING_LITERAL:
+            assigned_data_type = "string@";
+            break;
+
+        case TOKEN_INTEGER_LITERAL:
+            assigned_data_type = "int@";
+            break;
+
+        case TOKEN_EXPONENT_LITERAL:
+        case TOKEN_DECIMAL_LITERAL:
+            assigned_data_type = "float@";
+            break;
+
+        case TOKEN_IDENTIFIER:
+            assigned_data_type = "LF@";
+            break;
+
+        default:
+            assigned_data_type = "nil@";
+            break;
+    }
+
+    string_add_string(&right_side_str, assigned_data_type);
+    if (param_token->token_type == TOKEN_EXPONENT_LITERAL || param_token->token_type == TOKEN_DECIMAL_LITERAL) {
+        char str_hex_float[1000];
+        sprintf(str_hex_float, "%a", strtof(param_token->attribute.string_val.string, NULL));
+        string_add_string(&right_side_str, str_hex_float);
+    }
+    else if (param_token->token_type == TOKEN_STRING_LITERAL){
+        gen_escape_string(param_token->attribute.string_val.string, &right_side_str);
+    }
+    else if (param_token->token_type == TOKEN_IDENTIFIER || param_token->token_type == TOKEN_INTEGER_LITERAL) {
+        string_add_string(&right_side_str, param_token->attribute.string_val.string);
+    }
+    else {
+        string_add_string(&right_side_str, "nil");
+    }
+
+    printf("MOVE TF@%%%d %s\n", param_number, right_side_str.string);
 }
 
 void gen_print(tokenT *token_to_print) {
@@ -620,7 +738,7 @@ void gen_pushframe() {
     printf("PUSHFRAME\n");
 }
 void gen_popframe() {
-    printf("POPFRAME\n");
+    printf("\nPOPFRAME\n");
 }
 
 void gen_defvar(char *var) {

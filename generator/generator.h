@@ -4,6 +4,7 @@
  * @file generator.h
  * @brief Functions for generating "IFJcode20"
  * @author Boris Karavasilev <xkarav01@stud.fit.vutbr.cz>
+ * @author Dominik Vecera <xvecer23@stud.fit.vutbr.cz>
  * @date 21. 11. 2020
  */
 
@@ -17,6 +18,7 @@
 
 // Code blocks generation
 void gen_enter_main();
+void gen_start_func(char *name);
 void gen_exit_main();
 void gen_enter_function_scope();
 void gen_leave_function_scope();
@@ -25,6 +27,8 @@ void gen_leave_function_scope();
 void gen_assign_token_to_var(char *var, tokenT *token);
 void gen_print(tokenT *token_to_print);
 void gen_escape_string(char *orig, stringT *escaped);
+void gen_parameter(tokenT *param_token, int param_number);
+void gen_print_type(tokenT *param_token);
 
 // Built-in functions
 void gen_call_input(int func_token_type, tokenT *token_array, int tok_index);
