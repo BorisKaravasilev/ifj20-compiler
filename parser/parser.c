@@ -1027,7 +1027,7 @@ int assign_nofunc(scannerT *ptr_scanner, tokenT token[]){
         else {
             // extra token was read
             unget_token = true;
-            assignment_add_expression(&assignment_check_struct, item_type, NULL);
+            assignment_add_expression(&assignment_check_struct, item_type, identifier);
 
             // GENERATE
             if (!in_return) {
