@@ -7,7 +7,7 @@
  */
 
 #include "expression_analysis.h"
-#include "token_types.h"
+#include "../scanner/token_types.h"
 #include "token_linked_list.h"
 #include "infix2postfix.h"
 #include "expression_generator.h"
@@ -421,17 +421,13 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                     token_list_add_item(&token_list, ptr_last_token);
                     switch_case = 0;
                 }
-                else if (operator_check(ptr_last_token))
+                else if ((ptr_last_token->token_type == TOKEN_DIVISION) || (ptr_last_token->token_type == TOKEN_MINUS) || (ptr_last_token->token_type == TOKEN_MULTIPLICATION))
                 {
                     token_list_free(&token_list);
                     return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
                 }
-                else if (ptr_last_token->token_type == TOKEN_DIVISION)
-                {
-                    token_list_free(&token_list);
-                    return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
-                }
-                else if ((ptr_last_token->token_type == TOKEN_DOUBLE_EQUAL) || (ptr_last_token->token_type == TOKEN_NOT_EQUAL))
+                else if ((ptr_last_token->token_type == TOKEN_DOUBLE_EQUAL) || (ptr_last_token->token_type == TOKEN_NOT_EQUAL) || (ptr_last_token->token_type == TOKEN_LEFT_ARROW)
+                || (ptr_last_token->token_type == TOKEN_RIGHT_ARROW) || (ptr_last_token->token_type == TOKEN_LESS_OR_EQUAL) || (ptr_last_token->token_type == TOKEN_GREATER_OR_EQUAL))
                 {
                     token_list_add_item(&token_list, ptr_last_token);
                     switch_case = 0;
