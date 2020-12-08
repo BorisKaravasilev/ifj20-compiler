@@ -1093,7 +1093,7 @@ int id_next2(scannerT *ptr_scanner, tokenT token[]){
         }
         else {
             err_print("id or _", token[token_index].token_type);
-            return RC_SYN_ERR;
+            return tmp_result;
         }
     }
     else {
@@ -1124,7 +1124,7 @@ int id_list2(scannerT *ptr_scanner, tokenT token[]){
         }
         else {
             err_print("id, _ or =", token[token_index].token_type);
-            return RC_SYN_ERR;
+            return tmp_result;
         }
     }
 }
