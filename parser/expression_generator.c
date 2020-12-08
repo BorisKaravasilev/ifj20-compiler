@@ -102,10 +102,16 @@ int generate_expression(token_listT *token_list_generate, int data_type)
             }
             expr_stack[number_of_variables_on_stack] = name_of_first_free_variable;
 
+            stringT string_storage;
+            string_init(&string_storage);
+            gen_escape_string(token_pointer->token.attribute.string_val.string, &string_storage);
+
             ///DEFVAR
             printf("DEFVAR TF@E%d\n", name_of_first_free_variable);
             ///MOVE
-            printf("MOVE TF@E%d string@%s\n", name_of_first_free_variable, token_pointer->token.attribute.string_val.string);
+            printf("MOVE TF@E%d string@%s\n", name_of_first_free_variable, string_storage.string);
+
+            string_free(&string_storage);
 
             number_of_variables_on_stack++;
             name_of_first_free_variable++;

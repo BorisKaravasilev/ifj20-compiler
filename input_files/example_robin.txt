@@ -1,5 +1,5 @@
 package main
 
 func main() {
-    str := "Hello " + "world"
+    str := "Hello, jak se mas?" + "world"
 }
