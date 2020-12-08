@@ -1388,7 +1388,7 @@ int id_next2(scannerT *ptr_scanner, tokenT token[], int id_number){
         }
         else {
             err_print("id or _", token[token_index].token_type);
-            return RC_SYN_ERR;
+            return tmp_result;
         }
     }
     else {
@@ -1422,7 +1422,7 @@ int id_list2(scannerT *ptr_scanner, tokenT token[]){
     }
     else {
         err_print("id, _ or =", token[token_index].token_type);
-        return RC_SYN_ERR;
+        return tmp_result;
     }
 }
 
@@ -1486,6 +1486,7 @@ int id_next1(scannerT *ptr_scanner, tokenT token[], int param_num, bool assignme
                     printf("DEFVAR TF@%%%d\n", param_num);
                     gen_parameter(&token[token_index], param_num);
 
+                    late_check_stack_item_add_parameter(semantic_late_check_stack.top, item_type);
                     return id_next1(ptr_scanner, token, param_num, assignment);
                 }
                 else {
@@ -1762,7 +1763,7 @@ int cycle_assign(scannerT *ptr_scanner, tokenT token[], int for_count){
     else {
         unget_token = true; // id or _ is already loaded
         // TODO SEMANTIC: Check id assignment in cycle semantic
-        tmp_result = id(ptr_scanner, token, false);
+        tmp_result = id(ptr_scanner, token, true);
         if (tmp_result == SYNTAX_OK){
             if (!unget_token) {
                 get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // =
@@ -1779,9 +1780,13 @@ int cycle_assign(scannerT *ptr_scanner, tokenT token[], int for_count){
             // GENERATE
             printf("\nLABEL $for%d$assign\n", for_count);
 
-            tmp_result = expr(ptr_scanner, token, false, NULL);
-            if (tmp_result != SYNTAX_OK)
+            int expr_result_type;
+            tmp_result = expr(ptr_scanner, token, false, &expr_result_type);
+            if (tmp_result != SYNTAX_OK) {
                 return tmp_result;
+            }
+
+            assignment_add_expression(&assignment_check_struct, expr_result_type, NULL);
 
             if (token[token_index].token_type != TOKEN_LEFT_CURLY_BRACE){
                 err_print("{", token[token_index].token_type);
@@ -1798,7 +1803,7 @@ int cycle_assign(scannerT *ptr_scanner, tokenT token[], int for_count){
 
             indent_level++;
             stack_push(&ptr_scanner->st_stack);
-            return SYNTAX_OK;
+            return compare_left_right_params(&assignment_check_struct); // return SYNTAX_OK
         }
         else {
             err_print("id, _ or {", token[token_index].token_type);
