@@ -4,7 +4,7 @@
  * @file stack.c
  * @brief Stack implementation for semantic analysis.
  * @author Dominik Vecera <xvecer23@stud.fit.vutbr.cz>
- * @date 25. 10. 2020
+ * @date 8. 12. 2020
  */
 
 #include <stdlib.h>
@@ -96,5 +96,61 @@ Data_type st_get_type (Stack* stack, stringT* key) {
         }
     } else {
         return TYPE_ERROR;
+    }
+}
+
+/*
+ * Integer stack functions
+ */
+
+void int_stack_init(intStack *s){
+    if (s != NULL){
+        s->top = NULL;
+        s->size = 0;
+    }
+}
+
+bool int_stack_empty(intStack *s){
+    return (s->top == NULL || s->size == 0);
+}
+
+int int_stack_top(intStack *s){
+    return s->top->value;
+}
+
+bool int_stack_push(intStack *s, int value){
+    if (s != NULL){
+        int_stack_item *tmp = (int_stack_item *) malloc(sizeof(int_stack_item));
+        if (tmp != NULL){
+            tmp->value = value;
+            tmp->next = s->top;
+
+            s->top = tmp;
+            s->size++;
+
+            return true;
+
+        } else
+            return false; // compiler internal error 99
+    }
+    return false; // error
+}
+
+void int_stack_pop(intStack *s){
+    if (s != NULL && !int_stack_empty(s)){
+        int_stack_item *tmp;
+        tmp = s->top;
+        s->top = s->top->next;
+        s->size--;
+    }
+}
+
+void int_stack_free(intStack *s){
+    int_stack_item *temp = NULL;
+
+    while (s->top != NULL) {
+        temp = s->top;
+        s->top = s->top->next;
+        free(temp);
     }
 }

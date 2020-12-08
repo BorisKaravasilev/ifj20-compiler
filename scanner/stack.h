@@ -4,7 +4,7 @@
  * @file stack.h
  * @brief Stack implementation for semantic analysis.
  * @author Dominik Vecera <xvecer23@stud.fit.vutbr.cz>
- * @date 25. 10. 2020
+ * @date 8. 12. 2020
  */
 
 #ifndef IFJ_PROJEKT_STACK_H
@@ -28,6 +28,22 @@ typedef struct {
     stack_item *top;
     int size;
 } Stack;
+
+/**
+ * @brief Structure of an integer stack element.
+ */
+typedef struct intStackElem{
+    int value;
+    struct intStackElem *next;
+} int_stack_item;
+
+/**
+ * @brief Structure of the integer stack.
+ */
+typedef struct {
+    int_stack_item *top;
+    int size;
+} intStack;
 
 /**
  * @brief Initialization of the stack.
@@ -82,5 +98,16 @@ void stack_pop(Stack *s);
  * @param s Stack to be emptied.
  */
 void stack_free(Stack *s);
+
+/*
+ * Integer stack functions have the same semantic as symtable stack ones
+ */
+
+void int_stack_init(intStack *s);
+bool int_stack_empty(intStack *s);
+int int_stack_top(intStack *s);
+bool int_stack_push(intStack *s, int value);
+void int_stack_pop(intStack *s);
+void int_stack_free(intStack *s);
 
 #endif //IFJ_PROJEKT_STACK_H

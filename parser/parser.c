@@ -11,11 +11,30 @@
 #include "debugging.h"
 #include "generator.h"
 
-// Necessary information for correct processing and generating
-int assigns_right = 0, indent_level = 0, token_index = 0, tmp_result = 0;
-bool in_main = false, in_return = false, was_expr = false, single_assign = false, unget_token = false;
+/// Necessary information for correct processing and generating
+// Number of assignments on the right side
+int assigns_right = 0;
+// Current level of indentation
+int indent_level = 0;
+// The index of the current token
+int token_index = 0;
+// Variable for storing the result of recursive function calls
+int tmp_result = 0;
 
-/* store information whether to generate individual built-in function definitions
+// For different handling of main function exit
+bool in_main = false;
+// For different handling of "right side" values in return than in regular assignments
+bool in_return = false;
+// To prevent redefinition of variables in for cycles
+bool in_for = false;
+// Expression analysis needs to check one extra token, so this sets the unget_token flag
+bool was_expr = false;
+// For different handling of single and multiple assignments
+bool single_assign = false;
+// Skip token reading if an extra token was read
+bool unget_token = false;
+
+/* Store information whether to generate individual built-in function definitions,
    order is the same as in token_types.h, but some are excluded */
 bool builtin_func_used[6] = { false };
 
@@ -1884,8 +1903,23 @@ int cycle_init(scannerT *ptr_scanner, tokenT token[]){
 int command(scannerT *ptr_scanner, tokenT token[]){
     assignment_struct_empty(&assignment_check_struct);
 
+    // Necessary variables for correct label generating inside conditions and cycles
     static int if_count = 0;
     static int for_count = 0;
+    static intStack if_stack;
+    static intStack for_stack;
+    static bool if_stack_initiated = false;
+    static bool for_stack_initiated = false;
+
+    if (!if_stack_initiated) {
+        int_stack_init(&if_stack);
+        if_stack_initiated = true;
+    }
+    if (!for_stack_initiated) {
+        int_stack_init(&for_stack);
+        for_stack_initiated = true;
+        in_for = true;
+    }
 
     switch (token[token_index].token_type){
         case TOKEN_IDENTIFIER:
@@ -1896,6 +1930,7 @@ int command(scannerT *ptr_scanner, tokenT token[]){
 
         case TOKEN_KEYWORD_IF:
             if_count++;
+            int_stack_push(&if_stack, if_count);
 
             tmp_result = expr(ptr_scanner, token, false, NULL);
             if (tmp_result != SYNTAX_OK)
@@ -1908,7 +1943,7 @@ int command(scannerT *ptr_scanner, tokenT token[]){
 
             // GENERATE
             indent_level++;
-            printf("JUMPIFEQ $if%d$else TF@result_here bool@false\n", if_count);
+            printf("JUMPIFEQ $if%d$else TF@result_here bool@false\n", int_stack_top(&if_stack));
             // GENERATE END
 
             stack_push(&ptr_scanner->st_stack);
@@ -1930,8 +1965,8 @@ int command(scannerT *ptr_scanner, tokenT token[]){
             }
 
             // GENERATE
-            printf("JUMP $if%d$end\n", if_count);
-            printf("LABEL $if%d$else\n", if_count);
+            printf("JUMP $if%d$end\n", int_stack_top(&if_stack));
+            printf("LABEL $if%d$else\n", int_stack_top(&if_stack));
 
             if (!unget_token) {
                 get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // {
@@ -1951,12 +1986,20 @@ int command(scannerT *ptr_scanner, tokenT token[]){
             if (tmp_result != SYNTAX_OK)
                 return tmp_result;
 
-            printf("LABEL $if%d$end\n\n", if_count);
+            // GENERATE
+            printf("LABEL $if%d$end\n\n", int_stack_top(&if_stack));
+            int_stack_pop(&if_stack);
+            if (int_stack_empty(&if_stack)){
+                int_stack_free(&if_stack);
+                if_stack_initiated = false;
+            }
+            // GENERATE
 
             return SYNTAX_OK;
 
         case TOKEN_KEYWORD_FOR:
             for_count++;
+            int_stack_push(&for_stack, for_count);
             printf("\n# FOR cycle\n");
 
             stack_push(&ptr_scanner->st_stack);
@@ -1965,7 +2008,7 @@ int command(scannerT *ptr_scanner, tokenT token[]){
                 return tmp_result;
 
             // GENERATE
-            printf("\nLABEL $for%d$start\n", for_count);
+            printf("\nLABEL $for%d$start\n", int_stack_top(&for_stack));
 
             tmp_result = expr(ptr_scanner, token, false, NULL);
             if (tmp_result != SYNTAX_OK)
@@ -1976,20 +2019,31 @@ int command(scannerT *ptr_scanner, tokenT token[]){
                 return RC_SYN_ERR;
             }
 
-            printf("JUMPIFEQ $for%d$end TF@result_here bool@false\n", for_count);
-            printf("JUMP $for%d$body\n", for_count);
+            printf("JUMPIFEQ $for%d$end TF@result_here bool@false\n", int_stack_top(&for_stack));
+            printf("JUMP $for%d$body\n", int_stack_top(&for_stack));
 
-            tmp_result = cycle_assign(ptr_scanner, token, for_count);
+            tmp_result = cycle_assign(ptr_scanner, token, int_stack_top(&for_stack));
             if (tmp_result != SYNTAX_OK)
                 return tmp_result;
 
-            printf("\nLABEL $for%d$body\n", for_count);
+            printf("\nLABEL $for%d$body\n", int_stack_top(&for_stack));
             tmp_result = command_list(ptr_scanner, token);
             if (tmp_result == SYNTAX_OK) {
                 stack_pop(&ptr_scanner->st_stack);
             }
-            printf("JUMP $for%d$assign\n", for_count);
-            printf("\nLABEL $for%d$end\n\n", for_count);
+
+            // GENERATE
+            printf("JUMP $for%d$assign\n", int_stack_top(&for_stack));
+            printf("\nLABEL $for%d$end\n\n", int_stack_top(&for_stack));
+
+            int_stack_pop(&for_stack);
+            if (int_stack_empty(&for_stack)){
+                int_stack_free(&for_stack);
+                for_stack_initiated = false;
+                in_for = false;
+            }
+            //END GENERATE
+
             return tmp_result;
 
         case TOKEN_KEYWORD_RETURN:
