@@ -20,7 +20,7 @@
 #include "semantic_late_check.h"
 
 #define SYNTAX_OK 0
-#define LEFT_SIDE_TOKEN_COUNT 10
+#define LEFT_SIDE_TOKEN_COUNT 50
 
 
 void err_print(char *str, int token_type);

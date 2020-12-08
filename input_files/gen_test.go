@@ -10,8 +10,7 @@ func main() {
     z = x
 
     x, y, z = 420, 69, 9000
-    // TODO tohle vyhazuje semantickou chybu
-    //z, y, x = 1 + 1, 2 * 2, 3 - 3
+    z, y, x = 1 + 1, 2 * 2, 3 - 3
 
 	a := ""
 	b := 0
@@ -45,5 +44,5 @@ func main() {
     print(ord_val, " ", err, "\n")  // should be 111 - ASCII o
 
     s, err = chr(69)
-    print(s, " ", err, "\n")    // should be 'E'*/
+    print(s, " ", err, "\n")    // should be 'E'
 }
