@@ -21,6 +21,12 @@ Case 2: String (can be a final state)
 
 TOKEN_RIGHT_BRACKET
 TOKEN_PLUS
+TOKEN_LEFT_ARROW
+TOKEN_RIGHT_ARROW
+TOKEN_LESS_OR_EQUAL
+TOKEN_GREATER_OR_EQUAL
+TOKEN_DOUBLE_EQUAL
+TOKEN_NOT_EQUAL
 --------------------------------------------------
 Case 3: Number or identifier (can be a final state)
 

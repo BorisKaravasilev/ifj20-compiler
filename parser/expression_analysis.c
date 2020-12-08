@@ -7,7 +7,7 @@
  */
 
 #include "expression_analysis.h"
-#include "token_types.h"
+#include "../scanner/token_types.h"
 #include "token_linked_list.h"
 #include "infix2postfix.h"
 #include "expression_generator.h"
@@ -82,6 +82,15 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
         {
             ///If the first token is string literal, next switch case must be case 2 (after string)
             switch_case = 2;
+            ptr_expr_data_and_type->token_type = EXPRESSION_STRING;
+        }
+        else if (ptr_identifier_token->token_type == TOKEN_INTEGER_LITERAL)
+        {
+            ptr_expr_data_and_type->token_type = EXPRESSION_INT;
+        }
+        else
+        {
+            ptr_expr_data_and_type->token_type = EXPRESSION_FLOAT64;
         }
         ///Now we have to add this identifier token to the list of tokens
         token_list_add_item(&token_list, ptr_identifier_token);
@@ -308,6 +317,11 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                         return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
                     }
                 }
+                else if (ptr_last_token->token_type == TOKEN_STRING_LITERAL)
+                {
+                    token_list_free(&token_list);
+                    return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
+                }
                 else if (ptr_last_token->token_type == TOKEN_IDENTIFIER)
                 {
                     switch_case = 3;
@@ -362,13 +376,22 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
             ///Case 2 = String
             case 2:
             {
-                ///Load the token
-                get_next_token(scanner, ptr_last_token, OPTIONAL);
-                ///We save the token to the structure of tokens
-                if (number_of_token > TOKEN_ARRAY_LEN)
+                ///Is it first token of the expression after identifier?
+                if (is_it_first_token_of_expression != 0)
                 {
-                    token_list_free(&token_list);
-                    return RC_RUN_ERR;
+                    ///Load the token
+                    get_next_token(scanner, ptr_last_token, OPTIONAL);
+                    ///We save the token to the structure of tokens
+                    if (number_of_token > TOKEN_ARRAY_LEN)
+                    {
+                        token_list_free(&token_list);
+                        return RC_RUN_ERR;
+                    }
+                }
+                else
+                {
+                    ptr_last_token = ptr_start_token;
+                    is_it_first_token_of_expression++;
                 }
 
                 ///What is the next token?
@@ -394,6 +417,17 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                     number_of_brackets--;
                 }
                 else if (ptr_last_token->token_type == TOKEN_PLUS)
+                {
+                    token_list_add_item(&token_list, ptr_last_token);
+                    switch_case = 0;
+                }
+                else if ((ptr_last_token->token_type == TOKEN_DIVISION) || (ptr_last_token->token_type == TOKEN_MINUS) || (ptr_last_token->token_type == TOKEN_MULTIPLICATION))
+                {
+                    token_list_free(&token_list);
+                    return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
+                }
+                else if ((ptr_last_token->token_type == TOKEN_DOUBLE_EQUAL) || (ptr_last_token->token_type == TOKEN_NOT_EQUAL) || (ptr_last_token->token_type == TOKEN_LEFT_ARROW)
+                || (ptr_last_token->token_type == TOKEN_RIGHT_ARROW) || (ptr_last_token->token_type == TOKEN_LESS_OR_EQUAL) || (ptr_last_token->token_type == TOKEN_GREATER_OR_EQUAL))
                 {
                     token_list_add_item(&token_list, ptr_last_token);
                     switch_case = 0;
@@ -715,6 +749,12 @@ int expr_check(tokenT *ptr_identifier_token, tokenT *ptr_start_token, tokenT *pt
                         token_list_free(&token_list);
                         return RC_SEMANTIC_TYPE_COMPATIBILITY_ERR;
                     }
+                }
+                else if (ptr_last_token->token_type == TOKEN_RIGHT_BRACKET)
+                {
+                    token_list_add_item(&token_list, ptr_last_token);
+                    switch_case = 5;
+                    number_of_brackets--;
                 }
                 else
                 {

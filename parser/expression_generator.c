@@ -74,8 +74,14 @@ int generate_expression(token_listT *token_list_generate, int division_type)
 
             ///DEFVAR
             printf("DEFVAR TF@E%d\n", name_of_first_free_variable);
+
             ///MOVE
-            printf("MOVE TF@E%d float@%s\n", name_of_first_free_variable, token_pointer->token.attribute.string_val.string);
+            printf("MOVE TF@E%d float@", name_of_first_free_variable);
+
+            ///Float must have special format
+            char float_new_format[1000];
+            sprintf(float_new_format, "%a", strtof(token_pointer->token.attribute.string_val.string, NULL));
+            printf("%s\n", float_new_format);
 
             number_of_variables_on_stack++;
             name_of_first_free_variable++;
