@@ -3,7 +3,7 @@
  *
  * @file parser.c
  * @brief Parser implementation
- * @author Dominik Večeřa <xvecer23@stud.fit.vutbr.cz>
+ * @author Dominik Vecera <xvecer23@stud.fit.vutbr.cz>
  * @author Petr Vrtal <xvrtal01@stud.fit.vutbr.cz>
  */
 
@@ -11,11 +11,12 @@
 #include "debugging.h"
 #include "generator.h"
 
-int token_index = 0, tmp_result = 0;
-bool was_expr = false, unget_token = false;
+// Necessary information for correct processing and generating
+int assigns_right = 0, indent_level = 0, token_index = 0, tmp_result = 0;
+bool in_main = false, in_return = false, was_expr = false, single_assign = false, unget_token = false;
 
 /* store information whether to generate individual built-in function definitions
-   order is the same as in token_types.h, but print is excluded */
+   order is the same as in token_types.h, but some are excluded */
 bool builtin_func_used[6] = { false };
 
 assignmentT assignment_check_struct;
@@ -23,18 +24,14 @@ ST_Item *current_function_block_symbol = NULL;
 
 late_check_stack semantic_late_check_stack;
 
-/*
-    puts("-----------------------------------");
-    for (int i = 0; i < TOKEN_ARRAY_LEN; i++)
-        debug_parser("%d: %d\n", i, token[i].token_type);
-    puts("-----------------------------------");
- */
+// Tokens for generating multiple assignments
+tokenT left_side_assignments[LEFT_SIDE_TOKEN_COUNT];
 
 /*
  * Print error string to stderr
  */
 void err_print(char* str, int token_type){
-    fprintf(stderr, "Expected %s but got token %d.\n", str, token_type);
+    fprintf(stderr, "Expected %s but got token %d (as defined in scanner/token_types.h).\n", str, token_type);
 }
 
 /*
@@ -89,13 +86,13 @@ int literal(scannerT *ptr_scanner, tokenT token[], int *item_type){
         token[token_index].token_type == TOKEN_EXPONENT_LITERAL ||
         token[token_index].token_type == TOKEN_STRING_LITERAL) {
 
-        // GENERATE
+        /*// GENERATE
         int previous_token_type = token[token_index-1].token_type;
 
-        if (previous_token_type == TOKEN_COLON_EQUAL || previous_token_type == TOKEN_EQUAL){
+        if (previous_token_type == TOKEN_COLON_EQUAL){
             gen_assign_token_to_var(token[token_index-2].attribute.string_val.string, &token[token_index]);
         }
-        // END GENERATE
+        // END GENERATE*/
 
         if (item_type != NULL) {    // TODO P semantic actions change or remove?
             switch(token[token_index].token_type) {
@@ -870,18 +867,97 @@ int assign_nofunc(scannerT *ptr_scanner, tokenT token[]){
         if (operator_check(&token[token_index]) || token[token_index].token_type == TOKEN_PLUS ||
             token[token_index].token_type == TOKEN_DIVISION || token[token_index].token_type == TOKEN_DOUBLE_EQUAL ||
             token[token_index].token_type == TOKEN_NOT_EQUAL){
+
             // operator, call expression analysis
             int expr_result_type;
             unget_token = true;
             tmp_result = expr(ptr_scanner, token, true, &expr_result_type);
             was_expr = true;
             assignment_add_expression(&assignment_check_struct, expr_result_type, NULL);
+
+            // GENERATE
+            if (!in_return) {
+                if (single_assign) {
+                    int i = token_index;
+                    while (token[i].token_type != TOKEN_EQUAL && token[i].token_type != TOKEN_COLON_EQUAL) {
+                        i--;
+                    }
+                    if (token[i - 1].token_type != TOKEN_UNDERSCORE) {
+                        printf("MOVE LF@%s TF@result_here\n", token[i - 1].attribute.string_val.string);
+                    }
+                } else {
+                    // TODO D multiple assignments
+                    if (left_side_assignments[assigns_right].token_type != TOKEN_UNDERSCORE) {
+                        printf("MOVE LF@%s TF@result_here\n",
+                               left_side_assignments[assigns_right++].attribute.string_val.string);
+                    } else {
+                        assigns_right++;
+                    }
+                }
+            }
+            // END GENERATE
+
             return tmp_result;
         }
         else {
             // extra token was read
             unget_token = true;
             assignment_add_expression(&assignment_check_struct, item_type, NULL);
+
+            // GENERATE
+            if (!in_return) {
+                if (single_assign) {
+                    int i = token_index;
+                    while (token[i].token_type != TOKEN_EQUAL && token[i].token_type != TOKEN_COLON_EQUAL) {
+                        i--;
+                    }
+
+                    if (token[i - 1].token_type != TOKEN_UNDERSCORE) {
+                        printf("MOVE LF@%s ", token[i - 1].attribute.string_val.string);
+                        gen_print_type(&token[token_index - 1]);
+
+                        if (token[token_index - 1].token_type == TOKEN_STRING_LITERAL) {
+                            stringT escaped_str;
+                            string_init(&escaped_str);
+                            gen_escape_string(token[token_index - 1].attribute.string_val.string, &escaped_str);
+                            printf("%s\n", escaped_str.string);
+                        } else if (token[token_index - 1].token_type == TOKEN_DECIMAL_LITERAL ||
+                                   token[token_index - 1].token_type == TOKEN_EXPONENT_LITERAL) {
+                            char str_hex_float[1000];
+                            sprintf(str_hex_float, "%a",
+                                    strtof(token[token_index - 1].attribute.string_val.string, NULL));
+                            printf("%s\n", str_hex_float);
+                        } else {
+                            printf("%s\n", token[token_index - 1].attribute.string_val.string);
+                        }
+                    }
+                } else {
+                    // TODO D multiple assignments
+                    if (left_side_assignments[assigns_right].token_type != TOKEN_UNDERSCORE) {
+                        printf("MOVE LF@%s ", left_side_assignments[assigns_right++].attribute.string_val.string);
+                        gen_print_type(&token[token_index - 1]);
+
+                        if (token[token_index - 1].token_type == TOKEN_STRING_LITERAL) {
+                            stringT escaped_str;
+                            string_init(&escaped_str);
+                            gen_escape_string(token[token_index - 1].attribute.string_val.string, &escaped_str);
+                            printf("%s\n", escaped_str.string);
+                        } else if (token[token_index - 1].token_type == TOKEN_DECIMAL_LITERAL ||
+                                   token[token_index - 1].token_type == TOKEN_EXPONENT_LITERAL) {
+                            char str_hex_float[1000];
+                            sprintf(str_hex_float, "%a",
+                                    strtof(token[token_index - 1].attribute.string_val.string, NULL));
+                            printf("%s\n", str_hex_float);
+                        } else {
+                            printf("%s\n", token[token_index - 1].attribute.string_val.string);
+                        }
+                    } else {
+                        assigns_right++;
+                    }
+                }
+            }
+            // END GENERATE
+
             return SYNTAX_OK;
         }
     }
@@ -895,12 +971,79 @@ int assign_nofunc(scannerT *ptr_scanner, tokenT token[]){
             return RC_SEMANTIC_IDENTIFIER_ERR;
         }
 
-        // GENERATE
+        get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // operator or extra token
+        if (operator_check(&token[token_index]) || token[token_index].token_type == TOKEN_PLUS ||
+            token[token_index].token_type == TOKEN_DIVISION || token[token_index].token_type == TOKEN_DOUBLE_EQUAL ||
+            token[token_index].token_type == TOKEN_NOT_EQUAL){
+            // operator, call expression analysis
+            int expr_result_type;
+            unget_token = true;
+            tmp_result = expr(ptr_scanner, token, true, &expr_result_type);
+            was_expr = true;
+            assignment_add_expression(&assignment_check_struct, expr_result_type, NULL);
 
+            // GENERATE
+            if (!in_return) {
+                if (single_assign) {
+                    int i = token_index;
+                    while (token[i].token_type != TOKEN_EQUAL && token[i].token_type != TOKEN_COLON_EQUAL) {
+                        i--;
+                    }
+                    if (token[i - 1].token_type != TOKEN_UNDERSCORE) {
+                        printf("MOVE LF@%s TF@result_here\n", token[i - 1].attribute.string_val.string);
+                    }
+                } else {
+                    // TODO D multiple assignments
+                    if (left_side_assignments[assigns_right].token_type != TOKEN_UNDERSCORE) {
+                        printf("MOVE LF@%s TF@result_here\n",
+                               left_side_assignments[assigns_right++].attribute.string_val.string);
+                    } else {
+                        assigns_right++;
+                    }
+                }
+            }
+            // END GENERATE
+
+            return tmp_result;
+        }
+        else {
+            // extra token was read
+            unget_token = true;
+            // TODO D TODO P what type to add?
+            //assignment_add_expression(&assignment_check_struct, item_type, NULL);
+
+            // GENERATE
+            if (!in_return) {
+                if (single_assign) {
+                    int i = token_index;
+                    while (token[i].token_type != TOKEN_EQUAL && token[i].token_type != TOKEN_COLON_EQUAL) {
+                        i--;
+                    }
+                    if (token[i - 1].token_type != TOKEN_UNDERSCORE) {
+                        printf("MOVE LF@%s ", token[i - 1].attribute.string_val.string);
+                        gen_print_type(&token[token_index - 1]);
+                        printf("%s\n", token[token_index - 1].attribute.string_val.string);
+                    }
+                } else {
+                    // TODO D multiple assignments
+                    if (left_side_assignments[assigns_right].token_type != TOKEN_UNDERSCORE) {
+                        printf("MOVE LF@%s ", left_side_assignments[assigns_right++].attribute.string_val.string);
+                        gen_print_type(&token[token_index - 1]);
+                        printf("%s\n", token[token_index - 1].attribute.string_val.string);
+                    } else {
+                        assigns_right++;
+                    }
+                }
+            }
+            // END GENERATE
+
+            return SYNTAX_OK;
+        }
     }
 
     int expr_result_type;
     tmp_result = expr(ptr_scanner, token, false, &expr_result_type);
+    // TODO D assign here too
     was_expr = true;
     assignment_add_expression(&assignment_check_struct, expr_result_type, NULL);
     return tmp_result;
@@ -909,7 +1052,18 @@ int assign_nofunc(scannerT *ptr_scanner, tokenT token[]){
 /*
  * The optional continuation of a list of assignments (without function calls)
  */
-int assign_nofunc_next(scannerT *ptr_scanner, tokenT token[]){
+int assign_nofunc_next(scannerT *ptr_scanner, tokenT token[], int return_value_number){
+    bool wasnt_expr = false;
+    return_value_number++;
+
+    if (was_expr){
+        unget_token = true;
+        was_expr = false;
+    }
+    else {
+        wasnt_expr = true;
+    }
+
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // , or extra token was read
     }
@@ -918,13 +1072,37 @@ int assign_nofunc_next(scannerT *ptr_scanner, tokenT token[]){
     }
 
     if (token[token_index].token_type == TOKEN_COMMA){
+        // GENERATE
+        if (wasnt_expr){
+            printf("MOVE LF@%%retval%d ", return_value_number);
+            gen_print_type(&token[token_index - 1]);
+            printf("%s\n", token[token_index - 1].attribute.string_val.string);
+            wasnt_expr = false;
+        }
+        else {
+            printf("MOVE LF@%%retval%d TF@result_here\n", return_value_number);
+        }
+        // END GENERATE
+
         tmp_result = assign_nofunc(ptr_scanner, token);
         if (tmp_result != SYNTAX_OK)
             return tmp_result;
 
-        return assign_nofunc_next(ptr_scanner, token);
+        return assign_nofunc_next(ptr_scanner, token, return_value_number);
     }
     else {
+        // GENERATE
+        if (wasnt_expr){
+            printf("MOVE LF@%%retval%d ", return_value_number);
+            gen_print_type(&token[token_index - 1]);
+            printf("%s\n", token[token_index - 1].attribute.string_val.string);
+            wasnt_expr = false;
+        }
+        else {
+            printf("MOVE LF@%%retval%d TF@result_here\n", return_value_number);
+        }
+        // END GENERATE
+
         unget_token = true;
         return SYNTAX_OK;
     }
@@ -934,15 +1112,17 @@ int assign_nofunc_next(scannerT *ptr_scanner, tokenT token[]){
  * The beginning of a list of assignments (without function calls)
  */
 int assign_nofunc_list(scannerT *ptr_scanner, tokenT token[]){
+    int return_value_number = 0;
     tmp_result = assign_nofunc(ptr_scanner, token);
+
     if (was_expr){
         unget_token = true;
-        was_expr = false;
     }
+
     if (tmp_result != SYNTAX_OK)
         return tmp_result;
 
-    return assign_nofunc_next(ptr_scanner, token);
+    return assign_nofunc_next(ptr_scanner, token, return_value_number);
 }
 
 /*
@@ -972,12 +1152,89 @@ int assign(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic_type
             tmp_result = expr(ptr_scanner, token, true, &expr_result_type);
             was_expr = true;
             assignment_add_expression(&assignment_check_struct, expr_result_type, NULL);
+
+            // GENERATE
+            if (!in_return) {
+                if (single_assign) {
+                    int i = token_index;
+                    while (token[i].token_type != TOKEN_EQUAL && token[i].token_type != TOKEN_COLON_EQUAL) {
+                        i--;
+                    }
+                    if (token[i - 1].token_type != TOKEN_UNDERSCORE) {
+                        printf("MOVE LF@%s TF@result_here\n", token[i - 1].attribute.string_val.string);
+                    }
+                } else {
+                    // TODO D multiple assignments
+                    if (left_side_assignments[assigns_right].token_type != TOKEN_UNDERSCORE) {
+                        printf("MOVE LF@%s TF@result_here\n",
+                               left_side_assignments[assigns_right++].attribute.string_val.string);
+                    } else {
+                        assigns_right++;
+                    }
+                }
+            }
+            // END GENERATE
+
             return tmp_result;
         }
         else {
             // extra token was read
             unget_token = true;
             assignment_add_expression(&assignment_check_struct, item_type, NULL);
+
+            // GENERATE
+            if (!in_return) {
+                if (single_assign) {
+                    int i = token_index;
+                    while (token[i].token_type != TOKEN_EQUAL && token[i].token_type != TOKEN_COLON_EQUAL) {
+                        i--;
+                    }
+                    if (token[i - 1].token_type != TOKEN_UNDERSCORE) {
+                        printf("MOVE LF@%s ", token[i - 1].attribute.string_val.string);
+                        gen_print_type(&token[token_index - 1]);
+
+                        if (token[token_index - 1].token_type == TOKEN_STRING_LITERAL) {
+                            stringT escaped_str;
+                            string_init(&escaped_str);
+                            gen_escape_string(token[token_index - 1].attribute.string_val.string, &escaped_str);
+                            printf("%s\n", escaped_str.string);
+                        } else if (token[token_index - 1].token_type == TOKEN_DECIMAL_LITERAL ||
+                                   token[token_index - 1].token_type == TOKEN_EXPONENT_LITERAL) {
+                            char str_hex_float[1000];
+                            sprintf(str_hex_float, "%a",
+                                    strtof(token[token_index - 1].attribute.string_val.string, NULL));
+                            printf("%s\n", str_hex_float);
+                        } else {
+                            printf("%s\n", token[token_index - 1].attribute.string_val.string);
+                        }
+                    }
+                } else {
+                    // TODO D multiple assignments
+                    if (left_side_assignments[assigns_right].token_type != TOKEN_UNDERSCORE) {
+                        printf("MOVE LF@%s ", left_side_assignments[assigns_right++].attribute.string_val.string);
+                        gen_print_type(&token[token_index - 1]);
+
+                        if (token[token_index - 1].token_type == TOKEN_STRING_LITERAL) {
+                            stringT escaped_str;
+                            string_init(&escaped_str);
+                            gen_escape_string(token[token_index - 1].attribute.string_val.string, &escaped_str);
+                            printf("%s\n", escaped_str.string);
+                        } else if (token[token_index - 1].token_type == TOKEN_DECIMAL_LITERAL ||
+                                   token[token_index - 1].token_type == TOKEN_EXPONENT_LITERAL) {
+                            char str_hex_float[1000];
+                            sprintf(str_hex_float, "%a",
+                                    strtof(token[token_index - 1].attribute.string_val.string, NULL));
+                            printf("%s\n", str_hex_float);
+                        } else {
+                            printf("%s\n", token[token_index - 1].attribute.string_val.string);
+                        }
+                    } else {
+                        assigns_right++;
+                    }
+                }
+            }
+            // END GENERATE
+
             return SYNTAX_OK;
         }
     }
@@ -1007,11 +1264,19 @@ int assign(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic_type
             if (skip_sides_semantic_type_check != NULL) {
                 *skip_sides_semantic_type_check = true;
             }
+
+            // GENERATE
+            printf("\n");
+            gen_createframe();
+            // END GENERATE
+
             late_check_stack_push_method(&semantic_late_check_stack, &token[token_index-1].attribute.string_val);
             late_check_stack_item_create_assignment_list(semantic_late_check_stack.top, assignment_check_struct.left_side_types_list_first);
-            return id_list1(ptr_scanner, token);
+            // TODO D generate function return value assignment
+            return id_list1(ptr_scanner, token, true);
         }
         else {
+            // TODO D maybe add branch for expr and without based on operator check result?
             ST_Item *identifier;
             if ((identifier = stack_search(&ptr_scanner->st_stack, &token[token_index-1].attribute.string_val)) == NULL) {
                 fprintf(stderr, "Error: Undefined variable \'%s\'\n", token[token_index-1].attribute.string_val.string);
@@ -1022,12 +1287,36 @@ int assign(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic_type
             tmp_result = expr(ptr_scanner, token, true, &expr_result_type);
             was_expr = true;
             assignment_add_expression(&assignment_check_struct, expr_result_type, identifier);
+
+            // GENERATE
+            if (!in_return) {
+                if (single_assign) {
+                    int i = token_index;
+                    while (token[i].token_type != TOKEN_EQUAL && token[i].token_type != TOKEN_COLON_EQUAL) {
+                        i--;
+                    }
+                    if (token[i - 1].token_type != TOKEN_UNDERSCORE) {
+                        printf("MOVE LF@%s TF@result_here\n", token[i - 1].attribute.string_val.string);
+                    }
+                } else {
+                    // TODO D multiple assignments
+                    if (left_side_assignments[assigns_right].token_type != TOKEN_UNDERSCORE) {
+                        printf("MOVE LF@%s TF@result_here\n",
+                               left_side_assignments[assigns_right].attribute.string_val.string);
+                    } else {
+                        assigns_right++;
+                    }
+                }
+            }
+            // END GENERATE
+
             return tmp_result;
         }
     }
 
     int expr_result_type;
     tmp_result = expr(ptr_scanner, token, false, &expr_result_type);
+    // TODO D assign here too
     was_expr = true;
     assignment_add_expression(&assignment_check_struct, expr_result_type, NULL);
     return tmp_result;
@@ -1037,11 +1326,16 @@ int assign(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic_type
  * The optional continuation of a list of assignments
  */
 int assign_next(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic_type_check){
-    if (!unget_token) {
-        get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // , or extra token was read
+    if (!was_expr){
+        if (!unget_token) {
+            get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // command or }
+        }
+        else {
+            unget_token = false;
+        }
     }
     else {
-        unget_token = false;
+        was_expr = false;
     }
 
     if (token[token_index].token_type == TOKEN_COMMA){
@@ -1071,7 +1365,7 @@ int assign_list(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic
 /*
  * The optional continuation of a list of identifiers
  */
-int id_next2(scannerT *ptr_scanner, tokenT token[]){
+int id_next2(scannerT *ptr_scanner, tokenT token[], int id_number){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // = or ,
     }
@@ -1085,7 +1379,12 @@ int id_next2(scannerT *ptr_scanner, tokenT token[]){
     else if (token[token_index].token_type == TOKEN_COMMA){
         tmp_result = id(ptr_scanner, token, true);
         if (tmp_result == SYNTAX_OK) {
-            return id_next2(ptr_scanner, token);
+            // GENERATE
+            id_number++;
+            left_side_assignments[id_number] = token[token_index];
+            // END GENERATE
+
+            return id_next2(ptr_scanner, token, id_number);
         }
         else {
             err_print("id or _", token[token_index].token_type);
@@ -1103,32 +1402,34 @@ int id_next2(scannerT *ptr_scanner, tokenT token[]){
  */
 int id_list2(scannerT *ptr_scanner, tokenT token[]){
     if (!unget_token) {
-        get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // id, _ or =
+        get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // id or _
     }
     else {
         unget_token = false;
     }
 
-    if (token[token_index].token_type == TOKEN_EQUAL) {
-        return SYNTAX_OK;
+    int id_number = 1;
+    assigns_right = 0;
+
+    unget_token = true; // id or _ is already loaded
+    tmp_result = id(ptr_scanner, token, true);
+    if (tmp_result == SYNTAX_OK) {
+        // GENERATE
+        left_side_assignments[id_number] = token[token_index];
+        // END GENERATE
+
+        return id_next2(ptr_scanner, token, id_number);
     }
     else {
-        unget_token = true; // id or _ is already loaded
-        tmp_result = id(ptr_scanner, token, true);
-        if (tmp_result == SYNTAX_OK) {
-            return id_next2(ptr_scanner, token);
-        }
-        else {
-            err_print("id, _ or =", token[token_index].token_type);
-            return RC_SYN_ERR;
-        }
+        err_print("id, _ or =", token[token_index].token_type);
+        return RC_SYN_ERR;
     }
 }
 
 /*
  * The optional continuation of a list of identifiers
  */
-int id_next1(scannerT *ptr_scanner, tokenT token[]){
+int id_next1(scannerT *ptr_scanner, tokenT token[], int param_num, bool assignment){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // ) or ,
     }
@@ -1140,9 +1441,31 @@ int id_next1(scannerT *ptr_scanner, tokenT token[]){
 
     switch (token[token_index].token_type){
         case TOKEN_RIGHT_BRACKET:
+            printf("CALL $%s\n", token[token_index - 1 - 2 * param_num].attribute.string_val.string);
+
+            // GENERATE
+            if (assignment) {
+                if (single_assign) {
+                    int i = token_index;
+                    while (token[i].token_type != TOKEN_EQUAL) {
+                        i--;
+                    }
+                    printf("MOVE LF@%s TF@%%retval%d\n", token[i - 1].attribute.string_val.string, param_num);
+                }
+                else {
+                    for (int i = 0; i < param_num; i++) {
+                        printf("MOVE LF@%s TF@%%retval%d\n", left_side_assignments[i].attribute.string_val.string,
+                               i + 1);
+                    }
+                }
+            }
+            // END GENERATE
+
             return SYNTAX_OK;
 
         case TOKEN_COMMA:
+            param_num++;
+
             if (!unget_token) {
                 get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); //  id or literal
             }
@@ -1159,7 +1482,11 @@ int id_next1(scannerT *ptr_scanner, tokenT token[]){
                 unget_token = true;
                 tmp_result = literal(ptr_scanner, token, &item_type);
                 if (tmp_result == SYNTAX_OK){
-                    return id_next1(ptr_scanner, token);
+                    // GENERATE - create temporary variable for parameter
+                    printf("DEFVAR TF@%%%d\n", param_num);
+                    gen_parameter(&token[token_index], param_num);
+
+                    return id_next1(ptr_scanner, token, param_num, assignment);
                 }
                 else {
                     err_print("id or literal", token[token_index].token_type);
@@ -1167,13 +1494,17 @@ int id_next1(scannerT *ptr_scanner, tokenT token[]){
                 }
             }
 
+            // GENERATE - create temporary variable for parameter
+            printf("DEFVAR TF@%%%d\n", param_num);
+            gen_parameter(&token[token_index], param_num);
+
             if ((identifier = stack_search(&ptr_scanner->st_stack, &token[token_index].attribute.string_val)) == NULL) {
                 fprintf(stderr, "Error: Undefined variable \'%s\'\n", token[token_index].attribute.string_val.string);
                 return RC_SEMANTIC_IDENTIFIER_ERR;
             }
             late_check_stack_item_add_parameter(semantic_late_check_stack.top, identifier->type);
 
-            return id_next1(ptr_scanner, token);
+            return id_next1(ptr_scanner, token, param_num, assignment);
 
         default:
             err_print(") or ,", token[token_index].token_type);
@@ -1184,7 +1515,7 @@ int id_next1(scannerT *ptr_scanner, tokenT token[]){
 /*
  * The beginning of a list of identifiers
  */
-int id_list1(scannerT *ptr_scanner, tokenT token[]){
+int id_list1(scannerT *ptr_scanner, tokenT token[], bool assignment){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // id, literal or )
     }
@@ -1192,10 +1523,11 @@ int id_list1(scannerT *ptr_scanner, tokenT token[]){
         unget_token = false;
     }
     ST_Item *identifier = NULL;
-    int item_type;
+    int item_type, param_num = 1;
 
     switch (token[token_index].token_type){
         case TOKEN_RIGHT_BRACKET:
+            printf("CALL $%s\n", token[token_index - 2].attribute.string_val.string);
             return SYNTAX_OK;
 
         case TOKEN_UNDERSCORE:
@@ -1208,14 +1540,23 @@ int id_list1(scannerT *ptr_scanner, tokenT token[]){
                 return RC_SEMANTIC_IDENTIFIER_ERR;
             }
             late_check_stack_item_add_parameter(semantic_late_check_stack.top, identifier->type);
-            return id_next1(ptr_scanner, token);
+
+            // GENERATE - create temporary variable for parameter
+            printf("DEFVAR TF@%%%d\n", param_num);
+            gen_parameter(&token[token_index], param_num);
+
+            return id_next1(ptr_scanner, token, param_num, assignment);
 
         default:
             unget_token = true;
             tmp_result = literal(ptr_scanner, token, &item_type);
             if (tmp_result == SYNTAX_OK){
+                // GENERATE - create temporary variable for parameter
+                printf("DEFVAR TF@%%%d\n", param_num);
+                gen_parameter(&token[token_index], param_num);
+
                 late_check_stack_item_add_parameter(semantic_late_check_stack.top, item_type);
-                return id_next1(ptr_scanner, token);
+                return id_next1(ptr_scanner, token, param_num, assignment);
             }
             else {
                 err_print("id, literal or )", token[token_index].token_type);
@@ -1247,7 +1588,10 @@ int underscore_command(scannerT *ptr_scanner, tokenT token[]){
             assignment_add_identifier(&assignment_check_struct, token[token_index-1].token_type, symbol);
             // END SEMANTIC
 
+            single_assign = true;
             tmp_result = assign(ptr_scanner, token, &proceed_semantic_check);
+            single_assign = false;
+
             if (tmp_result == SYNTAX_OK && !proceed_semantic_check) {
                 return compare_left_right_params(&assignment_check_struct);
             }
@@ -1257,6 +1601,14 @@ int underscore_command(scannerT *ptr_scanner, tokenT token[]){
             // SEMANTIC
             assignment_add_identifier(&assignment_check_struct, token[token_index-1].token_type, symbol);
             //END SEMANTIC
+
+            // GENERATE
+            for (int i = 0; i < LEFT_SIDE_TOKEN_COUNT; i++){
+                token_clear(&left_side_assignments[i]);
+            }
+
+            left_side_assignments[0] = token[token_index - 1];
+            // END GENERATE
 
             tmp_result = id_list2(ptr_scanner, token);
             if (tmp_result != SYNTAX_OK)
@@ -1309,7 +1661,10 @@ int id_command(scannerT *ptr_scanner, tokenT token[]){
             // GENERATE
             gen_defvar_lf(token[token_index-1].attribute.string_val.string);
 
+            single_assign = true;
             tmp_result = assign_nofunc(ptr_scanner, token);
+            single_assign = false;
+
             if (was_expr){
                 unget_token = true;
                 was_expr = false;
@@ -1333,15 +1688,20 @@ int id_command(scannerT *ptr_scanner, tokenT token[]){
             assignment_add_identifier(&assignment_check_struct, token[token_index-1].token_type, symbol);
             // END SEMANTIC
 
+            single_assign = true;
             tmp_result = assign(ptr_scanner, token, &proceed_semantic_check);
+            single_assign = false;
+
             if (tmp_result == SYNTAX_OK && !proceed_semantic_check) {
                 return compare_left_right_params(&assignment_check_struct);
             }
             return tmp_result;
 
         case TOKEN_LEFT_BRACKET:
+            gen_createframe();
             late_check_stack_push_method(&semantic_late_check_stack, &token[token_index-1].attribute.string_val);
-            return id_list1(ptr_scanner, token);
+
+            return id_list1(ptr_scanner, token, false);
 
         case TOKEN_COMMA:
             // SEMANTIC
@@ -1353,6 +1713,14 @@ int id_command(scannerT *ptr_scanner, tokenT token[]){
             }
             assignment_add_identifier(&assignment_check_struct, token[token_index-1].token_type, symbol);
             //END SEMANTIC
+
+            // GENERATE
+            for (int i = 0; i < LEFT_SIDE_TOKEN_COUNT; i++){
+                token_clear(&left_side_assignments[i]);
+            }
+
+            left_side_assignments[0] = token[token_index - 1];
+            // END GENERATE
 
             tmp_result = id_list2(ptr_scanner, token);
             if (tmp_result != SYNTAX_OK)
@@ -1373,7 +1741,7 @@ int id_command(scannerT *ptr_scanner, tokenT token[]){
 /*
  * An optional assignment at the end of each cycle iteration
  */
-int cycle_assign(scannerT *ptr_scanner, tokenT token[]){
+int cycle_assign(scannerT *ptr_scanner, tokenT token[], int for_count){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // id, _ or {
     }
@@ -1383,6 +1751,12 @@ int cycle_assign(scannerT *ptr_scanner, tokenT token[]){
 
     if (token[token_index].token_type == TOKEN_LEFT_CURLY_BRACE){
         stack_push(&ptr_scanner->st_stack);
+        indent_level++;
+
+        // GENERATE
+        printf("\nLABEL $for%d$assign\n", for_count);
+        printf("JUMP $for%d$start\n", for_count);
+
         return SYNTAX_OK;
     }
     else {
@@ -1402,6 +1776,9 @@ int cycle_assign(scannerT *ptr_scanner, tokenT token[]){
                 return RC_SYN_ERR;
             }
 
+            // GENERATE
+            printf("\nLABEL $for%d$assign\n", for_count);
+
             tmp_result = expr(ptr_scanner, token, false, NULL);
             if (tmp_result != SYNTAX_OK)
                 return tmp_result;
@@ -1411,6 +1788,15 @@ int cycle_assign(scannerT *ptr_scanner, tokenT token[]){
                 return RC_SYN_ERR;
             }
 
+            // GENERATE
+            int i = token_index;
+            while (token[i].token_type != TOKEN_EQUAL){
+                i--;
+            }
+            printf("MOVE LF@%s TF@result_here\n", token[i - 1].attribute.string_val.string);
+            printf("JUMP $for%d$start\n", for_count);
+
+            indent_level++;
             stack_push(&ptr_scanner->st_stack);
             return SYNTAX_OK;
         }
@@ -1450,18 +1836,28 @@ int cycle_init(scannerT *ptr_scanner, tokenT token[]){
             return RC_SYN_ERR;
         }
 
+        // GENERATE
+        gen_defvar_lf(token[token_index - 1].attribute.string_val.string);
+        single_assign = true;
         tmp_result = assign_nofunc(ptr_scanner, token);
+        single_assign = false;
+
         if (tmp_result != SYNTAX_OK) {
             return tmp_result;
         } else {
             assignment_derive_id_type(&assignment_check_struct);
         }
 
-        if (!unget_token) {
-            get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // ;
+        if (!was_expr){
+            if (!unget_token) {
+                get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // command or }
+            }
+            else {
+                unget_token = false;
+            }
         }
         else {
-            unget_token = false;
+            was_expr = false;
         }
 
         if (token[token_index].token_type == TOKEN_SEMICOLON){
@@ -1484,6 +1880,9 @@ int cycle_init(scannerT *ptr_scanner, tokenT token[]){
 int command(scannerT *ptr_scanner, tokenT token[]){
     assignment_struct_empty(&assignment_check_struct);
 
+    static int if_count = 0;
+    static int for_count = 0;
+
     switch (token[token_index].token_type){
         case TOKEN_IDENTIFIER:
             return id_command(ptr_scanner, token);
@@ -1492,6 +1891,8 @@ int command(scannerT *ptr_scanner, tokenT token[]){
             return underscore_command(ptr_scanner, token);
 
         case TOKEN_KEYWORD_IF:
+            if_count++;
+
             tmp_result = expr(ptr_scanner, token, false, NULL);
             if (tmp_result != SYNTAX_OK)
                 return tmp_result;
@@ -1500,6 +1901,12 @@ int command(scannerT *ptr_scanner, tokenT token[]){
                 err_print("{", token[token_index].token_type);
                 return RC_SYN_ERR;
             }
+
+            // GENERATE
+            indent_level++;
+            printf("JUMPIFEQ $if%d$else TF@result_here bool@false\n", if_count);
+            // GENERATE END
+
             stack_push(&ptr_scanner->st_stack);
 
             tmp_result = command_list(ptr_scanner, token);
@@ -1518,6 +1925,10 @@ int command(scannerT *ptr_scanner, tokenT token[]){
                 return RC_SYN_ERR;
             }
 
+            // GENERATE
+            printf("JUMP $if%d$end\n", if_count);
+            printf("LABEL $if%d$else\n", if_count);
+
             if (!unget_token) {
                 get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // {
             }
@@ -1529,15 +1940,28 @@ int command(scannerT *ptr_scanner, tokenT token[]){
                 err_print("{", token[token_index].token_type);
                 return RC_SYN_ERR;
             }
+            indent_level++;
             stack_push(&ptr_scanner->st_stack);
 
-            return command_list(ptr_scanner, token);
+            tmp_result = command_list(ptr_scanner, token);
+            if (tmp_result != SYNTAX_OK)
+                return tmp_result;
+
+            printf("LABEL $if%d$end\n\n", if_count);
+
+            return SYNTAX_OK;
 
         case TOKEN_KEYWORD_FOR:
+            for_count++;
+            printf("\n# FOR cycle\n");
+
             stack_push(&ptr_scanner->st_stack);
             tmp_result = cycle_init(ptr_scanner, token);
             if (tmp_result != SYNTAX_OK)
                 return tmp_result;
+
+            // GENERATE
+            printf("\nLABEL $for%d$start\n", for_count);
 
             tmp_result = expr(ptr_scanner, token, false, NULL);
             if (tmp_result != SYNTAX_OK)
@@ -1548,18 +1972,26 @@ int command(scannerT *ptr_scanner, tokenT token[]){
                 return RC_SYN_ERR;
             }
 
-            tmp_result = cycle_assign(ptr_scanner, token);
+            printf("JUMPIFEQ $for%d$end TF@result_here bool@false\n", for_count);
+            printf("JUMP $for%d$body\n", for_count);
+
+            tmp_result = cycle_assign(ptr_scanner, token, for_count);
             if (tmp_result != SYNTAX_OK)
                 return tmp_result;
 
+            printf("\nLABEL $for%d$body\n", for_count);
             tmp_result = command_list(ptr_scanner, token);
             if (tmp_result == SYNTAX_OK) {
                 stack_pop(&ptr_scanner->st_stack);
             }
+            printf("JUMP $for%d$assign\n", for_count);
+            printf("\nLABEL $for%d$end\n\n", for_count);
             return tmp_result;
 
         case TOKEN_KEYWORD_RETURN:
             // a function can return zero or more values
+            in_return = true;
+
             if (!unget_token) {
                 get_next_token(ptr_scanner, &token[++token_index], OPTIONAL);  // } or assignment(s)
             }
@@ -1569,10 +2001,14 @@ int command(scannerT *ptr_scanner, tokenT token[]){
 
             unget_token = true;
             if (token[token_index].token_type == TOKEN_RIGHT_CURLY_BRACE){
+                in_return = false;
                 return SYNTAX_OK;
             }
             else {
-                return assign_nofunc_list(ptr_scanner, token);
+                printf("\n# return values\n");
+                tmp_result = assign_nofunc_list(ptr_scanner, token);
+                in_return = false;
+                return tmp_result;
             }
 
         default:
@@ -1609,6 +2045,19 @@ int command_list(scannerT *ptr_scanner, tokenT token[]){
 
     if (token[token_index].token_type == TOKEN_RIGHT_CURLY_BRACE){
         stack_pop(&ptr_scanner->st_stack);
+
+        indent_level--;
+        if (indent_level == 0){
+            if (in_main){
+                gen_exit_main();
+                in_main = false;
+            }
+            else {
+                gen_popframe();
+                gen_return();
+            }
+        }
+
         return SYNTAX_OK;
     }
     else {
@@ -1623,7 +2072,7 @@ int command_list(scannerT *ptr_scanner, tokenT token[]){
 /*
  * The optional continuation of a list of function return types
  */
-int return_type(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol){
+int return_type(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol, int return_type_num){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // , or )
     }
@@ -1653,9 +2102,14 @@ int return_type(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol)
         if (tmp_result != SYNTAX_OK) {
             return tmp_result;
         }
+        // GENERATE
+        return_type_num++;
+        printf("DEFVAR LF@%%retval%d\n", return_type_num);
+        printf("MOVE LF@%%retval%d nil@nil\n", return_type_num);
+
         st_add_function_return_type(ptr_curr_symbol, item_type);
 
-        return return_type(ptr_scanner, token, ptr_curr_symbol);
+        return return_type(ptr_scanner, token, ptr_curr_symbol, return_type_num);
     }
     else {
         err_print(", or }", token[token_index].token_type);
@@ -1689,6 +2143,8 @@ int return_type_list(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_sy
         unget_token = false;
     }
 
+    int return_type_num = 1;
+
     if (token[token_index].token_type == TOKEN_RIGHT_BRACKET){
         if (!unget_token) {
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // {
@@ -1712,16 +2168,21 @@ int return_type_list(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_sy
         if (tmp_result != SYNTAX_OK) {
             return tmp_result;
         }
+        // GENERATE
+        printf("# init return values\n");
+        printf("DEFVAR LF@%%retval%d\n", return_type_num);
+        printf("MOVE LF@%%retval%d nil@nil\n", return_type_num);
+
         st_add_function_return_type(ptr_curr_symbol, item_type);
 
-        return return_type(ptr_scanner, token, ptr_curr_symbol);
+        return return_type(ptr_scanner, token, ptr_curr_symbol, return_type_num);
     }
 }
 
 /*
  * The optional continuation of a list of function parameters
  */
-int param(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol){
+int param(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol, int param_number){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // , or )
     }
@@ -1730,6 +2191,7 @@ int param(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol){
     }
 
     if (token[token_index].token_type == TOKEN_RIGHT_BRACKET){
+        printf("\n");
         return SYNTAX_OK;
     }
     else if (token[token_index].token_type != TOKEN_COMMA){
@@ -1746,6 +2208,16 @@ int param(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol){
 
     if (token[token_index].token_type == TOKEN_IDENTIFIER){
         ST_Item *newParamSymbol = st_insert_symbol(ptr_scanner->st_stack.top->symtable, &token[token_index].attribute.string_val, false);
+
+        // GENERATE
+        param_number++;
+        char par_num_str[10];
+        sprintf(par_num_str, "LF@%%%d", param_number);
+
+        gen_defvar_lf(token[token_index].attribute.string_val.string);
+        gen_move_to_lf(token[token_index].attribute.string_val.string, par_num_str);
+        // GENERATE END
+
         int item_type;
         tmp_result = item(ptr_scanner, token, &item_type);
         if (tmp_result != SYNTAX_OK) {
@@ -1755,7 +2227,7 @@ int param(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol){
         newParamSymbol->type = item_type;
     }
 
-    return param(ptr_scanner, token, ptr_curr_symbol);
+    return param(ptr_scanner, token, ptr_curr_symbol, param_number);
 }
 
 /*
@@ -1769,6 +2241,7 @@ int param_list(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol){
         unget_token = false;
     }
 
+    int param_number = 1;
     if (token[token_index].token_type == TOKEN_RIGHT_BRACKET){
         return SYNTAX_OK;
     }
@@ -1776,6 +2249,12 @@ int param_list(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol){
         int item_type;
         Symtable *ptr_curr_scope_sym_table = stack_top(&ptr_scanner->st_stack).symtable;
         ST_Item *newParamSymbol = st_insert_symbol(ptr_curr_scope_sym_table, &token[token_index].attribute.string_val, false);
+
+        // GENERATE
+        printf("# init parameters\n");
+        gen_defvar_lf(token[token_index].attribute.string_val.string);
+        gen_move_to_lf(token[token_index].attribute.string_val.string, "LF@%1");
+        // GENERATE END
 
         tmp_result = item(ptr_scanner, token, &item_type);
         if (tmp_result != SYNTAX_OK) {
@@ -1789,7 +2268,7 @@ int param_list(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol){
         return RC_SYN_ERR;
     }
 
-    return param(ptr_scanner, token, ptr_curr_symbol);
+    return param(ptr_scanner, token, ptr_curr_symbol, param_number);
 }
 
 /*
@@ -1814,6 +2293,14 @@ int func(scannerT *ptr_scanner, tokenT token[]){
     current_function_block_symbol = symbol;
     // END SEMANTIC
 
+    // GENERATE
+    if (strcmp(token[token_index].attribute.string_val.string, "main") == 0){
+        in_main = true;
+    }
+    gen_start_func(token[token_index].attribute.string_val.string);
+    indent_level = 1;
+    //END GENERATE
+
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // left opening bracket
     }
@@ -1834,6 +2321,8 @@ int func(scannerT *ptr_scanner, tokenT token[]){
     tmp_result = return_type_list(ptr_scanner, token, symbol);
     if (tmp_result != SYNTAX_OK)
         return tmp_result;
+
+    printf("\n# function body\n");
 
     tmp_result = command_list(ptr_scanner, token);
     if (tmp_result != SYNTAX_OK)
@@ -1874,6 +2363,8 @@ int program(scannerT *ptr_scanner, tokenT token[]){
 int parse(scannerT *ptr_scanner, tokenT token[]){
     late_check_stack_init(&semantic_late_check_stack);
 
+    token_array_init(left_side_assignments, 10);
+
     get_next_token(ptr_scanner, &token[token_index], OPTIONAL); // "package"
 
     if (token[token_index].token_type != TOKEN_KEYWORD_PACKAGE){
@@ -1898,8 +2389,9 @@ int parse(scannerT *ptr_scanner, tokenT token[]){
         if (tmp_result != SYNTAX_OK)
             return tmp_result;
         else {
+            token_array_free(left_side_assignments, 10);
+
             // GENERATE
-            gen_exit_main();
             gen_def_builtin_functions(builtin_func_used);
         }
     }
