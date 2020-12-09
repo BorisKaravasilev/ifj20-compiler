@@ -16,7 +16,7 @@
 void token_init (tokenT *ptr_token) {
     ptr_token->token_type = TOKEN_EMPTY;
     ptr_token->attribute.symtable_item = NULL;
-    string_init(&ptr_token->attribute.string_val); // TODO: Check if memory allocation failed (returned 1)
+    string_init(&ptr_token->attribute.string_val);
 }
 
 void token_array_init(tokenT *ptr_token_array, int array_length) {

@@ -21,7 +21,6 @@ int main(int argc, char** argv) {
     scannerT scanner;
     init_scanner(&scanner, input_fp);
 
-    // TODO: Change to dynamically allocated array or remember necessary tokens in parser
     tokenT token[TOKEN_ARRAY_LEN];
     token_array_init(token, TOKEN_ARRAY_LEN);
 

@@ -33,15 +33,15 @@ typedef struct {
 // a = set of acceptable symbols or symbol ranges to make a transition to 'q'
 typedef struct {
     int from_state;
-    range_or_charT transition_ranges[TRANS_RANGES_LEN];
     int to_state;
+    range_or_charT transition_ranges[TRANS_RANGES_LEN];
 } ruleT;
 
 typedef struct {
-    int states[STATES_LEN];
-    ruleT rules[RULES_LEN];
-    int start_state;
-    int final_states[FINAL_STATES_LEN];
+    int states[STATES_LEN];             // Q
+    ruleT rules[RULES_LEN];             // R
+    int start_state;                    // s
+    int final_states[FINAL_STATES_LEN]; // F
 } finite_automataT;
 
 // Data for single step of FA

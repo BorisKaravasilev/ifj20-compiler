@@ -1,7 +1,7 @@
 /**
  * Project: Implementation of a compiler of the IFJ20 language.
  * @file    states_list.h
- * @brief   This is the header file with definitions of states constats.
+ * @brief   Header file with definitions of states macros (Non-final states in FA).
  * @author  Robin Stancl <xstanc09@stud.fit.vutbr.cz>
  * @date    21. 10. 2020
  */
