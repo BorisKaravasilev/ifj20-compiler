@@ -64,7 +64,7 @@ void print_error_message_by_code(int return_code, file_positionT *file_position)
 }
 
 bool check_hex(int c){
-    if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || c >= 'A' && c <= 'F')
+    if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))
         return true;
     else
         return false;
