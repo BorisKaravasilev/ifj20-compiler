@@ -138,8 +138,6 @@ bool int_stack_push(intStack *s, int value){
 
 void int_stack_pop(intStack *s){
     if (s != NULL && !int_stack_empty(s)){
-        int_stack_item *tmp;
-        tmp = s->top;
         s->top = s->top->next;
         s->size--;
     }
