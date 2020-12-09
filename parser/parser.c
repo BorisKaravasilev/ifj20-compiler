@@ -1093,7 +1093,21 @@ int assign_nofunc_next(scannerT *ptr_scanner, tokenT token[], int return_value_n
         if (wasnt_expr){
             printf("MOVE LF@%%retval%d ", return_value_number);
             gen_print_type(&token[token_index - 1]);
-            printf("%s\n", token[token_index - 1].attribute.string_val.string);
+            if (token[token_index - 1].token_type == TOKEN_STRING_LITERAL) {
+                stringT escaped_str;
+                string_init(&escaped_str);
+                gen_escape_string(token[token_index - 1].attribute.string_val.string, &escaped_str);
+                printf("%s\n", escaped_str.string);
+            } else if (token[token_index - 1].token_type == TOKEN_DECIMAL_LITERAL ||
+                       token[token_index - 1].token_type == TOKEN_EXPONENT_LITERAL) {
+                char str_hex_float[1000];
+                sprintf(str_hex_float, "%a",
+                        strtof(token[token_index - 1].attribute.string_val.string, NULL));
+                printf("%s\n", str_hex_float);
+            } else {
+                printf("%s\n", token[token_index - 1].attribute.string_val.string);
+            }
+
             wasnt_expr = false;
         }
         else {
@@ -1112,7 +1126,21 @@ int assign_nofunc_next(scannerT *ptr_scanner, tokenT token[], int return_value_n
         if (wasnt_expr){
             printf("MOVE LF@%%retval%d ", return_value_number);
             gen_print_type(&token[token_index - 1]);
-            printf("%s\n", token[token_index - 1].attribute.string_val.string);
+            if (token[token_index - 1].token_type == TOKEN_STRING_LITERAL) {
+                stringT escaped_str;
+                string_init(&escaped_str);
+                gen_escape_string(token[token_index - 1].attribute.string_val.string, &escaped_str);
+                printf("%s\n", escaped_str.string);
+            } else if (token[token_index - 1].token_type == TOKEN_DECIMAL_LITERAL ||
+                       token[token_index - 1].token_type == TOKEN_EXPONENT_LITERAL) {
+                char str_hex_float[1000];
+                sprintf(str_hex_float, "%a",
+                        strtof(token[token_index - 1].attribute.string_val.string, NULL));
+                printf("%s\n", str_hex_float);
+            } else {
+                printf("%s\n", token[token_index - 1].attribute.string_val.string);
+            }
+
             wasnt_expr = false;
         }
         else {
@@ -1456,9 +1484,9 @@ int id_next1(scannerT *ptr_scanner, tokenT token[], int param_num, bool assignme
 
     switch (token[token_index].token_type){
         case TOKEN_RIGHT_BRACKET:
+            // GENERATE
             printf("CALL $%s\n", token[token_index - 1 - 2 * param_num].attribute.string_val.string);
 
-            // GENERATE
             if (assignment) {
                 if (single_assign) {
                     int i = token_index;
@@ -1545,7 +1573,27 @@ int id_list1(scannerT *ptr_scanner, tokenT token[], bool assignment){
 
     switch (token[token_index].token_type){
         case TOKEN_RIGHT_BRACKET:
+            // GENERATE
             printf("CALL $%s\n", token[token_index - 2].attribute.string_val.string);
+
+            if (assignment) {
+                if (single_assign) {
+                    int i = token_index;
+                    while (token[i].token_type != TOKEN_EQUAL) {
+                        i--;
+                    }
+                    printf("MOVE LF@%s TF@%%retval%d\n", token[i - 1].attribute.string_val.string, param_num);
+                }
+                else {
+                    int i = 0;
+                    while (left_side_assignments[i].token_type != TOKEN_EMPTY){
+                        printf("MOVE LF@%s TF@%%retval%d\n", left_side_assignments[i].attribute.string_val.string,
+                               i + 1);
+                        i++;
+                    }
+                }
+            }
+            // END GENERATE
             return SYNTAX_OK;
 
         case TOKEN_UNDERSCORE:
@@ -2008,10 +2056,10 @@ int command(scannerT *ptr_scanner, tokenT token[]){
             return SYNTAX_OK;
 
         case TOKEN_KEYWORD_FOR:
-            /*if (!for_stack_initiated){
+            if (!for_stack_initiated){
                 printf("JUMP $for$defvar%d$start\n", for_defvar_label_count);
                 printf("LABEL $for$defvar%d$end\n", for_defvar_label_count);
-            }*/
+            }
 
             for_count++;
             int_stack_push(&for_stack, for_count);
@@ -2057,9 +2105,12 @@ int command(scannerT *ptr_scanner, tokenT token[]){
                 for_stack_initiated = false;
                 in_for = false;
 
-                /*printf("LABEL $for$defvar%d$start\n", for_defvar_label_count);
-                printf("%s", defvars_in_for.string);
-                printf("JUMP $for$defvar%d$end\n", for_defvar_label_count);
+                /*char tmp_for_str[1000];
+                sprintf(tmp_for_str, "LABEL $for$defvar%d$start\n", for_defvar_label_count);
+                string_add_string(&defvars_in_for, tmp_for_str);
+
+                sprintf(tmp_for_str, "JUMP $for$defvar%d$end\n", for_defvar_label_count);
+                string_add_string(&defvars_in_for, tmp_for_str);
                 for_defvar_label_count++;*/
             }
             //END GENERATE
