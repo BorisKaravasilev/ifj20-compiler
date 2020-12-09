@@ -10,7 +10,7 @@
 #define IFJ_PROJEKT_SYMTABLE_H
 
 // TODO: Change Symtable SIZE
-#define MAX_SYMTABLE_SIZE 32
+#define MAX_SYMTABLE_SIZE 101
 
 #define SYMTABLE_MALLOC_ERROR 99
 

@@ -90,7 +90,8 @@ bool return_lists_match(method_param_structT *late_check_param_list, st_function
                 return false;
             } else {
                 if (lc_current->data_type != st_current->data_type) {
-                    return false;
+                    if (lc_current->data_type != TYPE_BLANK_VARIABLE)
+                        return false;
                 }
             }
 
