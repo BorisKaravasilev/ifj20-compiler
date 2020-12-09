@@ -2425,7 +2425,7 @@ int program(scannerT *ptr_scanner, tokenT token[]){
 int parse(scannerT *ptr_scanner, tokenT token[]){
     late_check_stack_init(&semantic_late_check_stack);
 
-    token_array_init(left_side_assignments, 10);
+    token_array_init(left_side_assignments, LEFT_SIDE_TOKEN_COUNT);
 
     get_next_token(ptr_scanner, &token[token_index], OPTIONAL); // "package"
 
