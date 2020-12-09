@@ -13,22 +13,26 @@
 #include "token_types.h"
 #include "debugging.h"
 
+// Initializes token structure
 void token_init (tokenT *ptr_token) {
     ptr_token->token_type = TOKEN_EMPTY;
     ptr_token->attribute.symtable_item = NULL;
     string_init(&ptr_token->attribute.string_val);
 }
 
+// Initializes array of tokens
 void token_array_init(tokenT *ptr_token_array, int array_length) {
     for (int i = 0; i < array_length; i++) {
         token_init(&ptr_token_array[i]);
     }
 }
 
+// Adds a character to token's attribute string value
 void token_val_add_char(tokenT *ptr_token, char ch) {
     string_add_character(&ptr_token->attribute.string_val, ch);
 }
 
+// Sets token structure members to default values
 void token_clear(tokenT *ptr_token) {
     if (ptr_token == NULL) {
         return;
@@ -44,6 +48,7 @@ void token_clear(tokenT *ptr_token) {
     string_clear(&ptr_token->attribute.string_val);
 }
 
+// Dealocates memory of token structure and it's members
 void token_free(tokenT *ptr_token) {
     if (ptr_token == NULL)
         return;
@@ -51,13 +56,14 @@ void token_free(tokenT *ptr_token) {
     clear_str(&ptr_token->attribute.string_val);
 }
 
+// Dealocates memory of the token array
 void token_array_free(tokenT *ptr_token_array, int array_length) {
     for (int i = 0; i < array_length; i++) {
         token_free(&ptr_token_array[i]);
     }
 }
 
-
+// Checks if a token is keyword, if yes, returns the correct token type
 int keyword_check(tokenT *ptr_token) {
     int original_type = ptr_token->token_type;
 
@@ -92,6 +98,7 @@ int keyword_check(tokenT *ptr_token) {
     return original_type;
 }
 
+// Checks if a token is a built-in function name, if yes, returns the correct token type
 int function_word_check(tokenT *ptr_token) {
     int original_type = ptr_token->token_type;
 
@@ -128,12 +135,13 @@ int function_word_check(tokenT *ptr_token) {
     return original_type;
 }
 
+// Prints debugging information about a token (if debugging macros are set to debugging mode in debugging.h)
 void debug_token(tokenT *ptr_token, int token_index) {
     debug_scanner("[ %d --> Received token type: '%d', ", token_index, ptr_token->token_type);
     debug_scanner("attribute: '%s']\n", ptr_token->attribute.string_val.string);
 }
 
-// t_dst <- t_src
+// Copies the source token "t_src" into the destination token "t_dst"
 void copy_token(tokenT *t_dst, tokenT *t_src) {
     t_dst->token_type = t_src->token_type;
     string_init(&t_dst->attribute.string_val);
