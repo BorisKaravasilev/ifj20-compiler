@@ -2,6 +2,7 @@
  * Project: Implementation of a compiler of the IFJ20 language.
  * @brief   This is a header file for token_structure.c file. It includes heads of functions and definitions of constants.
  * @author  Robin Stancl <xstanc09@stud.fit.vutbr.cz>
+ * @author Boris Karavasilev <xkarav01@stud.fit.vutbr.cz>
  */
 
 #ifndef IFJ_PROJEKT_TOKEN_STRUCTURE_H
@@ -9,16 +10,11 @@
 
 #include <stdbool.h>
 #include "string_functions.h"
-
-/**
- * Definition of constants
- */
+#include "token_functions.h"
 
 /**
  * Structures
  */
-#include "string_functions.h"
-#include "token_functions.h"
 
 /// Structure list item
 typedef struct token_list_itemT

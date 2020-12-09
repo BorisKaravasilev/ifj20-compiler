@@ -1,6 +1,5 @@
 /**
  * Project: Implementation of a compiler of the IFJ20 language.
- *
  * @file stack.c
  * @brief Stack implementation for semantic analysis.
  * @author Dominik Vecera <xvecer23@stud.fit.vutbr.cz>
@@ -103,6 +102,7 @@ Data_type st_get_type (Stack* stack, stringT* key) {
  * Integer stack functions
  */
 
+// Initializes the intStack structure
 void int_stack_init(intStack *s){
     if (s != NULL){
         s->top = NULL;
@@ -110,14 +110,17 @@ void int_stack_init(intStack *s){
     }
 }
 
+// Returns true if intStack is empty
 bool int_stack_empty(intStack *s){
     return (s->top == NULL || s->size == 0);
 }
 
+// Returns pointer to the top element of the intStack
 int int_stack_top(intStack *s){
     return s->top->value;
 }
 
+// Pushes element to the intStack
 bool int_stack_push(intStack *s, int value){
     if (s != NULL){
         int_stack_item *tmp = (int_stack_item *) malloc(sizeof(int_stack_item));
@@ -136,6 +139,7 @@ bool int_stack_push(intStack *s, int value){
     return false; // error
 }
 
+// Removes the top-most element from the intStack and updates the top pointer
 void int_stack_pop(intStack *s){
     if (s != NULL && !int_stack_empty(s)){
         int_stack_item *tmp;
@@ -145,6 +149,7 @@ void int_stack_pop(intStack *s){
     }
 }
 
+// Dealocates memory for the intStack structure and it's members
 void int_stack_free(intStack *s){
     int_stack_item *temp = NULL;
 

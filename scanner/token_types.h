@@ -1,13 +1,13 @@
 /**
  * Project: Implementation of a compiler of the IFJ20 language.
  * @file    token_types.h
- * @brief   This is the header file with definitions of constants.
+ * @brief   Header file with a definition of token type macros (Final states in FA).
  * @author  Robin Stancl <xstanc09@stud.fit.vutbr.cz>
  * @date    12. 10. 2020
  */
 
 /**
- * Definition of constants
+ * Definition of macros
  */
 
 #ifndef IFJ20_COMPILER_TOKEN_TYPES_H

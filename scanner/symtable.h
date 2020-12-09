@@ -1,7 +1,7 @@
 /**
  * Project: Implementation of a compiler of the IFJ20 language.
  * @file    symtable.h
- * @brief   Implementation of Symbol table.
+ * @brief   Header file for symtable.h
  * @author  Petr Vrtal <xvrtal01@stud.fit.vutbr.cz>
  * @date    25.10.2020
  */
@@ -9,7 +9,6 @@
 #ifndef IFJ_PROJEKT_SYMTABLE_H
 #define IFJ_PROJEKT_SYMTABLE_H
 
-// TODO: Change Symtable SIZE
 #define MAX_SYMTABLE_SIZE 101
 
 #define SYMTABLE_MALLOC_ERROR 99

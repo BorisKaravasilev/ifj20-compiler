@@ -15,7 +15,6 @@
 #include "string_functions.h"
 #include "symtable.h"
 
-// TODO: Consider union
 typedef struct {
     ST_Item *symtable_item;
     stringT string_val;

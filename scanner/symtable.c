@@ -8,8 +8,6 @@
 
 #include "symtable.h"
 
-// TODO: check return values
-
 unsigned long st_hash (unsigned char* key) {
     unsigned long hash = 5381;
     int c;
@@ -87,7 +85,6 @@ ST_Item* st_insert_symbol (Symtable* ptr_symtable, stringT* key, bool function) 
         return NULL;
     }
 
-    // TODO: Check if not to search in the entire symtable stack
     ST_Item* temp = st_search(ptr_symtable, key);
     ST_Item* new_item;
 
@@ -170,7 +167,6 @@ int st_add_function_param (ST_Item* symbol, Data_type type) {
 
     /*If symbol ptr is NULL we return false*/
     if (symbol == NULL) {
-        // TODO: change possible return value
         return 1;
     }
 
@@ -204,7 +200,6 @@ int st_add_function_return_type (ST_Item* symbol, Data_type type) {
 
     /*If symbol ptr is NULL we return false*/
     if (symbol == NULL) {
-        // TODO: change possible return value
         return 1;
     }
 

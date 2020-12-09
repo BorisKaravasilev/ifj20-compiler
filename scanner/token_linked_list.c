@@ -1,6 +1,6 @@
 /**
  * Project: Implementation of a compiler of the IFJ20 language.
- * @brief   This is an implementation of a functions for work with tokens in the list of tokens
+ * @brief   This is an implementation of functions for work with tokens in a list of tokens
  * @author  Robin Stancl <xstanc09@stud.fit.vutbr.cz>
  * @author  Dominik Vecera <xvecer23@stud.fit.vutbr.cz>
  * @author Boris Karavasilev <xkarav01@stud.fit.vutbr.cz>
