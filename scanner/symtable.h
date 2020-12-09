@@ -71,12 +71,12 @@ typedef struct symTable {
 } Symtable;
 
 /**
- * Elf Hash hashing function used as hashing algorithm
+ * Bernstein's hash function djb2
  * @param symbol key
- * @link https://en.wikipedia.org/wiki/PJW_hash_function
+ * @link http://www.cse.yorku.ca/~oz/hash.html
  * @return returns unsigned long hash
  */
-unsigned long st_hash (stringT* key);
+unsigned long st_hash (unsigned char* key);
 
 /**
  * Initialize Symbol table.

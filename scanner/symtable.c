@@ -10,20 +10,13 @@
 
 // TODO: check return values
 
-unsigned long st_hash (stringT* key) {
-    int hash = 503;
-    char* temp;
+unsigned long st_hash (unsigned char* key) {
+    unsigned long hash = 5381;
+    int c;
 
-    temp = malloc(key->alloc_size);
-    strcpy(temp, key->string);
-
-    while (*temp != '\0') {
-        hash = ((hash << 4) + (int)(*temp)) % MAX_SYMTABLE_SIZE;
-        temp++;
+    while ((c = *key++)) {
+        hash = ((hash << 5) + hash) + c;
     }
-
-
-    //free(temp);
 
     return hash % MAX_SYMTABLE_SIZE;
 }
@@ -69,7 +62,7 @@ ST_Item* st_search (Symtable* ptr_symtable, stringT* key) {
     if (ptr_symtable != NULL) {
 
         /*We create a temporary variable for Item*/
-        ST_Item *temp = ptr_symtable->items[st_hash(key)];
+        ST_Item *temp = ptr_symtable->items[st_hash((unsigned char *) key->string)];
 
         if (temp != NULL) {
             /*We move through chained symbols until we get NULL*/
@@ -120,7 +113,7 @@ ST_Item* st_insert_symbol (Symtable* ptr_symtable, stringT* key, bool function) 
         string_init(&new_item->key);
         string_init(&new_item->content);
 
-        temp = ptr_symtable->items[st_hash(key)];
+        temp = ptr_symtable->items[st_hash((unsigned char *) key->string)];
         string_copy(&new_item->key, key);
 
         new_item->type = TYPE_NIL;
@@ -145,7 +138,7 @@ ST_Item* st_insert_symbol (Symtable* ptr_symtable, stringT* key, bool function) 
 
             temp->next = new_item;
         } else {
-            ptr_symtable->items[st_hash(key)] = new_item;
+            ptr_symtable->items[st_hash((unsigned char *) key->string)] = new_item;
         }
     }
     return new_item;
