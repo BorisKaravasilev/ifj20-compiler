@@ -56,6 +56,7 @@ int main(int argc, char** argv) {
     // FREE ALL ALLOCATED MEMORY
     token_array_free(token, TOKEN_ARRAY_LEN);
     free_scanner(&scanner);
+    string_free(&main_function_string);
 
     return 0;
 }
