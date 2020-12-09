@@ -21,8 +21,6 @@ int token_index = 0;
 // Variable for storing the result of recursive function calls
 int tmp_result = 0;
 
-// For different handling of main function exit
-bool in_main = false;
 // For different handling of "right side" values in return than in regular assignments
 bool in_return = false;
 // To prevent redefinition of variables in for cycles
@@ -33,6 +31,9 @@ bool was_expr = false;
 bool single_assign = false;
 // Skip token reading if an extra token was read
 bool unget_token = false;
+
+// String for saving definitions inside cycles to avoid redefinitions
+stringT defvars_in_for;
 
 /* Store information whether to generate individual built-in function definitions,
    order is the same as in token_types.h, but some are excluded */
@@ -1467,9 +1468,11 @@ int id_next1(scannerT *ptr_scanner, tokenT token[], int param_num, bool assignme
                     printf("MOVE LF@%s TF@%%retval%d\n", token[i - 1].attribute.string_val.string, param_num);
                 }
                 else {
-                    for (int i = 0; i < param_num; i++) {
+                    int i = 0;
+                    while (left_side_assignments[i].token_type != TOKEN_EMPTY){
                         printf("MOVE LF@%s TF@%%retval%d\n", left_side_assignments[i].attribute.string_val.string,
                                i + 1);
+                        i++;
                     }
                 }
             }
@@ -1908,8 +1911,11 @@ int command(scannerT *ptr_scanner, tokenT token[]){
     // Necessary variables for correct label generating inside conditions and cycles
     static int if_count = 0;
     static int for_count = 0;
+    static int for_defvar_label_count = 1;
+
     static intStack if_stack;
     static intStack for_stack;
+
     static bool if_stack_initiated = false;
     static bool for_stack_initiated = false;
 
@@ -1920,7 +1926,9 @@ int command(scannerT *ptr_scanner, tokenT token[]){
     if (!for_stack_initiated) {
         int_stack_init(&for_stack);
         for_stack_initiated = true;
+
         in_for = true;
+        string_clear(&defvars_in_for);
     }
 
     switch (token[token_index].token_type){
@@ -2000,6 +2008,11 @@ int command(scannerT *ptr_scanner, tokenT token[]){
             return SYNTAX_OK;
 
         case TOKEN_KEYWORD_FOR:
+            /*if (!for_stack_initiated){
+                printf("JUMP $for$defvar%d$start\n", for_defvar_label_count);
+                printf("LABEL $for$defvar%d$end\n", for_defvar_label_count);
+            }*/
+
             for_count++;
             int_stack_push(&for_stack, for_count);
             printf("\n# FOR cycle\n");
@@ -2043,6 +2056,11 @@ int command(scannerT *ptr_scanner, tokenT token[]){
                 int_stack_free(&for_stack);
                 for_stack_initiated = false;
                 in_for = false;
+
+                /*printf("LABEL $for$defvar%d$start\n", for_defvar_label_count);
+                printf("%s", defvars_in_for.string);
+                printf("JUMP $for$defvar%d$end\n", for_defvar_label_count);
+                for_defvar_label_count++;*/
             }
             //END GENERATE
 
@@ -2107,16 +2125,6 @@ int command_list(scannerT *ptr_scanner, tokenT token[]){
         stack_pop(&ptr_scanner->st_stack);
 
         indent_level--;
-        if (indent_level == 0){
-            if (in_main){
-                gen_exit_main();
-                in_main = false;
-            }
-            else {
-                gen_popframe();
-                gen_return();
-            }
-        }
 
         return SYNTAX_OK;
     }
@@ -2337,6 +2345,9 @@ int param_list(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol){
  * A function definition
  */
 int func(scannerT *ptr_scanner, tokenT token[]){
+    // For different handling of main function exit
+    static bool in_main = false;
+
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], FORBIDDEN); // function name (ID)
     }
@@ -2390,6 +2401,17 @@ int func(scannerT *ptr_scanner, tokenT token[]){
     if (tmp_result != SYNTAX_OK)
         return tmp_result;
 
+    if (indent_level == 0){
+        if (in_main){
+            gen_exit_main();
+            in_main = false;
+        }
+        else {
+            gen_popframe();
+            gen_return();
+        }
+    }
+
     return SYNTAX_OK;
 }
 
@@ -2426,6 +2448,7 @@ int parse(scannerT *ptr_scanner, tokenT token[]){
     late_check_stack_init(&semantic_late_check_stack);
 
     token_array_init(left_side_assignments, LEFT_SIDE_TOKEN_COUNT);
+    string_init(&defvars_in_for);
 
     get_next_token(ptr_scanner, &token[token_index], OPTIONAL); // "package"
 
@@ -2445,6 +2468,8 @@ int parse(scannerT *ptr_scanner, tokenT token[]){
     }
 
     tmp_result = program(ptr_scanner, token);
+    string_free(&defvars_in_for);
+
     if (tmp_result == SYNTAX_OK) {
         tmp_result = check_semantic_for_methods_call(&semantic_late_check_stack, &ptr_scanner->st_stack);
 

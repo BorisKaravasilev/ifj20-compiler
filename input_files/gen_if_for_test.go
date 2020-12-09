@@ -2,6 +2,7 @@
 package main
 
 func main () {
+    // TODO opravit reinicializace na zacatku vnorenych cyklu
     for i := 1; i <= 10; i = i + 1 {
         for j := 1; j <= 10; j = j + 1 {
             x := i * j
@@ -19,6 +20,32 @@ func main () {
         }
         print("\n")
     }
+
+    /*
+    // druha hardcore varianta, pomichaji se labely
+    j := 1
+    k := 1
+    x := 0
+    for i := 1; i <= 10; i = i + 1 {
+        for ; j <= 10; j = j + 1 {
+            for ; k <= 10; k = k + 1 {
+                x = i * j * k
+
+                if x < 100 {
+                    print(x, "   ")
+                }
+                else {
+                    if x < 1000 {
+                        print(x, "  ")
+                    }
+                    else {
+                        print(x, " ")
+                    }
+                }
+            }
+        }
+        print("\n")
+    }*/
 
     for i := 1; i <= 10; i = i + 1 {
         x := i
