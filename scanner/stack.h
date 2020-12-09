@@ -14,7 +14,7 @@
 #include "symtable.h"
 
 /**
- * @brief Structure of a stack element.
+ * @brief Structure of a stack item.
  */
 typedef struct StackElem{
     Symtable *symtable;

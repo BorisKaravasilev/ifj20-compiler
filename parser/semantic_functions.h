@@ -19,7 +19,7 @@
 #define SEMANTIC_OK 0
 
 /**
- * @brief Structure for a assignment structure.
+ * @brief Structure for a assignment param structure.
  */
 typedef struct assignment_param_struct {
     int index;
@@ -29,16 +29,19 @@ typedef struct assignment_param_struct {
 } assignment_paramT;
 
 /**
- * @brief Structure of assigment element.
+ * @brief Structure of assigment check.
  */
 typedef struct assignment_struct {
     bool function_call;
     int identifiers_count;
     int expressions_count;
-    assignment_paramT *left_side_types_list_first;
-    assignment_paramT *right_side_types_list_first;
+    assignment_paramT *left_side_types_list_first; /* represents identifiers on the left of assignment */
+    assignment_paramT *right_side_types_list_first; /* represents data type values on the right of the assignment */
 } assignmentT;
 
+/**
+ * @brief Builtin function structure.
+ */
 typedef struct built_in_function_struct {
     int function_token_type;
     int parameters_count;
@@ -75,12 +78,14 @@ void assignment_struct_free(assignmentT *s);
 /**
  * @brief Compares both sides of assignment.
  * @param s Assignment structure in which to compare left and right side param lists.
+ * @return bool value based on successful comparison
  */
 int compare_left_right_params(assignmentT *item);
 
 /**
  * @brief Derives id data type on left side from expression on righ side in the assignment structure.
  * @param s Assignment structure.
+ * @return bool value based on successful type derivation
  */
 int assignment_derive_id_type(assignmentT *s);
 
@@ -118,8 +123,9 @@ void assignment_add_user_function(assignmentT *item, ST_Item *function);
  */
 void assignment_add_built_in_function(assignmentT *item, int function_token);
 
-int check_builtin_func_param_type_at_index(built_in_functionT *builtin_func, int index, Data_type type);
-
+/**
+ * @brief Constant array of builtin function and its accepted data types for parameters and return values
+ */
 static const built_in_functionT built_in_functions[BUILT_IN_FUNCTIONS_COUNT] = {
         {
                 .function_token_type = TOKEN_FUNCTION_INPUTS,
