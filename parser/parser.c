@@ -1528,7 +1528,14 @@ int id_next1(scannerT *ptr_scanner, tokenT token[], int param_num, bool assignme
                 tmp_result = literal(ptr_scanner, token, &item_type);
                 if (tmp_result == SYNTAX_OK){
                     // GENERATE - create temporary variable for parameter
-                    printf("DEFVAR TF@%%%d\n", param_num);
+                    if (in_for){
+                        char for_defvar_str[100];
+                        sprintf(for_defvar_str, "DEFVAR TF@%%%d\n", param_num);
+                        string_add_string(&defvars_in_for, for_defvar_str);
+                    }
+                    else {
+                        printf("DEFVAR TF@%%%d\n", param_num);
+                    }
                     gen_parameter(&token[token_index], param_num);
 
                     late_check_stack_item_add_parameter(semantic_late_check_stack.top, item_type);
@@ -1541,7 +1548,14 @@ int id_next1(scannerT *ptr_scanner, tokenT token[], int param_num, bool assignme
             }
 
             // GENERATE - create temporary variable for parameter
-            printf("DEFVAR TF@%%%d\n", param_num);
+            if (in_for){
+                char for_defvar_str[100];
+                sprintf(for_defvar_str, "DEFVAR TF@%%%d\n", param_num);
+                string_add_string(&defvars_in_for, for_defvar_str);
+            }
+            else {
+                printf("DEFVAR TF@%%%d\n", param_num);
+            }
             gen_parameter(&token[token_index], param_num);
 
             if ((identifier = stack_search(&ptr_scanner->st_stack, &token[token_index].attribute.string_val)) == NULL) {
@@ -1608,7 +1622,15 @@ int id_list1(scannerT *ptr_scanner, tokenT token[], bool assignment){
             late_check_stack_item_add_parameter(semantic_late_check_stack.top, identifier->type);
 
             // GENERATE - create temporary variable for parameter
-            printf("DEFVAR TF@%%%d\n", param_num);
+            if (in_for){
+                char for_defvar_str[100];
+                sprintf(for_defvar_str, "DEFVAR TF@%%%d\n", param_num);
+                string_add_string(&defvars_in_for, for_defvar_str);
+            }
+            else {
+                printf("DEFVAR TF@%%%d\n", param_num);
+
+            }
             gen_parameter(&token[token_index], param_num);
 
             return id_next1(ptr_scanner, token, param_num, assignment);
@@ -1618,7 +1640,15 @@ int id_list1(scannerT *ptr_scanner, tokenT token[], bool assignment){
             tmp_result = literal(ptr_scanner, token, &item_type);
             if (tmp_result == SYNTAX_OK){
                 // GENERATE - create temporary variable for parameter
-                printf("DEFVAR TF@%%%d\n", param_num);
+                if (in_for){
+                    char for_defvar_str[100];
+                    sprintf(for_defvar_str, "DEFVAR TF@%%%d\n", param_num);
+                    string_add_string(&defvars_in_for, for_defvar_str);
+                }
+                else {
+                    printf("DEFVAR TF@%%%d\n", param_num);
+
+                }
                 gen_parameter(&token[token_index], param_num);
 
                 late_check_stack_item_add_parameter(semantic_late_check_stack.top, item_type);
@@ -1718,7 +1748,14 @@ int id_command(scannerT *ptr_scanner, tokenT token[]){
             // END SEMANTIC
 
             // GENERATE
-            gen_defvar_lf(token[token_index-1].attribute.string_val.string);
+            if (in_for){
+                char for_defvar_str[1000];
+                sprintf(for_defvar_str, "DEFVAR LF@%s\n", token[token_index-1].attribute.string_val.string);
+                string_add_string(&defvars_in_for, for_defvar_str);
+            }
+            else {
+                gen_defvar_lf(token[token_index-1].attribute.string_val.string);
+            }
 
             single_assign = true;
             tmp_result = assign_nofunc(ptr_scanner, token);
@@ -1913,7 +1950,15 @@ int cycle_init(scannerT *ptr_scanner, tokenT token[]){
         }
 
         // GENERATE
-        gen_defvar_lf(token[token_index - 1].attribute.string_val.string);
+        if (in_for){
+            char for_defvar_str[1000];
+            sprintf(for_defvar_str, "DEFVAR LF@%s\n", token[token_index-1].attribute.string_val.string);
+            string_add_string(&defvars_in_for, for_defvar_str);
+        }
+        else {
+            gen_defvar_lf(token[token_index-1].attribute.string_val.string);
+        }
+
         single_assign = true;
         tmp_result = assign_nofunc(ptr_scanner, token);
         single_assign = false;
@@ -1967,18 +2012,6 @@ int command(scannerT *ptr_scanner, tokenT token[]){
     static bool if_stack_initiated = false;
     static bool for_stack_initiated = false;
 
-    if (!if_stack_initiated) {
-        int_stack_init(&if_stack);
-        if_stack_initiated = true;
-    }
-    if (!for_stack_initiated) {
-        int_stack_init(&for_stack);
-        for_stack_initiated = true;
-
-        in_for = true;
-        string_clear(&defvars_in_for);
-    }
-
     switch (token[token_index].token_type){
         case TOKEN_IDENTIFIER:
             return id_command(ptr_scanner, token);
@@ -1988,6 +2021,11 @@ int command(scannerT *ptr_scanner, tokenT token[]){
 
         case TOKEN_KEYWORD_IF:
             if_count++;
+
+            if (!if_stack_initiated) {
+                int_stack_init(&if_stack);
+                if_stack_initiated = true;
+            }
             int_stack_push(&if_stack, if_count);
 
             tmp_result = expr(ptr_scanner, token, false, NULL);
@@ -2057,8 +2095,16 @@ int command(scannerT *ptr_scanner, tokenT token[]){
 
         case TOKEN_KEYWORD_FOR:
             if (!for_stack_initiated){
+                int_stack_init(&for_stack);
+                for_stack_initiated = true;
+                in_for = true;
+
                 printf("JUMP $for$defvar%d$start\n", for_defvar_label_count);
                 printf("LABEL $for$defvar%d$end\n", for_defvar_label_count);
+
+                char tmp_for_str[100];
+                sprintf(tmp_for_str, "LABEL $for$defvar%d$start\n", for_defvar_label_count);
+                string_add_string(&defvars_in_for, tmp_for_str);
             }
 
             for_count++;
@@ -2105,13 +2151,11 @@ int command(scannerT *ptr_scanner, tokenT token[]){
                 for_stack_initiated = false;
                 in_for = false;
 
-                /*char tmp_for_str[1000];
-                sprintf(tmp_for_str, "LABEL $for$defvar%d$start\n", for_defvar_label_count);
-                string_add_string(&defvars_in_for, tmp_for_str);
-
+                char tmp_for_str[100];
                 sprintf(tmp_for_str, "JUMP $for$defvar%d$end\n", for_defvar_label_count);
                 string_add_string(&defvars_in_for, tmp_for_str);
-                for_defvar_label_count++;*/
+
+                for_defvar_label_count++;
             }
             //END GENERATE
 
@@ -2223,7 +2267,15 @@ int return_type(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol,
         }
         // GENERATE
         return_type_num++;
-        printf("DEFVAR LF@%%retval%d\n", return_type_num);
+        if (in_for){
+            char for_defvar_str[1000];
+            sprintf(for_defvar_str, "DEFVAR LF@%%retval%d\n", return_type_num);
+            string_add_string(&defvars_in_for, for_defvar_str);
+        }
+        else {
+            printf("DEFVAR LF@%%retval%d\n", return_type_num);
+        }
+
         printf("MOVE LF@%%retval%d nil@nil\n", return_type_num);
 
         st_add_function_return_type(ptr_curr_symbol, item_type);
@@ -2289,7 +2341,16 @@ int return_type_list(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_sy
         }
         // GENERATE
         printf("# init return values\n");
-        printf("DEFVAR LF@%%retval%d\n", return_type_num);
+
+        if (in_for){
+            char for_defvar_str[1000];
+            sprintf(for_defvar_str, "DEFVAR LF@%%retval%d\n", return_type_num);
+            string_add_string(&defvars_in_for, for_defvar_str);
+        }
+        else {
+            printf("DEFVAR LF@%%retval%d\n", return_type_num);
+        }
+
         printf("MOVE LF@%%retval%d nil@nil\n", return_type_num);
 
         st_add_function_return_type(ptr_curr_symbol, item_type);
@@ -2334,7 +2395,15 @@ int param(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol, int p
         char par_num_str[10];
         sprintf(par_num_str, "LF@%%%d", param_number);
 
-        gen_defvar_lf(token[token_index].attribute.string_val.string);
+        if (in_for){
+            char for_defvar_str[1000];
+            sprintf(for_defvar_str, "DEFVAR LF@%s\n", token[token_index].attribute.string_val.string);
+            string_add_string(&defvars_in_for, for_defvar_str);
+        }
+        else {
+            gen_defvar_lf(token[token_index].attribute.string_val.string);
+        }
+
         gen_move_to_lf(token[token_index].attribute.string_val.string, par_num_str);
         // GENERATE END
 
@@ -2373,7 +2442,15 @@ int param_list(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol){
 
         // GENERATE
         printf("# init parameters\n");
-        gen_defvar_lf(token[token_index].attribute.string_val.string);
+        if (in_for){
+            char for_defvar_str[1000];
+            sprintf(for_defvar_str, "DEFVAR LF@%s\n", token[token_index].attribute.string_val.string);
+            string_add_string(&defvars_in_for, for_defvar_str);
+        }
+        else {
+            gen_defvar_lf(token[token_index].attribute.string_val.string);
+        }
+
         gen_move_to_lf(token[token_index].attribute.string_val.string, "LF@%1");
         // GENERATE END
 
@@ -2519,7 +2596,6 @@ int parse(scannerT *ptr_scanner, tokenT token[]){
     }
 
     tmp_result = program(ptr_scanner, token);
-    string_free(&defvars_in_for);
 
     if (tmp_result == SYNTAX_OK) {
         tmp_result = check_semantic_for_methods_call(&semantic_late_check_stack, &ptr_scanner->st_stack);
@@ -2530,6 +2606,8 @@ int parse(scannerT *ptr_scanner, tokenT token[]){
             token_array_free(left_side_assignments, 10);
 
             // GENERATE
+            printf("\n# defvars in cycles to avoid redefinitions\n\n%s", defvars_in_for.string);
+            string_free(&defvars_in_for);
             gen_def_builtin_functions(builtin_func_used);
         }
     }

@@ -20,6 +20,7 @@ func main () {
         }
         print("\n")
     }
+    print("\n")
 
     /*
     // druha hardcore varianta, pomichaji se labely
@@ -47,10 +48,11 @@ func main () {
         print("\n")
     }*/
 
-    for i := 1; i <= 10; i = i + 1 {
-        x := i
-        print(x)
+    for k := 1; k <= 10; k = k + 1 {
+        y := k
+        print(y, " ")
     }
+    print("\n\n")
 
     for a := 1 * 2; a < 10 - 1; a = a + 1 {
         if a <= 5 {
@@ -61,6 +63,7 @@ func main () {
         }
     }
 
+    prom := 0
     print("\n")
 
     for b := 0; b != 5; {
