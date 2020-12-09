@@ -1,7 +1,7 @@
 /**
  * Project: Implementation of a compiler of the IFJ20 language.
  * @file    symtable.h
- * @brief   Implementation of Symbol table.
+ * @brief   Header file for symtable.h
  * @author  Petr Vrtal <xvrtal01@stud.fit.vutbr.cz>
  * @date    25.10.2020
  */

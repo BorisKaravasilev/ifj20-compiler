@@ -9,7 +9,7 @@
 #include <stdio.h>
 
 // Turns off all debugging prints
-#define PRODUCTION false
+#define PRODUCTION true
 
 // Detects Linux (Merlin) -> takes input from stdin, prints debug to stderr
 #if __linux__

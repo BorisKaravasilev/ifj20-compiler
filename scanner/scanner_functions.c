@@ -1,3 +1,11 @@
+/**
+ * Project: Implementation of a compiler of the IFJ20 language.
+ * @file    scanner_functions.h
+ * @brief   Contains mainly functions working with structures "scannerT" and "finite_automataT"
+ * @author  Boris Karavasilev <xkarav01@stud.fit.vutbr.cz>
+ * @date    28. 9. 2020
+ */
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,6 +18,7 @@
 
 #define ERROR_NO_NEXT_STATE -2
 
+// Initializes scanner structure
 void init_scanner(scannerT *s, FILE *input_file) {
     s->input_fp = input_file;
     s->file_pos.line_number = 1;
@@ -24,6 +33,7 @@ void init_scanner(scannerT *s, FILE *input_file) {
     s->use_previous_sym = false;
 }
 
+// Dealocates memory from scanner members
 void free_scanner(scannerT *s) {
     stack_free(&s->st_stack);
 }

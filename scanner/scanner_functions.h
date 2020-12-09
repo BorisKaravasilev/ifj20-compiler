@@ -1,3 +1,11 @@
+/**
+ * Project: Implementation of a compiler of the IFJ20 language.
+ * @file    scanner_functions.h
+ * @brief   Header file for scanner_functions.c with structures and prototypes of publicly used functions
+ * @author  Boris Karavasilev <xkarav01@stud.fit.vutbr.cz>
+ * @date    28. 9. 2020
+ */
+
 #ifndef __LEX_FUNCTIONS_H_
 #define __LEX_FUNCTIONS_H_
 

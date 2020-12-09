@@ -22,9 +22,8 @@ void init_finite_automata(finite_automataT* fa) {
     // end of initializing arrays
 
     // ---------------------------------------------------------------------
-    // .-= FINITE AUTOMATA DEFINITION =-.
+    // .-= FINITE AUTOMATON DEFINITION =-.
     //
-    // Representation of 'Konecny_automat_IFJ20.png'
     //
     //
 
@@ -222,7 +221,6 @@ void init_finite_automata(finite_automataT* fa) {
     fa->rules[22].transition_ranges[0].to = 9;
     fa->rules[22].transition_ranges[1].from = 11;
     fa->rules[22].transition_ranges[1].to = 127;
-    //TODO others - ASCII 10 is LF (Line Feed - new line), EOF is not ASCII character
 
     // --- Rule #23
     fa->rules[23].from_state = STATE_LINE_COMMENT_BODY;
@@ -242,7 +240,6 @@ void init_finite_automata(finite_automataT* fa) {
     fa->rules[25].transition_ranges[0].to = 41;
     fa->rules[25].transition_ranges[1].from = 43;
     fa->rules[25].transition_ranges[1].to = 127;
-    //TODO others
 
     // --- Rule #26
     fa->rules[26].from_state = STATE_BLOCK_COMMENT_BODY;
@@ -256,7 +253,6 @@ void init_finite_automata(finite_automataT* fa) {
     fa->rules[27].transition_ranges[0].to = 46;
     fa->rules[27].transition_ranges[1].from = 48;
     fa->rules[27].transition_ranges[1].to = 127;
-    //TODO others
 
     // --- Rule #28
     fa->rules[28].from_state = STATE_BLOCK_COMMENT_END;
@@ -322,7 +318,6 @@ void init_finite_automata(finite_automataT* fa) {
     fa->rules[36].transition_ranges[1].to = 91; // excluding ASCII 34 => '\'
     fa->rules[36].transition_ranges[2].from = 93;
     fa->rules[36].transition_ranges[2].to = 127;
-    //TODO ASCII > 31
 
     // --- Rule #37
     fa->rules[37].from_state = STATE_FF;
@@ -445,7 +440,6 @@ void init_finite_automata(finite_automataT* fa) {
     fa->rules[SKIP_SYM_RULE_INDEX].transition_ranges[1].single_char = '\r'; // For Windows EOL support
     fa->rules[SKIP_SYM_RULE_INDEX].transition_ranges[2].single_char = '\n';
     fa->rules[SKIP_SYM_RULE_INDEX].transition_ranges[3].single_char = '\t';
-    //TODO Maybe other white space characters?
 
     // Added fixes
     // --- Fix to Rule #36

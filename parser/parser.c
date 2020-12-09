@@ -11,32 +11,45 @@
 #include "debugging.h"
 #include "generator.h"
 
-// Necessary information for correct processing and generating
-int assigns_right = 0, indent_level = 0, token_index = 0, tmp_result = 0;
-bool in_main = false, in_return = false, was_expr = false, single_assign = false, unget_token = false;
+/// Necessary information for correct processing and generating
+// Number of assignments on the right side
+int assigns_right = 0;
+// Current level of indentation
+int indent_level = 0;
+// The index of the current token
+int token_index = 0;
+// Variable for storing the result of recursive function calls
+int tmp_result = 0;
 
-/* store information whether to generate individual built-in function definitions
+// For different handling of "right side" values in return than in regular assignments
+bool in_return = false;
+// To prevent redefinition of variables in for cycles
+bool in_for = false;
+// Expression analysis needs to check one extra token, so this sets the unget_token flag
+bool was_expr = false;
+// For different handling of single and multiple assignments
+bool single_assign = false;
+// Skip token reading if an extra token was read
+bool unget_token = false;
+
+// String for saving definitions inside cycles to avoid redefinitions
+stringT defvars_in_for;
+
+/* Store information whether to generate individual built-in function definitions,
    order is the same as in token_types.h, but some are excluded */
 bool builtin_func_used[6] = { false };
 
+// Structures for semantic checks
 assignmentT assignment_check_struct;
-ST_Item *current_function_block_symbol = NULL;
-
 late_check_stack semantic_late_check_stack;
 
 // Tokens for generating multiple assignments
 tokenT left_side_assignments[LEFT_SIDE_TOKEN_COUNT];
 
-/*
- * Print error string to stderr
- */
 void err_print(char* str, int token_type){
-    fprintf(stderr, "Expected %s but got token %d (as defined in scanner/token_types.h).\n", str, token_type);
+    fprintf(stderr, "Expected %s but got token %d (as defined in token_types.h).\n", str, token_type);
 }
 
-/*
- * An identifier - regular or special _
- */
 int id(scannerT *ptr_scanner, tokenT token[], bool assign_allowed){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // identifier or _
@@ -70,9 +83,6 @@ int id(scannerT *ptr_scanner, tokenT token[], bool assign_allowed){
     return RC_SYN_ERR;
 }
 
-/*
- * An item - integer, float or string
- */
 int literal(scannerT *ptr_scanner, tokenT token[], int *item_type){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // int, float or string literal
@@ -86,15 +96,7 @@ int literal(scannerT *ptr_scanner, tokenT token[], int *item_type){
         token[token_index].token_type == TOKEN_EXPONENT_LITERAL ||
         token[token_index].token_type == TOKEN_STRING_LITERAL) {
 
-        /*// GENERATE
-        int previous_token_type = token[token_index-1].token_type;
-
-        if (previous_token_type == TOKEN_COLON_EQUAL){
-            gen_assign_token_to_var(token[token_index-2].attribute.string_val.string, &token[token_index]);
-        }
-        // END GENERATE*/
-
-        if (item_type != NULL) {    // TODO P semantic actions change or remove?
+        if (item_type != NULL) {
             switch(token[token_index].token_type) {
                 case TOKEN_INTEGER_LITERAL:
                     *item_type = TYPE_INT;
@@ -116,9 +118,6 @@ int literal(scannerT *ptr_scanner, tokenT token[], int *item_type){
     return RC_SYN_ERR;
 }
 
-/*
- * An item - integer, float or string
- */
 int item(scannerT *ptr_scanner, tokenT token[], int *item_type){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // int, float or string keyword
@@ -152,9 +151,6 @@ int item(scannerT *ptr_scanner, tokenT token[], int *item_type){
     return RC_SYN_ERR;
 }
 
-/*
- * The optional continuation of a print statement
- */
 int print_next(scannerT *ptr_scanner, tokenT token[]){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // , or )
@@ -199,9 +195,6 @@ int print_next(scannerT *ptr_scanner, tokenT token[]){
     }
 }
 
-/*
- * The beginning of a print statement
- */
 int print(scannerT *ptr_scanner, tokenT token[]){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // int / float / str literal, id, )
@@ -233,9 +226,6 @@ int print(scannerT *ptr_scanner, tokenT token[]){
     }
 }
 
-/*
- * A built-in function
- */
 int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // built-in function name
@@ -796,9 +786,6 @@ int builtin_func(scannerT *ptr_scanner, tokenT token[], int *built_in_func_type)
     }
 }
 
-/*
- * An expression - resolved by precedential syntactic analysis
- */
 int expr(scannerT *ptr_scanner, tokenT token[], bool two_tokens, int *result_data_type){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // beginning of expr
@@ -813,13 +800,15 @@ int expr(scannerT *ptr_scanner, tokenT token[], bool two_tokens, int *result_dat
 
     debug_parser("\nEntering expression analysis%s.\n", "");
     if (two_tokens){
-        tmp_result = expr_check(&token[token_index - 1], &token[token_index], &last_expr_token, &expr_result_token, ptr_scanner);
+        tmp_result = expr_check(&token[token_index - 1], &token[token_index], &last_expr_token,
+                                &expr_result_token, ptr_scanner);
         debug_parser("\nExited expression analysis with %d.\n", tmp_result);
         if (tmp_result != SYNTAX_OK)
             return tmp_result;
     }
     else {
-        tmp_result = expr_check(NULL, &token[token_index], &last_expr_token, &expr_result_token, ptr_scanner);
+        tmp_result = expr_check(NULL, &token[token_index], &last_expr_token, &expr_result_token,
+                                ptr_scanner);
         debug_parser("\nExited expression analysis with %d.\n", tmp_result);
         if (tmp_result != SYNTAX_OK)
             return tmp_result;
@@ -846,10 +835,6 @@ int expr(scannerT *ptr_scanner, tokenT token[], bool two_tokens, int *result_dat
     return SYNTAX_OK;
 }
 
-/*
- * An individual assignment (without function calls)
- */
-// TODO Possible change: add bool param to tell if to assign or not
 int assign_nofunc(scannerT *ptr_scanner, tokenT token[]){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // id, item or expression
@@ -886,7 +871,6 @@ int assign_nofunc(scannerT *ptr_scanner, tokenT token[]){
                         printf("MOVE LF@%s TF@result_here\n", token[i - 1].attribute.string_val.string);
                     }
                 } else {
-                    // TODO D multiple assignments
                     if (left_side_assignments[assigns_right].token_type != TOKEN_UNDERSCORE) {
                         printf("MOVE LF@%s TF@result_here\n",
                                left_side_assignments[assigns_right++].attribute.string_val.string);
@@ -932,7 +916,6 @@ int assign_nofunc(scannerT *ptr_scanner, tokenT token[]){
                         }
                     }
                 } else {
-                    // TODO D multiple assignments
                     if (left_side_assignments[assigns_right].token_type != TOKEN_UNDERSCORE) {
                         printf("MOVE LF@%s ", left_side_assignments[assigns_right++].attribute.string_val.string);
                         gen_print_type(&token[token_index - 1]);
@@ -993,7 +976,6 @@ int assign_nofunc(scannerT *ptr_scanner, tokenT token[]){
                         printf("MOVE LF@%s TF@result_here\n", token[i - 1].attribute.string_val.string);
                     }
                 } else {
-                    // TODO D multiple assignments
                     if (left_side_assignments[assigns_right].token_type != TOKEN_UNDERSCORE) {
                         printf("MOVE LF@%s TF@result_here\n",
                                left_side_assignments[assigns_right++].attribute.string_val.string);
@@ -1024,7 +1006,6 @@ int assign_nofunc(scannerT *ptr_scanner, tokenT token[]){
                         printf("%s\n", token[token_index - 1].attribute.string_val.string);
                     }
                 } else {
-                    // TODO D multiple assignments
                     if (left_side_assignments[assigns_right].token_type != TOKEN_UNDERSCORE) {
                         printf("MOVE LF@%s ", left_side_assignments[assigns_right++].attribute.string_val.string);
                         gen_print_type(&token[token_index - 1]);
@@ -1042,15 +1023,11 @@ int assign_nofunc(scannerT *ptr_scanner, tokenT token[]){
 
     int expr_result_type;
     tmp_result = expr(ptr_scanner, token, false, &expr_result_type);
-    // TODO D assign here too
     was_expr = true;
     assignment_add_expression(&assignment_check_struct, expr_result_type, NULL);
     return tmp_result;
 }
 
-/*
- * The optional continuation of a list of assignments (without function calls)
- */
 int assign_nofunc_next(scannerT *ptr_scanner, tokenT token[], int return_value_number){
     bool wasnt_expr = false;
     return_value_number++;
@@ -1075,7 +1052,21 @@ int assign_nofunc_next(scannerT *ptr_scanner, tokenT token[], int return_value_n
         if (wasnt_expr){
             printf("MOVE LF@%%retval%d ", return_value_number);
             gen_print_type(&token[token_index - 1]);
-            printf("%s\n", token[token_index - 1].attribute.string_val.string);
+            if (token[token_index - 1].token_type == TOKEN_STRING_LITERAL) {
+                stringT escaped_str;
+                string_init(&escaped_str);
+                gen_escape_string(token[token_index - 1].attribute.string_val.string, &escaped_str);
+                printf("%s\n", escaped_str.string);
+            } else if (token[token_index - 1].token_type == TOKEN_DECIMAL_LITERAL ||
+                       token[token_index - 1].token_type == TOKEN_EXPONENT_LITERAL) {
+                char str_hex_float[1000];
+                sprintf(str_hex_float, "%a",
+                        strtof(token[token_index - 1].attribute.string_val.string, NULL));
+                printf("%s\n", str_hex_float);
+            } else {
+                printf("%s\n", token[token_index - 1].attribute.string_val.string);
+            }
+
             wasnt_expr = false;
         }
         else {
@@ -1094,7 +1085,21 @@ int assign_nofunc_next(scannerT *ptr_scanner, tokenT token[], int return_value_n
         if (wasnt_expr){
             printf("MOVE LF@%%retval%d ", return_value_number);
             gen_print_type(&token[token_index - 1]);
-            printf("%s\n", token[token_index - 1].attribute.string_val.string);
+            if (token[token_index - 1].token_type == TOKEN_STRING_LITERAL) {
+                stringT escaped_str;
+                string_init(&escaped_str);
+                gen_escape_string(token[token_index - 1].attribute.string_val.string, &escaped_str);
+                printf("%s\n", escaped_str.string);
+            } else if (token[token_index - 1].token_type == TOKEN_DECIMAL_LITERAL ||
+                       token[token_index - 1].token_type == TOKEN_EXPONENT_LITERAL) {
+                char str_hex_float[1000];
+                sprintf(str_hex_float, "%a",
+                        strtof(token[token_index - 1].attribute.string_val.string, NULL));
+                printf("%s\n", str_hex_float);
+            } else {
+                printf("%s\n", token[token_index - 1].attribute.string_val.string);
+            }
+
             wasnt_expr = false;
         }
         else {
@@ -1107,9 +1112,6 @@ int assign_nofunc_next(scannerT *ptr_scanner, tokenT token[], int return_value_n
     }
 }
 
-/*
- * The beginning of a list of assignments (without function calls)
- */
 int assign_nofunc_list(scannerT *ptr_scanner, tokenT token[]){
     int return_value_number = 0;
     tmp_result = assign_nofunc(ptr_scanner, token);
@@ -1124,12 +1126,9 @@ int assign_nofunc_list(scannerT *ptr_scanner, tokenT token[]){
     return assign_nofunc_next(ptr_scanner, token, return_value_number);
 }
 
-/*
- * An individual assignment
- */
 int assign(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic_type_check){
     if (!unget_token) {
-        get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // id, item, built-in function or expression
+        get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // id, item, built-in function or expr
     }
     else {
         unget_token = false;
@@ -1163,7 +1162,6 @@ int assign(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic_type
                         printf("MOVE LF@%s TF@result_here\n", token[i - 1].attribute.string_val.string);
                     }
                 } else {
-                    // TODO D multiple assignments
                     if (left_side_assignments[assigns_right].token_type != TOKEN_UNDERSCORE) {
                         printf("MOVE LF@%s TF@result_here\n",
                                left_side_assignments[assigns_right++].attribute.string_val.string);
@@ -1208,7 +1206,6 @@ int assign(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic_type
                         }
                     }
                 } else {
-                    // TODO D multiple assignments
                     if (left_side_assignments[assigns_right].token_type != TOKEN_UNDERSCORE) {
                         printf("MOVE LF@%s ", left_side_assignments[assigns_right++].attribute.string_val.string);
                         gen_print_type(&token[token_index - 1]);
@@ -1259,7 +1256,6 @@ int assign(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic_type
         }
 
         if (token[token_index].token_type == TOKEN_LEFT_BRACKET) {
-            // TODO SEMANTIC: improve late check struct to check left assignment types with func return types
             if (skip_sides_semantic_type_check != NULL) {
                 *skip_sides_semantic_type_check = true;
             }
@@ -1270,14 +1266,14 @@ int assign(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic_type
             // END GENERATE
 
             late_check_stack_push_method(&semantic_late_check_stack, &token[token_index-1].attribute.string_val);
-            late_check_stack_item_create_assignment_list(semantic_late_check_stack.top, assignment_check_struct.left_side_types_list_first);
-            // TODO D generate function return value assignment
+            late_check_stack_item_create_assignment_list(semantic_late_check_stack.top,
+                                                         assignment_check_struct.left_side_types_list_first);
             return id_list1(ptr_scanner, token, true);
         }
         else {
-            // TODO D maybe add branch for expr and without based on operator check result?
             ST_Item *identifier;
-            if ((identifier = stack_search(&ptr_scanner->st_stack, &token[token_index-1].attribute.string_val)) == NULL) {
+            if ((identifier = stack_search(&ptr_scanner->st_stack,
+                                           &token[token_index-1].attribute.string_val)) == NULL) {
                 fprintf(stderr, "Error: Undefined variable \'%s\'\n", token[token_index-1].attribute.string_val.string);
                 return RC_SEMANTIC_IDENTIFIER_ERR;
             }
@@ -1298,7 +1294,6 @@ int assign(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic_type
                         printf("MOVE LF@%s TF@result_here\n", token[i - 1].attribute.string_val.string);
                     }
                 } else {
-                    // TODO D multiple assignments
                     if (left_side_assignments[assigns_right].token_type != TOKEN_UNDERSCORE) {
                         printf("MOVE LF@%s TF@result_here\n",
                                left_side_assignments[assigns_right].attribute.string_val.string);
@@ -1315,15 +1310,11 @@ int assign(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic_type
 
     int expr_result_type;
     tmp_result = expr(ptr_scanner, token, false, &expr_result_type);
-    // TODO D assign here too
     was_expr = true;
     assignment_add_expression(&assignment_check_struct, expr_result_type, NULL);
     return tmp_result;
 }
 
-/*
- * The optional continuation of a list of assignments
- */
 int assign_next(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic_type_check){
     if (!was_expr){
         if (!unget_token) {
@@ -1350,9 +1341,6 @@ int assign_next(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic
     }
 }
 
-/*
- * The beginning of a list of assignments
- */
 int assign_list(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic_type_check){
     tmp_result = assign(ptr_scanner, token, skip_sides_semantic_type_check);
     if (tmp_result != SYNTAX_OK)
@@ -1361,9 +1349,6 @@ int assign_list(scannerT *ptr_scanner, tokenT token[], bool *skip_sides_semantic
     return assign_next(ptr_scanner, token, skip_sides_semantic_type_check);
 }
 
-/*
- * The optional continuation of a list of identifiers
- */
 int id_next2(scannerT *ptr_scanner, tokenT token[], int id_number){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // = or ,
@@ -1396,9 +1381,6 @@ int id_next2(scannerT *ptr_scanner, tokenT token[], int id_number){
     }
 }
 
-/*
- * The beginning of a list of identifiers
- */
 int id_list2(scannerT *ptr_scanner, tokenT token[]){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // id or _
@@ -1425,9 +1407,6 @@ int id_list2(scannerT *ptr_scanner, tokenT token[]){
     }
 }
 
-/*
- * The optional continuation of a list of identifiers
- */
 int id_next1(scannerT *ptr_scanner, tokenT token[], int param_num, bool assignment){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // ) or ,
@@ -1440,9 +1419,9 @@ int id_next1(scannerT *ptr_scanner, tokenT token[], int param_num, bool assignme
 
     switch (token[token_index].token_type){
         case TOKEN_RIGHT_BRACKET:
+            // GENERATE
             printf("CALL $%s\n", token[token_index - 1 - 2 * param_num].attribute.string_val.string);
 
-            // GENERATE
             if (assignment) {
                 if (single_assign) {
                     int i = token_index;
@@ -1452,9 +1431,11 @@ int id_next1(scannerT *ptr_scanner, tokenT token[], int param_num, bool assignme
                     printf("MOVE LF@%s TF@%%retval%d\n", token[i - 1].attribute.string_val.string, param_num);
                 }
                 else {
-                    for (int i = 0; i < param_num; i++) {
+                    int i = 0;
+                    while (left_side_assignments[i].token_type != TOKEN_EMPTY){
                         printf("MOVE LF@%s TF@%%retval%d\n", left_side_assignments[i].attribute.string_val.string,
                                i + 1);
+                        i++;
                     }
                 }
             }
@@ -1482,7 +1463,14 @@ int id_next1(scannerT *ptr_scanner, tokenT token[], int param_num, bool assignme
                 tmp_result = literal(ptr_scanner, token, &item_type);
                 if (tmp_result == SYNTAX_OK){
                     // GENERATE - create temporary variable for parameter
-                    printf("DEFVAR TF@%%%d\n", param_num);
+                    if (in_for){
+                        char for_defvar_str[100];
+                        sprintf(for_defvar_str, "DEFVAR TF@%%%d\n", param_num);
+                        string_add_string(&defvars_in_for, for_defvar_str);
+                    }
+                    else {
+                        printf("DEFVAR TF@%%%d\n", param_num);
+                    }
                     gen_parameter(&token[token_index], param_num);
 
                     late_check_stack_item_add_parameter(semantic_late_check_stack.top, item_type);
@@ -1495,7 +1483,14 @@ int id_next1(scannerT *ptr_scanner, tokenT token[], int param_num, bool assignme
             }
 
             // GENERATE - create temporary variable for parameter
-            printf("DEFVAR TF@%%%d\n", param_num);
+            if (in_for){
+                char for_defvar_str[100];
+                sprintf(for_defvar_str, "DEFVAR TF@%%%d\n", param_num);
+                string_add_string(&defvars_in_for, for_defvar_str);
+            }
+            else {
+                printf("DEFVAR TF@%%%d\n", param_num);
+            }
             gen_parameter(&token[token_index], param_num);
 
             if ((identifier = stack_search(&ptr_scanner->st_stack, &token[token_index].attribute.string_val)) == NULL) {
@@ -1512,9 +1507,6 @@ int id_next1(scannerT *ptr_scanner, tokenT token[], int param_num, bool assignme
     }
 }
 
-/*
- * The beginning of a list of identifiers
- */
 int id_list1(scannerT *ptr_scanner, tokenT token[], bool assignment){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // id, literal or )
@@ -1527,7 +1519,27 @@ int id_list1(scannerT *ptr_scanner, tokenT token[], bool assignment){
 
     switch (token[token_index].token_type){
         case TOKEN_RIGHT_BRACKET:
+            // GENERATE
             printf("CALL $%s\n", token[token_index - 2].attribute.string_val.string);
+
+            if (assignment) {
+                if (single_assign) {
+                    int i = token_index;
+                    while (token[i].token_type != TOKEN_EQUAL) {
+                        i--;
+                    }
+                    printf("MOVE LF@%s TF@%%retval%d\n", token[i - 1].attribute.string_val.string, param_num);
+                }
+                else {
+                    int i = 0;
+                    while (left_side_assignments[i].token_type != TOKEN_EMPTY){
+                        printf("MOVE LF@%s TF@%%retval%d\n", left_side_assignments[i].attribute.string_val.string,
+                               i + 1);
+                        i++;
+                    }
+                }
+            }
+            // END GENERATE
             return SYNTAX_OK;
 
         case TOKEN_UNDERSCORE:
@@ -1542,7 +1554,15 @@ int id_list1(scannerT *ptr_scanner, tokenT token[], bool assignment){
             late_check_stack_item_add_parameter(semantic_late_check_stack.top, identifier->type);
 
             // GENERATE - create temporary variable for parameter
-            printf("DEFVAR TF@%%%d\n", param_num);
+            if (in_for){
+                char for_defvar_str[100];
+                sprintf(for_defvar_str, "DEFVAR TF@%%%d\n", param_num);
+                string_add_string(&defvars_in_for, for_defvar_str);
+            }
+            else {
+                printf("DEFVAR TF@%%%d\n", param_num);
+
+            }
             gen_parameter(&token[token_index], param_num);
 
             return id_next1(ptr_scanner, token, param_num, assignment);
@@ -1552,7 +1572,15 @@ int id_list1(scannerT *ptr_scanner, tokenT token[], bool assignment){
             tmp_result = literal(ptr_scanner, token, &item_type);
             if (tmp_result == SYNTAX_OK){
                 // GENERATE - create temporary variable for parameter
-                printf("DEFVAR TF@%%%d\n", param_num);
+                if (in_for){
+                    char for_defvar_str[100];
+                    sprintf(for_defvar_str, "DEFVAR TF@%%%d\n", param_num);
+                    string_add_string(&defvars_in_for, for_defvar_str);
+                }
+                else {
+                    printf("DEFVAR TF@%%%d\n", param_num);
+
+                }
                 gen_parameter(&token[token_index], param_num);
 
                 late_check_stack_item_add_parameter(semantic_late_check_stack.top, item_type);
@@ -1565,11 +1593,7 @@ int id_list1(scannerT *ptr_scanner, tokenT token[], bool assignment){
     }
 }
 
-/*
- * A command beginning with an underscore (one or multiple assignments)
- */
 int underscore_command(scannerT *ptr_scanner, tokenT token[]){
-    Symtable *ptr_curr_scope_sym_table = stack_top(&ptr_scanner->st_stack).symtable;
     ST_Item *symbol = NULL;
 
     bool proceed_semantic_check = false;
@@ -1583,7 +1607,6 @@ int underscore_command(scannerT *ptr_scanner, tokenT token[]){
 
     switch (token[token_index].token_type){
         case TOKEN_EQUAL:
-            // TODO: Change to another non terminal because of cycle assign
             // SEMANTIC
             assignment_add_identifier(&assignment_check_struct, token[token_index-1].token_type, symbol);
             // END SEMANTIC
@@ -1626,9 +1649,6 @@ int underscore_command(scannerT *ptr_scanner, tokenT token[]){
     }
 }
 
-/*
- * A command with an identifier (definition, one or multiple assignments, function call)
- */
 int id_command(scannerT *ptr_scanner, tokenT token[]){
     Symtable *ptr_curr_scope_sym_table = stack_top(&ptr_scanner->st_stack).symtable;
     ST_Item *symbol = NULL;
@@ -1646,12 +1666,20 @@ int id_command(scannerT *ptr_scanner, tokenT token[]){
     switch (token[token_index].token_type){
         case TOKEN_COLON_EQUAL:
             // SEMANTIC: Insert identifier to symtable
-            symbol = st_insert_symbol(ptr_curr_scope_sym_table, &token[token_index-1].attribute.string_val, false);
+            symbol = st_insert_symbol(ptr_curr_scope_sym_table, &token[token_index-1].attribute.string_val,
+                                      false);
             assignment_add_identifier(&assignment_check_struct, token[token_index-1].token_type, symbol);
             // END SEMANTIC
 
             // GENERATE
-            gen_defvar_lf(token[token_index-1].attribute.string_val.string);
+            if (in_for){
+                char for_defvar_str[1000];
+                sprintf(for_defvar_str, "DEFVAR LF@%s\n", token[token_index-1].attribute.string_val.string);
+                string_add_string(&defvars_in_for, for_defvar_str);
+            }
+            else {
+                gen_defvar_lf(token[token_index-1].attribute.string_val.string);
+            }
 
             single_assign = true;
             tmp_result = assign_nofunc(ptr_scanner, token);
@@ -1668,12 +1696,12 @@ int id_command(scannerT *ptr_scanner, tokenT token[]){
             return tmp_result;
         
         case TOKEN_EQUAL:
-            // TODO: Change to another non terminal because of cycle assign
             // SEMANTIC: Check if identifier exists in symtable
-            // TODO: Proper check for "_" identifier
             if (string_compare_constant(&token[token_index-1].attribute.string_val, "_") != 0) {
-                if ((symbol = stack_search(&ptr_scanner->st_stack, &token[token_index-1].attribute.string_val)) == NULL) {
-                    fprintf(stderr, "Error: Undefined variable \'%s\'\n", token[token_index-1].attribute.string_val.string);
+                if ((symbol = stack_search(&ptr_scanner->st_stack,
+                                           &token[token_index-1].attribute.string_val)) == NULL) {
+                    fprintf(stderr, "Error: Undefined variable \'%s\'\n",
+                            token[token_index-1].attribute.string_val.string);
                     return RC_SEMANTIC_IDENTIFIER_ERR;
                 }
             }
@@ -1693,8 +1721,9 @@ int id_command(scannerT *ptr_scanner, tokenT token[]){
             gen_createframe();
             late_check_stack_push_method(&semantic_late_check_stack, &token[token_index-1].attribute.string_val);
 
-            if ((function_symb_check = st_search(ptr_scanner->st_stack.top->symtable, &token[token_index-1].attribute.string_val)) != NULL &&
-                !st_item_is_function(function_symb_check)) {
+            if ((function_symb_check = st_search(ptr_scanner->st_stack.top->symtable,
+                                                 &token[token_index-1].attribute.string_val)) != NULL &&
+                                                 !st_item_is_function(function_symb_check)) {
                 fprintf(stderr, "Variable \'%s\' is not a function",
                         token[token_index-1].attribute.string_val.string);
                 return RC_SEMANTIC_IDENTIFIER_ERR;
@@ -1705,8 +1734,10 @@ int id_command(scannerT *ptr_scanner, tokenT token[]){
         case TOKEN_COMMA:
             // SEMANTIC
             if (string_compare_constant(&token[token_index-1].attribute.string_val, "_") != 0) {
-                if ((symbol = stack_search(&ptr_scanner->st_stack, &token[token_index-1].attribute.string_val)) == NULL) {
-                    fprintf(stderr, "Error: Undefined variable \'%s\'\n", token[token_index-1].attribute.string_val.string);
+                if ((symbol = stack_search(&ptr_scanner->st_stack,
+                                           &token[token_index-1].attribute.string_val)) == NULL) {
+                    fprintf(stderr, "Error: Undefined variable \'%s\'\n",
+                            token[token_index-1].attribute.string_val.string);
                     return RC_SEMANTIC_IDENTIFIER_ERR;
                 }
             }
@@ -1737,9 +1768,6 @@ int id_command(scannerT *ptr_scanner, tokenT token[]){
     }
 }
 
-/*
- * An optional assignment at the end of each cycle iteration
- */
 int cycle_assign(scannerT *ptr_scanner, tokenT token[], int for_count){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // id, _ or {
@@ -1760,7 +1788,6 @@ int cycle_assign(scannerT *ptr_scanner, tokenT token[], int for_count){
     }
     else {
         unget_token = true; // id or _ is already loaded
-        // TODO SEMANTIC: Check id assignment in cycle semantic
         tmp_result = id(ptr_scanner, token, true);
         if (tmp_result == SYNTAX_OK){
             if (!unget_token) {
@@ -1810,9 +1837,6 @@ int cycle_assign(scannerT *ptr_scanner, tokenT token[], int for_count){
     }
 }
 
-/*
- * Optional initial definition in a cycle
- */
 int cycle_init(scannerT *ptr_scanner, tokenT token[]){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // id or ;
@@ -1825,7 +1849,8 @@ int cycle_init(scannerT *ptr_scanner, tokenT token[]){
         return SYNTAX_OK;
     }
     else if (token[token_index].token_type == TOKEN_IDENTIFIER){
-        ST_Item *symbol = st_insert_symbol(stack_top(&ptr_scanner->st_stack).symtable, &token[token_index].attribute.string_val, false);
+        ST_Item *symbol = st_insert_symbol(stack_top(&ptr_scanner->st_stack).symtable,
+                                           &token[token_index].attribute.string_val, false);
         assignment_add_identifier(&assignment_check_struct, token[token_index-1].token_type, symbol);
         if (!unget_token) {
             get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // :=
@@ -1840,7 +1865,15 @@ int cycle_init(scannerT *ptr_scanner, tokenT token[]){
         }
 
         // GENERATE
-        gen_defvar_lf(token[token_index - 1].attribute.string_val.string);
+        if (in_for){
+            char for_defvar_str[1000];
+            sprintf(for_defvar_str, "DEFVAR LF@%s\n", token[token_index-1].attribute.string_val.string);
+            string_add_string(&defvars_in_for, for_defvar_str);
+        }
+        else {
+            gen_defvar_lf(token[token_index-1].attribute.string_val.string);
+        }
+
         single_assign = true;
         tmp_result = assign_nofunc(ptr_scanner, token);
         single_assign = false;
@@ -1877,14 +1910,19 @@ int cycle_init(scannerT *ptr_scanner, tokenT token[]){
     }
 }
 
-/*
- * An individual command inside a function, cycle, or block
- */
 int command(scannerT *ptr_scanner, tokenT token[]){
     assignment_struct_empty(&assignment_check_struct);
 
+    // Necessary variables for correct label generating inside conditions and cycles
     static int if_count = 0;
     static int for_count = 0;
+    static int for_defvar_label_count = 1;
+
+    static intStack if_stack;
+    static intStack for_stack;
+
+    static bool if_stack_initiated = false;
+    static bool for_stack_initiated = false;
 
     switch (token[token_index].token_type){
         case TOKEN_IDENTIFIER:
@@ -1895,6 +1933,12 @@ int command(scannerT *ptr_scanner, tokenT token[]){
 
         case TOKEN_KEYWORD_IF:
             if_count++;
+
+            if (!if_stack_initiated) {
+                int_stack_init(&if_stack);
+                if_stack_initiated = true;
+            }
+            int_stack_push(&if_stack, if_count);
 
             tmp_result = expr(ptr_scanner, token, false, NULL);
             if (tmp_result != SYNTAX_OK)
@@ -1907,7 +1951,7 @@ int command(scannerT *ptr_scanner, tokenT token[]){
 
             // GENERATE
             indent_level++;
-            printf("JUMPIFEQ $if%d$else TF@result_here bool@false\n", if_count);
+            printf("JUMPIFEQ $if%d$else TF@result_here bool@false\n", int_stack_top(&if_stack));
             // GENERATE END
 
             stack_push(&ptr_scanner->st_stack);
@@ -1929,8 +1973,8 @@ int command(scannerT *ptr_scanner, tokenT token[]){
             }
 
             // GENERATE
-            printf("JUMP $if%d$end\n", if_count);
-            printf("LABEL $if%d$else\n", if_count);
+            printf("JUMP $if%d$end\n", int_stack_top(&if_stack));
+            printf("LABEL $if%d$else\n", int_stack_top(&if_stack));
 
             if (!unget_token) {
                 get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // {
@@ -1950,12 +1994,33 @@ int command(scannerT *ptr_scanner, tokenT token[]){
             if (tmp_result != SYNTAX_OK)
                 return tmp_result;
 
-            printf("LABEL $if%d$end\n\n", if_count);
+            // GENERATE
+            printf("LABEL $if%d$end\n\n", int_stack_top(&if_stack));
+            int_stack_pop(&if_stack);
+            if (int_stack_empty(&if_stack)){
+                int_stack_free(&if_stack);
+                if_stack_initiated = false;
+            }
+            // GENERATE
 
             return SYNTAX_OK;
 
         case TOKEN_KEYWORD_FOR:
+            if (!for_stack_initiated){
+                int_stack_init(&for_stack);
+                for_stack_initiated = true;
+                in_for = true;
+
+                printf("JUMP $for$defvar%d$start\n", for_defvar_label_count);
+                printf("LABEL $for$defvar%d$end\n", for_defvar_label_count);
+
+                char tmp_for_str[100];
+                sprintf(tmp_for_str, "LABEL $for$defvar%d$start\n", for_defvar_label_count);
+                string_add_string(&defvars_in_for, tmp_for_str);
+            }
+
             for_count++;
+            int_stack_push(&for_stack, for_count);
             printf("\n# FOR cycle\n");
 
             stack_push(&ptr_scanner->st_stack);
@@ -1964,7 +2029,7 @@ int command(scannerT *ptr_scanner, tokenT token[]){
                 return tmp_result;
 
             // GENERATE
-            printf("\nLABEL $for%d$start\n", for_count);
+            printf("\nLABEL $for%d$start\n", int_stack_top(&for_stack));
 
             tmp_result = expr(ptr_scanner, token, false, NULL);
             if (tmp_result != SYNTAX_OK)
@@ -1975,20 +2040,37 @@ int command(scannerT *ptr_scanner, tokenT token[]){
                 return RC_SYN_ERR;
             }
 
-            printf("JUMPIFEQ $for%d$end TF@result_here bool@false\n", for_count);
-            printf("JUMP $for%d$body\n", for_count);
+            printf("JUMPIFEQ $for%d$end TF@result_here bool@false\n", int_stack_top(&for_stack));
+            printf("JUMP $for%d$body\n", int_stack_top(&for_stack));
 
-            tmp_result = cycle_assign(ptr_scanner, token, for_count);
+            tmp_result = cycle_assign(ptr_scanner, token, int_stack_top(&for_stack));
             if (tmp_result != SYNTAX_OK)
                 return tmp_result;
 
-            printf("\nLABEL $for%d$body\n", for_count);
+            printf("\nLABEL $for%d$body\n", int_stack_top(&for_stack));
             tmp_result = command_list(ptr_scanner, token);
             if (tmp_result == SYNTAX_OK) {
                 stack_pop(&ptr_scanner->st_stack);
             }
-            printf("JUMP $for%d$assign\n", for_count);
-            printf("\nLABEL $for%d$end\n\n", for_count);
+
+            // GENERATE
+            printf("JUMP $for%d$assign\n", int_stack_top(&for_stack));
+            printf("\nLABEL $for%d$end\n\n", int_stack_top(&for_stack));
+
+            int_stack_pop(&for_stack);
+            if (int_stack_empty(&for_stack)){
+                int_stack_free(&for_stack);
+                for_stack_initiated = false;
+                in_for = false;
+
+                char tmp_for_str[100];
+                sprintf(tmp_for_str, "JUMP $for$defvar%d$end\n", for_defvar_label_count);
+                string_add_string(&defvars_in_for, tmp_for_str);
+
+                for_defvar_label_count++;
+            }
+            //END GENERATE
+
             return tmp_result;
 
         case TOKEN_KEYWORD_RETURN:
@@ -2030,9 +2112,6 @@ int command(scannerT *ptr_scanner, tokenT token[]){
     return tmp_result;
 }
 
-/*
- * The list of commands inside a function, cycle, or block
- */
 int command_list(scannerT *ptr_scanner, tokenT token[]){
     if (!was_expr){
         if (!unget_token) {
@@ -2050,16 +2129,6 @@ int command_list(scannerT *ptr_scanner, tokenT token[]){
         stack_pop(&ptr_scanner->st_stack);
 
         indent_level--;
-        if (indent_level == 0){
-            if (in_main){
-                gen_exit_main();
-                in_main = false;
-            }
-            else {
-                gen_popframe();
-                gen_return();
-            }
-        }
 
         return SYNTAX_OK;
     }
@@ -2072,9 +2141,6 @@ int command_list(scannerT *ptr_scanner, tokenT token[]){
     }
 }
 
-/*
- * The optional continuation of a list of function return types
- */
 int return_type(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol, int return_type_num){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // , or )
@@ -2107,7 +2173,15 @@ int return_type(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol,
         }
         // GENERATE
         return_type_num++;
-        printf("DEFVAR LF@%%retval%d\n", return_type_num);
+        if (in_for){
+            char for_defvar_str[1000];
+            sprintf(for_defvar_str, "DEFVAR LF@%%retval%d\n", return_type_num);
+            string_add_string(&defvars_in_for, for_defvar_str);
+        }
+        else {
+            printf("DEFVAR LF@%%retval%d\n", return_type_num);
+        }
+
         printf("MOVE LF@%%retval%d nil@nil\n", return_type_num);
 
         st_add_function_return_type(ptr_curr_symbol, item_type);
@@ -2120,9 +2194,6 @@ int return_type(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol,
     }
 }
 
-/*
- * The beginning of a list of function return types
- */
 int return_type_list(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // ( or {
@@ -2173,7 +2244,16 @@ int return_type_list(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_sy
         }
         // GENERATE
         printf("# init return values\n");
-        printf("DEFVAR LF@%%retval%d\n", return_type_num);
+
+        if (in_for){
+            char for_defvar_str[1000];
+            sprintf(for_defvar_str, "DEFVAR LF@%%retval%d\n", return_type_num);
+            string_add_string(&defvars_in_for, for_defvar_str);
+        }
+        else {
+            printf("DEFVAR LF@%%retval%d\n", return_type_num);
+        }
+
         printf("MOVE LF@%%retval%d nil@nil\n", return_type_num);
 
         st_add_function_return_type(ptr_curr_symbol, item_type);
@@ -2182,9 +2262,6 @@ int return_type_list(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_sy
     }
 }
 
-/*
- * The optional continuation of a list of function parameters
- */
 int param(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol, int param_number){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // , or )
@@ -2210,14 +2287,23 @@ int param(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol, int p
     }
 
     if (token[token_index].token_type == TOKEN_IDENTIFIER){
-        ST_Item *newParamSymbol = st_insert_symbol(ptr_scanner->st_stack.top->symtable, &token[token_index].attribute.string_val, false);
+        ST_Item *newParamSymbol = st_insert_symbol(ptr_scanner->st_stack.top->symtable,
+                                                   &token[token_index].attribute.string_val, false);
 
         // GENERATE
         param_number++;
         char par_num_str[10];
         sprintf(par_num_str, "LF@%%%d", param_number);
 
-        gen_defvar_lf(token[token_index].attribute.string_val.string);
+        if (in_for){
+            char for_defvar_str[1000];
+            sprintf(for_defvar_str, "DEFVAR LF@%s\n", token[token_index].attribute.string_val.string);
+            string_add_string(&defvars_in_for, for_defvar_str);
+        }
+        else {
+            gen_defvar_lf(token[token_index].attribute.string_val.string);
+        }
+
         gen_move_to_lf(token[token_index].attribute.string_val.string, par_num_str);
         // GENERATE END
 
@@ -2233,9 +2319,6 @@ int param(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol, int p
     return param(ptr_scanner, token, ptr_curr_symbol, param_number);
 }
 
-/*
- * The beginning of a list of function parameters
- */
 int param_list(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // function parameter (ID) or )
@@ -2251,11 +2334,20 @@ int param_list(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol){
     else if (token[token_index].token_type == TOKEN_IDENTIFIER){
         int item_type;
         Symtable *ptr_curr_scope_sym_table = stack_top(&ptr_scanner->st_stack).symtable;
-        ST_Item *newParamSymbol = st_insert_symbol(ptr_curr_scope_sym_table, &token[token_index].attribute.string_val, false);
+        ST_Item *newParamSymbol = st_insert_symbol(ptr_curr_scope_sym_table, &token[token_index].attribute.string_val,
+                                                   false);
 
         // GENERATE
         printf("# init parameters\n");
-        gen_defvar_lf(token[token_index].attribute.string_val.string);
+        if (in_for){
+            char for_defvar_str[1000];
+            sprintf(for_defvar_str, "DEFVAR LF@%s\n", token[token_index].attribute.string_val.string);
+            string_add_string(&defvars_in_for, for_defvar_str);
+        }
+        else {
+            gen_defvar_lf(token[token_index].attribute.string_val.string);
+        }
+
         gen_move_to_lf(token[token_index].attribute.string_val.string, "LF@%1");
         // GENERATE END
 
@@ -2274,10 +2366,10 @@ int param_list(scannerT *ptr_scanner, tokenT token[], ST_Item *ptr_curr_symbol){
     return param(ptr_scanner, token, ptr_curr_symbol, param_number);
 }
 
-/*
- * A function definition
- */
 int func(scannerT *ptr_scanner, tokenT token[]){
+    // For different handling of main function exit
+    static bool in_main = false;
+
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], FORBIDDEN); // function name (ID)
     }
@@ -2293,7 +2385,6 @@ int func(scannerT *ptr_scanner, tokenT token[]){
     // SEMANTIC: Add function to symtable
     Symtable *ptr_curr_scope_sym_table = stack_top(&ptr_scanner->st_stack).symtable;
     ST_Item *symbol = st_insert_symbol(ptr_curr_scope_sym_table, &token[token_index].attribute.string_val, true);
-    current_function_block_symbol = symbol;
     // END SEMANTIC
 
     // GENERATE
@@ -2331,12 +2422,20 @@ int func(scannerT *ptr_scanner, tokenT token[]){
     if (tmp_result != SYNTAX_OK)
         return tmp_result;
 
+    if (indent_level == 0){
+        if (in_main){
+            gen_exit_main();
+            in_main = false;
+        }
+        else {
+            gen_popframe();
+            gen_return();
+        }
+    }
+
     return SYNTAX_OK;
 }
 
-/*
- * The program itself - a list of functions
- */
 int program(scannerT *ptr_scanner, tokenT token[]){
     if (!unget_token) {
         get_next_token(ptr_scanner, &token[++token_index], OPTIONAL); // "func" / EOF
@@ -2360,13 +2459,11 @@ int program(scannerT *ptr_scanner, tokenT token[]){
     return RC_SYN_ERR;
 }
 
-/*
- * Starting point of parser
- */
 int parse(scannerT *ptr_scanner, tokenT token[]){
     late_check_stack_init(&semantic_late_check_stack);
 
-    token_array_init(left_side_assignments, 10);
+    token_array_init(left_side_assignments, LEFT_SIDE_TOKEN_COUNT);
+    string_init(&defvars_in_for);
 
     get_next_token(ptr_scanner, &token[token_index], OPTIONAL); // "package"
 
@@ -2386,15 +2483,18 @@ int parse(scannerT *ptr_scanner, tokenT token[]){
     }
 
     tmp_result = program(ptr_scanner, token);
+
     if (tmp_result == SYNTAX_OK) {
         tmp_result = check_semantic_for_methods_call(&semantic_late_check_stack, &ptr_scanner->st_stack);
 
         if (tmp_result != SYNTAX_OK)
             return tmp_result;
         else {
-            token_array_free(left_side_assignments, 10);
+            token_array_free(left_side_assignments, LEFT_SIDE_TOKEN_COUNT);
 
             // GENERATE
+            printf("\n# defvars in cycles to avoid redefinitions\n\n%s", defvars_in_for.string);
+            string_free(&defvars_in_for);
             gen_def_builtin_functions(builtin_func_used);
         }
     }

@@ -82,6 +82,7 @@ ST_Item* st_insert_symbol (Symtable* ptr_symtable, stringT* key, bool function) 
         return NULL;
     }
 
+
     ST_Item* temp = st_search(ptr_symtable, key); /* Search whether identifier already exists */
     ST_Item* new_item;
 
