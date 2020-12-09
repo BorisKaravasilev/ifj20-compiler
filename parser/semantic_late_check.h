@@ -61,7 +61,7 @@ void late_check_stack_init(late_check_stack *s);
 bool late_check_stack_empty(late_check_stack *s);
 
 /**
- * @brief Returns the token at the top of the stack.
+ * @brief Returns the late check stack item at the top of the stack.
  * @param s Stack from which the top element is taken.
  * @return Element at the top of the stack.
  */
@@ -70,13 +70,13 @@ late_check_stack_item late_check_stack_top(late_check_stack *s);
 /**
  * @brief Push a token to the token stack.
  * @param s Stack to be pushed to.
- * @param token The token to be pushed to the stack.
- * @return Truth value based on success of push operation.
+ * @param name method name
+ * @return Boolean value based on success of push operation.
  */
 bool late_check_stack_push_method(late_check_stack *s, stringT *name);
 
 /**
- * @brief Pop a token from the stack.
+ * @brief Pop a late check stack item from the stack.
  * @param s Stack from which the token is to be popped.
  */
 void late_check_stack_pop(late_check_stack *s);
@@ -85,8 +85,16 @@ void late_check_stack_pop(late_check_stack *s);
  * @brief Executes check for param list equality
  * @param late_check_param_list Late check parameters list
  * @param symtable_param_list Symtable parameters list
+ * @return Boolean value based match of both sides
  */
 bool param_lists_match(method_param_structT *late_check_param_list, st_function_data_param_structT *symtable_param_list);
+
+/**
+ * @brief Executes check for return types list equality
+ * @param late_check_param_list Late check parameters list
+ * @param symtable_param_list Symtable parameters list
+ * @return Boolean value based match of both sides
+ */
 bool return_lists_match(method_param_structT *late_check_param_list, st_function_data_param_structT *symtable_param_list);
 
 /**
@@ -110,18 +118,20 @@ void late_check_method_param_list_free(method_param_structT *method_param);
 
 /**
  * @brief Dealloc stack by freeing all of its elements.
- * @param s Stack to be de-allocated.
+ * @param s late check stack to be de-allocated.
  */
 void late_check_stack_free(late_check_stack *s);
 
 /**
- * @brief Empty stack by popping all of its elements from it.
- * @param s Stack to be emptied.
+ * @brief Searches and retrieves late check stack item based on its method name
+ * @param s late check stack to search in.
+ * @param method_name searched method name
+ * @return late_check_stack item
  */
 late_check_stack_item* late_check_stack_search(late_check_stack *s, stringT *method_name);
 
 /**
- * @brief Adds assign types on left side of assignment to the stack_item
+ * @brief Creates late check stack item assignment list
  * @param item pointer at late_check_stack item
  * @param list pointer at left assignment list of params
  */

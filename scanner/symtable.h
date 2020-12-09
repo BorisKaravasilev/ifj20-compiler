@@ -9,7 +9,6 @@
 #ifndef IFJ_PROJEKT_SYMTABLE_H
 #define IFJ_PROJEKT_SYMTABLE_H
 
-// TODO: Change Symtable SIZE
 #define MAX_SYMTABLE_SIZE 101
 
 #define SYMTABLE_MALLOC_ERROR 99
@@ -35,7 +34,7 @@ typedef enum {
 } Data_type;
 
 /**
- * @brief Structure of a stack element.
+ * @brief Symtable function data parameter structure.
  */
 typedef struct st_function_data_param_struct {
     int index;
@@ -43,6 +42,9 @@ typedef struct st_function_data_param_struct {
     struct st_function_data_param_struct *next;
 } st_function_data_param_structT;
 
+/**
+ * @brief Symtable function data structure.
+ */
 typedef struct st_item_function_struct {
     bool defined;
     int parameters_count;
@@ -90,6 +92,12 @@ Symtable* st_init ();
  */
 ST_Item* st_create_item ();
 
+/**
+ * Search symbol in symtable.
+ * @param ptr_symtable pointer at symtable structure
+ * @param key identifier key
+ * @return returns pointer at symtable item
+ */
 ST_Item* st_search (Symtable* ptr_symtable, stringT* key);
 
 /**
@@ -97,20 +105,23 @@ ST_Item* st_search (Symtable* ptr_symtable, stringT* key);
  * @param pointer to symbol table
  * @param new symbol key
  * @param pointer to new symbol data
+ * @return returns pointer at symtable item
  */
 ST_Item* st_insert_symbol (Symtable* ptr_symtable, stringT* key, bool function);
 
 /**
  * Changes defined parameter in the symbol.
  * @param pointer to symbol table
- * @param new symbol key
- * @param defined state integer
- * @return true if adding was successful, otherwise false
+ * @param symbol key
+ * @param defined state bool value
+ * @return returns pointer at symtable item
  */
 ST_Item* st_item_change_defined(Symtable* ptr_symtable, stringT* key, bool defined);
 
 /**
- *
+ * Checks whether supplied symtable item represents a function or not.
+ * @param pointer at symtable item
+ * @return returns true if symbol item represents a function
  */
 bool st_item_is_function(ST_Item *item);
 
@@ -134,7 +145,7 @@ int st_add_function_return_type (ST_Item* symbol, Data_type type);
  * Function that returns Symbol table item content.
  * @param pointer to symbol table
  * @param searched item key
- * @return Returns table item content
+ * @return Returns symtable item content
  */
 char* st_get_content (Symtable* ptr_symtable, stringT* key);
 

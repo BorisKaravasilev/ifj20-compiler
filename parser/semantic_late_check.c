@@ -62,10 +62,12 @@ bool param_lists_match(method_param_structT *late_check_param_list, st_function_
     method_param_structT *lc_current = late_check_param_list;
     st_function_data_param_structT *st_current = symtable_param_list;
 
+    /* Check every parameter in the method_param list */
     while (lc_current != NULL || st_current != NULL) {
         if (lc_current == NULL || st_current == NULL) {
             return false;
         } else {
+            /* If data types dont match we return false */
             if (lc_current->data_type != st_current->data_type) {
                 return false;
             }
@@ -83,13 +85,17 @@ bool return_lists_match(method_param_structT *late_check_param_list, st_function
     st_function_data_param_structT *st_current = symtable_param_list;
 
     if (lc_current == NULL) {
+        /* if method doesnt have return type its ok */
         return true;
     } else {
+        /* Check every return type in the method_param list */
         while (lc_current != NULL || st_current != NULL) {
             if (lc_current == NULL || st_current == NULL) {
                 return false;
             } else {
+                /* if return types during function call are not the same for symtable item return types it is an error*/
                 if (lc_current->data_type != st_current->data_type) {
+                    /* if left identifier is underline its ok though */
                     if (lc_current->data_type != TYPE_BLANK_VARIABLE)
                         return false;
                 }
@@ -103,25 +109,28 @@ bool return_lists_match(method_param_structT *late_check_param_list, st_function
     return true;
 }
 
-// TODO: Search if user function must have at least one return type
-// TODO P: Change return type to int
 int check_semantic_for_methods_call(late_check_stack *late_check_s, Stack *st_stack) {
+    /* Check every function call and compares them with record in symtable */
     if (late_check_s != NULL && st_stack != NULL) {
         while (late_check_s->top != NULL) {
-            // Find method in symbol table
+            /* find method in symtable */
             ST_Item *symbol = stack_search(st_stack, &late_check_s->top->method_name);
             if (symbol == NULL || !st_item_is_function(symbol)) {
+                /* if its not there or its not a function its a semantic error */
                 fprintf(stderr, "Error: Calling undefined function \'%s\'", late_check_s->top->method_name.string);
                 return RC_SEMANTIC_IDENTIFIER_ERR;
             }
             if (param_lists_match(late_check_s->top->parameters_list_first, symbol->function_data->parameters_list_first) == false) {
+                /* if supplied parameters do not match its semantic error */
                 fprintf(stderr, "Error: Invalid parameters supplied to function \'%s\'", symbol->key.string);
                 return RC_SEMANTIC_FUNC_PARAM_ERR;
             } else if (return_lists_match(late_check_s->top->return_types_list_first, symbol->function_data->return_types_list_first) == false) {
+                /* if return types do not match its semantic error */
                 fprintf(stderr, "Error: Invalid return types for function \'%s\'", symbol->key.string);
                 return RC_SEMANTIC_FUNC_PARAM_ERR;
             }
 
+            /* pop successfully checked function call from the stack */
             late_check_stack_pop(late_check_s);
         }
         return SEMANTIC_OK;
@@ -184,6 +193,7 @@ void late_check_stack_item_create_assignment_list(late_check_stack_item *item, a
 
     assignment_paramT *current = list;
     while (current != NULL) {
+        /* copies all identifiers from the list of left side assignment into the structure */
         late_check_stack_item_add_return_type(item, current->data_type);
         current = current->next;
     }
@@ -219,17 +229,22 @@ void late_check_stack_item_add_parameter(late_check_stack_item *item, Data_type 
         return;
     }
 
+    /* if allocation fails we exit the program */
     method_param_structT *new_parameter;
     if ((new_parameter = (method_param_structT *) malloc(sizeof(method_param_structT))) == NULL) {
         exit(SEMANTIC_LATE_CHECK_MALLOC_ERROR);
     }
+
+    /* copies data type to new late check stack item parameter */
     new_parameter->data_type = data_type;
     new_parameter->next = NULL;
     new_parameter->index = item->parameters_count++;
 
     if (item->parameters_list_first == NULL) {
+        /* if list is empty we can put it directly at list's first pointer */
         item->parameters_list_first = new_parameter;
     } else {
+        /* else we need to chain new parameter at the end of the list  */
         method_param_structT *current = item->parameters_list_first;
 
         while (current->next != NULL) {
@@ -244,6 +259,7 @@ void late_check_stack_item_add_return_type(late_check_stack_item *item, Data_typ
         return;
     }
 
+    /* if allocation failed we exit the program  */
     method_param_structT *new_parameter;
     if ((new_parameter = (method_param_structT *) malloc(sizeof(method_param_structT))) == NULL) {
         exit(SEMANTIC_LATE_CHECK_MALLOC_ERROR);
@@ -253,8 +269,10 @@ void late_check_stack_item_add_return_type(late_check_stack_item *item, Data_typ
     new_parameter->index = item->return_types_count++;
 
     if (item->return_types_list_first == NULL) {
+        /* if list is empty we can put it directly at list's first pointer */
         item->return_types_list_first = new_parameter;
     } else {
+        /* else we need to chain new return type at the end of the list  */
         method_param_structT *current = item->return_types_list_first;
 
         while (current->next != NULL) {
