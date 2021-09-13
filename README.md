@@ -1,4 +1,7 @@
 # IFJ 2020 Compiler
+We created this compiler of the Go language as our semester project for the ["Formal Languages and Compilers"](https://www.fit.vut.cz/study/course/13981/.en) course which was the biggest and most difficult coures project during our bachelor's degree. We are proud to say that we received almost full points for it because it is a course that many people fail because of this project.
+
+### How to run
 
 From a UNIX like terminal run these commands:
 
@@ -10,10 +13,6 @@ make
 Lexical analyzer for any finite automata.
 
 Sample FA definition in [finite_automata.c](scanner/finite_automata.c) sample FA graph drawing in [finite_automata_graph.jpg](scanner/finite_automata_graph.jpg).
-
-### TODO
-
-Check TODO's in code and create issues on Github from them.
 
 ### CLion Setup - current cmake project
 
@@ -29,23 +28,3 @@ Configuration should look like this:
 #### Input file
 
 For running in CLion change "Program arguments" setting in "Edit configurations" to <ins>input_files/input_name.txt</ins>
-
-### OLD CLion Setup - obsolete
-
-- Install *Makefile* plugin from settings.
-- Install [cygwin](https://www.cygwin.com/) C compiler.
-- Go to "Settings" -> "Build, Execution, Development" -> "Build Tools" -> "Make" and set the path to "C:\cygwin64\bin\make.exe" or where your *make* is located. I checked the option "Use Cygwin".
-- Add path to your "make.exe" to system variable PATH in Windows (For me it is "C:\cygwin64\bin\make.exe").
-- In CLion in the upper right corner next to the green triangle, open the dropdown menu and go into "Edit configurations...", add a new configuration of type "Makefile" and type "run" in "Targets" field, select path to "Makefile" -> "Apply" -> "Ok".
-- Then just using Cmd+f5 shortcut build and run the code.
-
-#### Input file - obsolete
-
-For running in CLion in file "ifj20-compiler.c" change "IS_INPUT_FROM_FILE" to true.
-Then the input will come from file and not *stdin*.
-Edit or add input file in folder *input_files*.
-Keep it clean, cheers!
-
-#### Adding folders
-
-When you add new folder with ".c" files, add the new folder to Makefile.
